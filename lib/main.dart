@@ -1,4 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/theme/app_theme.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+
+  runApp(
+    const ProviderScope(
+      child: WhiteTVApp(),
+    ),
+  );
+}
+
+class WhiteTVApp extends StatelessWidget {
+  const WhiteTVApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'whiteTV',
+      theme: AppTheme.darkTheme,
+      home: const Scaffold(
+        body: Center(child: Text('whiteTV')),
+      ),
+    );
+  }
+}
 
 void main() {
   runApp(const MyApp());
