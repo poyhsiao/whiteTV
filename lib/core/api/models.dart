@@ -1,4 +1,5 @@
 /// API 共用模型
+library;
 /// 參照: docs/spec/ARCHITECTURE.md Section 3.2 LunaTV API 格式
 
 class Category {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
-import 'package:white_tv/core/api/models.dart' show VideoSource;
 import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/features/player/player_store.dart' as player;
@@ -76,8 +75,6 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
-  bool _initialized = false;
-
   Future<void> _initializePlayer() async {
     final controller = ref.read(videoPlayerControllerProvider);
 
@@ -89,10 +86,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     final state = ref.read(player.playerStoreProvider);
     if (state.source != null) {
       await controller.open(state.source!.url);
-    }
-
-    if (mounted) {
-      setState(() => _initialized = true);
     }
   }
 
@@ -165,7 +158,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Widget _buildTVControls(player.PlayerState state, VideoPlayerController? controller) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppColors.cardBackground.withOpacity(0.8),
+      color: AppColors.cardBackground.withValues(alpha: 0.8),
       child: Row(
         children: [
           // Play/Pause

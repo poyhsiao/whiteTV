@@ -7,9 +7,11 @@ void main() {
   });
 
   test('accent color is warm amber', () {
-    expect(AppColors.accent.red, greaterThan(200));
-    expect(AppColors.accent.green, greaterThan(150));
-    expect(AppColors.accent.green, lessThan(180));
+    final r = (AppColors.accent.r * 255.0).round().clamp(0, 255);
+    final g = (AppColors.accent.g * 255.0).round().clamp(0, 255);
+    expect(r, greaterThan(200));
+    expect(g, greaterThan(150));
+    expect(g, lessThan(180));
   });
 
   test('text primary is bright', () {

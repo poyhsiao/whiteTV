@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/client_factory.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/api/luna_client.dart';

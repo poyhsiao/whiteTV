@@ -141,7 +141,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   Widget _buildSourceSelector(DetailState state) {
     if (state.detail == null) return const SizedBox();
-    final sources = state.detail!.sources as List<VideoSource>;
+    final sources = state.detail!.sources;
 
     return Wrap(
       spacing: 8,
@@ -174,7 +174,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   }
 
   Widget _buildEpisodeList(VideoDetail detail, DetailState state) {
-    final episodes = detail.episodes as List<Episode>;
+    final episodes = detail.episodes;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
