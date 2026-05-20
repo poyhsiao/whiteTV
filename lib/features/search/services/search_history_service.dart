@@ -9,10 +9,12 @@ class SearchHistoryService {
   SearchHistoryService(this._prefs);
 
   Future<List<String>> getHistory() async {
-    return _prefs.getStringList(_searchHistoryKey) ?? [];
+    return List<String>.from(_prefs.getStringList(_searchHistoryKey) ?? []);
   }
 
   Future<void> saveSearch(String query) async {
+    if (query.trim().isEmpty) return;
+
     final history = await getHistory();
 
     // Remove duplicate if exists (will be moved to front)
