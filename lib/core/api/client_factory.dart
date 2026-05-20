@@ -1,4 +1,3 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_client.dart';
 import 'luna_client.dart';
 import 'mock_client.dart';
@@ -8,8 +7,17 @@ import 'mock_client.dart';
 /// USE_MOCK=false → LunaClient
 
 ApiClient createApiClient() {
-  final useMock = dotenv.env['USE_MOCK'] == 'true';
+  final useMock = const bool.fromEnvironment('USE_MOCK', defaultValue: true);
 
+  if (useMock) {
+    return MockClient();
+  }
+
+  return LunaClient();
+}
+
+/// Test helper - creates client with explicit env override
+ApiClient createApiClientWithEnvOverride(bool useMock) {
   if (useMock) {
     return MockClient();
   }
