@@ -5,6 +5,7 @@ import 'package:white_tv/features/search/search_state.dart';
 /// SearchStore - 搜尋功能狀態管理
 class SearchStore extends StateNotifier<SearchState> {
   final ApiClient _apiClient;
+  bool _isSearching = false;
 
   SearchStore(this._apiClient) : super(const SearchState());
 
@@ -15,6 +16,10 @@ class SearchStore extends StateNotifier<SearchState> {
       return;
     }
 
+    // Prevent concurrent searches
+    if (_isSearching) return;
+    _isSearching = true;
+
     state = state.copyWith(query: query, isLoading: true, error: null);
 
     try {
@@ -22,9 +27,15 @@ class SearchStore extends StateNotifier<SearchState> {
         query,
         category: state.activeCategory,
       );
-      state = state.copyWith(results: results, isLoading: false);
+      if (mounted) {
+        state = state.copyWith(results: results, isLoading: false);
+      }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      if (mounted) {
+        state = state.copyWith(isLoading: false, error: e.toString());
+      }
+    } finally {
+      _isSearching = false;
     }
   }
 

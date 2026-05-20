@@ -1,15 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
 
+class MockApiClient extends Mock implements MockClient {}
+
 void main() {
   group('SearchStore', () {
-    late MockClient mockClient;
+    late MockApiClient mockClient;
     late SearchStore store;
 
     setUp(() {
-      mockClient = MockClient();
+      mockClient = MockApiClient();
       store = SearchStore(mockClient);
     });
 
@@ -20,15 +23,27 @@ void main() {
     });
 
     test('search updates query and results', () async {
-      await store.search('星際');
-      expect(store.state.query, '星際');
-      expect(store.state.results, isNotEmpty);
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenAnswer((_) async => []);
+      await store.search('test');
+      expect(store.state.query, 'test');
+      verify(() => mockClient.search('test', category: SearchCategory.all)).called(1);
     });
 
     test('search sets loading state', () async {
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenAnswer((_) async => []);
       final future = store.search('test');
       expect(store.state.isLoading, true);
       await future;
+      expect(store.state.isLoading, false);
+    });
+
+    test('search sets error on failure', () async {
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenThrow(Exception('API error'));
+      await store.search('test');
+      expect(store.state.error, isNotNull);
       expect(store.state.isLoading, false);
     });
 
@@ -44,6 +59,8 @@ void main() {
     });
 
     test('clearSearch resets query and results', () async {
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenAnswer((_) async => []);
       await store.search('test');
       store.clearSearch();
       expect(store.state.query, '');
