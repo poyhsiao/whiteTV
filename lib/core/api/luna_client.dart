@@ -11,11 +11,30 @@ class LunaClient implements ApiClient {
   final String _baseUrl;
 
   LunaClient({Dio? dio})
-      : _dio = dio ?? Dio(),
-        _baseUrl = dotenv.env['LUNATV_API_URL'] ?? 'https://moon2.kimhsiao.com' {
+    : _dio = dio ?? Dio(),
+      _baseUrl = dotenv.env['LUNATV_API_URL'] ?? 'https://moon2.kimhsiao.com' {
     _dio.options.baseUrl = _baseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 10);
+  }
+
+  @override
+  Future<Map<String, String>?> login(String username, String password) async {
+    try {
+      final response = await _dio.post(
+        '/api/login',
+        data: {'username': username, 'password': password},
+      );
+      if (response.data['cookie'] != null) {
+        return {
+          'cookie': response.data['cookie'] as String,
+          'username': username,
+        };
+      }
+      return null;
+    } on DioException {
+      return null;
+    }
   }
 
   @override
@@ -27,9 +46,10 @@ class LunaClient implements ApiClient {
 
   @override
   Future<List<Video>> getVideosByCategory(String categoryId) async {
-    final response = await _dio.get('/api/list', queryParameters: {
-      'type': categoryId,
-    });
+    final response = await _dio.get(
+      '/api/list',
+      queryParameters: {'type': categoryId},
+    );
     final List<dynamic> data = response.data['list'] ?? [];
     return data.map((json) => Video.fromJson(json)).toList();
   }

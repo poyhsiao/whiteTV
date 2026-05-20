@@ -4,6 +4,9 @@ import 'models.dart';
 /// 實現: LunaClient (真實) / MockClient (Mock)
 
 abstract class ApiClient {
+  /// 登入
+  Future<Map<String, String>?> login(String username, String password);
+
   /// 取得分類列表
   Future<List<Category>> getCategories();
 

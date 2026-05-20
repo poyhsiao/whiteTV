@@ -66,6 +66,18 @@ class MockClient implements ApiClient {
   };
 
   @override
+  Future<Map<String, String>?> login(String username, String password) async {
+    await Future.delayed(_delay);
+    if (username.isNotEmpty && password.isNotEmpty) {
+      return {
+        'cookie': 'mock-cookie-${DateTime.now().millisecondsSinceEpoch}',
+        'username': username,
+      };
+    }
+    return null;
+  }
+
+  @override
   Future<List<Category>> getCategories() async {
     await Future.delayed(_delay);
     return _categories;
