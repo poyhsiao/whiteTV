@@ -7,8 +7,6 @@ enum SearchCategory {
 
   const SearchCategory(this.apiValue);
   final String apiValue;
-
-  String get toApiValue => apiValue;
 }
 
 class SearchState {
