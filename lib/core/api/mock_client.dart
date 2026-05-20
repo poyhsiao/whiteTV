@@ -1,5 +1,6 @@
 import 'api_client.dart';
 import 'models.dart';
+import '../../features/search/search_state.dart';
 
 /// Mock API Client - 用於開發/測試/離線驗證
 /// 回傳模擬資料，不依賴網路
@@ -156,5 +157,19 @@ class MockClient implements ApiClient {
         isAvailable: true,
       ),
     ];
+  }
+
+  @override
+  Future<List<int>> search(String query, {SearchCategory? category}) async {
+    await Future.delayed(_delay);
+    if (query.isEmpty) return [];
+    // Return mock video IDs that match the query
+    final allVideos = _videosByCategory.values.expand((v) => v).toList();
+    final filtered = allVideos.where((v) =>
+        v.title.toLowerCase().contains(query.toLowerCase()) &&
+        (category == null ||
+            category == SearchCategory.all ||
+            v.categoryId == category.apiValue));
+    return filtered.map((v) => v.id.hashCode).toList();
   }
 }

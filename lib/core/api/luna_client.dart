@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_client.dart';
 import 'models.dart';
+import '../../features/search/search_state.dart';
 
 /// LunaTV API Client - 真實 API 串接
 /// Base URL: https://moon2.kimhsiao.com
@@ -76,6 +77,24 @@ class LunaClient implements ApiClient {
       return stopwatch.elapsedMilliseconds;
     } catch (_) {
       return -1;
+    }
+  }
+
+  @override
+  Future<List<int>> search(String query, {SearchCategory? category}) async {
+    try {
+      final response = await _dio.get(
+        '/api/search',
+        queryParameters: {
+          'q': query,
+          if (category != null && category != SearchCategory.all)
+            'category': category.apiValue,
+        },
+      );
+      final List<dynamic> data = response.data['results'] ?? [];
+      return data.map((json) => json['id'] as int).toList();
+    } on DioException {
+      return [];
     }
   }
 }

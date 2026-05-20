@@ -1,4 +1,5 @@
 import 'models.dart';
+import '../../features/search/search_state.dart';
 
 /// API Client 抽象介面
 /// 實現: LunaClient (真實) / MockClient (Mock)
@@ -21,4 +22,7 @@ abstract class ApiClient {
 
   /// 測試來源速度
   Future<int> testSourceLatency(String sourceUrl);
+
+  /// 搜尋影片
+  Future<List<int>> search(String query, {SearchCategory? category});
 }

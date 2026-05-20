@@ -5,6 +5,7 @@ import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/features/settings/services/settings_storage_service.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/features/search/search_state.dart';
 
 class FakeSettingsStorageService implements SettingsStorageService {
   String? _authCookie;
@@ -102,6 +103,9 @@ class FakeApiClient implements ApiClient {
 
   @override
   Future<int> testSourceLatency(String sourceUrl) async => 0;
+
+  @override
+  Future<List<int>> search(String query, {SearchCategory? category}) async => [];
 }
 
 void main() {
