@@ -8,8 +8,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() {
   setUpAll(() async {
     // Load .env from project root for tests
-    final envPath = '${Directory.current.path}/.env';
-    await dotenv.load(fileName: envPath);
+    final projectRoot = Directory.current.path;
+    final envPath = projectRoot.endsWith('whiteTV')
+        ? '$projectRoot/.env'
+        : '$projectRoot/white_tv/.env';
+    final file = File(envPath);
+    if (await file.exists()) {
+      await dotenv.load(fileName: envPath);
+    } else {
+      // Fallback: try relative path from test runner working directory
+      await dotenv.load(fileName: '.env');
+    }
   });
 
   test('createApiClient returns MockClient when USE_MOCK=true', () {
