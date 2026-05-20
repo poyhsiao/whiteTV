@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/home/home_screen.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/player/player_screen.dart';
+import 'package:white_tv/features/settings/settings_screen.dart';
 
 /// GoRouter configuration
 /// Routes: / (home), /detail/:id, /player/:id/:episodeId
@@ -30,6 +31,11 @@ final appRouter = GoRouter(
         final episodeId = state.pathParameters['episodeId']!;
         return PlayerScreen(videoId: videoId, episodeId: episodeId);
       },
+    ),
+    GoRoute(
+      path: '/settings',
+      name: 'settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );
