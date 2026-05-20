@@ -24,8 +24,8 @@ class TabOrderEditor extends ConsumerWidget {
     return ReorderableListView(
       shrinkWrap: true,
       buildDefaultDragHandles: false,
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) newIndex--;
+      onReorderItem: (oldIndex, newIndex) {
+        
         final newOrder = List<String>.from(tabOrder);
         final item = newOrder.removeAt(oldIndex);
         newOrder.insert(newIndex, item);
