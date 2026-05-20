@@ -26,6 +26,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remote control server for external device control
 - Automatic update checking system
 
+## [0.2.0] - 2026-05-20
+
+### Added
+- **Settings Feature**: Full settings system with persistent storage
+  - SettingsScreen with TabBar navigation (General, Account, Display, Playback)
+  - SettingsState and SettingsStore for state management
+  - SettingsStorageService for persistent storage using SharedPreferences
+  - SourceBlocklistTile for managing blocked content sources
+  - TabOrderEditor for customizable tab ordering
+- **Authentication**: AuthState and AuthStore for login/logout functionality
+- **API Enhancement**: ApiClient interface with login() method
+  - LunaClient and MockClient updated with login support
+- **Settings Widgets**: Reusable settings card components
+
+### Features
+- Tab-based settings navigation
+- Cookie-based authentication persistence
+- Content source blocklist management
+- Customizable UI tab ordering
+
 ## [Unreleased]
 
 ### Planned

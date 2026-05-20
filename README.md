@@ -1,5 +1,8 @@
 # whiteTV
 
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
+
 A cross-platform TV streaming application built with Flutter, optimized for Apple TV and Android TV with remote control support, while also supporting mobile and tablet devices.
 
 ## Features
@@ -11,6 +14,7 @@ A cross-platform TV streaming application built with Flutter, optimized for Appl
 - **State Management**: Riverpod for predictable state management
 - **Navigation**: GoRouter for type-safe routing
 - **API Integration**: LunaTV API with mock data fallback
+- **Settings System**: Tab-based settings with persistent storage and authentication
 
 ## Tech Stack
 
