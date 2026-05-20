@@ -1,12 +1,14 @@
 # Flutter / Dart
 .dart_tool/
 .flutter-plugins
-.flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
 build/
-.flutter-plugins
+.flutter-plugins-dependencies
+
+# Lock files (local dependency resolution - don't commit)
+pubspec.lock
 
 # iOS / macOS
 **/*.gem
@@ -56,17 +58,21 @@ DerivedData
 settings.json
 settings.local.json
 
-# OMC
-/.omc/
+# OMC (oh-my-claudecode) - AI agent orchestration
+.omc/
 .omc/**/*
+
+# AgentDB / RuVector - AI vector databases
+*.rvf
+*.rvf.lock
+ruvector.db
+ruvector.db-*
+ruvector.db-shm
+ruvector.db-wal
 
 # Docs (keep docs/ but ignore generated)
 /docs/.omc/
 /docs/*.local.md
-
-# Database
-*.db
-*.db-journal
 
 # IDE
 .idea/
@@ -94,6 +100,3 @@ lcov.info
 *.framework
 *.nib
 *.xib
-
-# misc
-ruvector.db
