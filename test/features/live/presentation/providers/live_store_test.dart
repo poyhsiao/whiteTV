@@ -97,5 +97,75 @@ https://example.com/test.m3u8
       expect(state.isSignalError, isTrue);
       expect(state.errorMessage, 'Signal lost');
     });
+
+    test('nextChannel navigates to next channel', () async {
+      const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-name="Channel 1",Channel 1
+https://example.com/ch1.m3u8
+#EXTINF:-1 tvg-name="Channel 2",Channel 2
+https://example.com/ch2.m3u8
+''';
+
+      await container.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+      final initialChannels = container.read(liveStoreProvider).channels;
+      await container.read(liveStoreProvider.notifier).selectChannel(initialChannels.first);
+
+      await container.read(liveStoreProvider.notifier).nextChannel();
+
+      final state = container.read(liveStoreProvider);
+      expect(state.currentChannel?.name, 'Channel 2');
+    });
+
+    test('previousChannel navigates to previous channel', () async {
+      const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-name="Channel 1",Channel 1
+https://example.com/ch1.m3u8
+#EXTINF:-1 tvg-name="Channel 2",Channel 2
+https://example.com/ch2.m3u8
+''';
+
+      await container.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+      final channels = container.read(liveStoreProvider).channels;
+      await container.read(liveStoreProvider.notifier).selectChannel(channels.last);
+
+      await container.read(liveStoreProvider.notifier).previousChannel();
+
+      final state = container.read(liveStoreProvider);
+      expect(state.currentChannel?.name, 'Channel 1');
+    });
+
+    test('togglePlayPause exits timeshift mode', () async {
+      const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-name="Test Channel",Test Channel
+https://example.com/test.m3u8
+''';
+
+      await container.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+      final channels = container.read(liveStoreProvider).channels;
+      await container.read(liveStoreProvider.notifier).selectChannel(channels.first);
+      await container.read(liveStoreProvider.notifier).startTimeshift(const Duration(minutes: -5));
+
+      await container.read(liveStoreProvider.notifier).togglePlayPause();
+
+      final state = container.read(liveStoreProvider);
+      expect(state.status, LiveStatus.loaded);
+    });
+
+    test('seekTimeshift updates timeshift position', () async {
+      const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-name="Test Channel",Test Channel
+https://example.com/test.m3u8
+''';
+
+      await container.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+      final channels = container.read(liveStoreProvider).channels;
+      await container.read(liveStoreProvider.notifier).selectChannel(channels.first);
+      await container.read(liveStoreProvider.notifier).startTimeshift(const Duration(minutes: -5));
+
+      await container.read(liveStoreProvider.notifier).seekTimeshift(const Duration(minutes: -10));
+
+      final state = container.read(liveStoreProvider);
+      expect(state.timeshiftPosition, const Duration(minutes: -10));
+    });
   });
 }

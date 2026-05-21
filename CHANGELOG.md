@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-05-21
+
+### Added
+- **IPTV Live Feature**: Full live TV streaming with M3U playlist support
+  - M3uChannel, EpgProgram, EpgChannel models (TDD)
+  - M3uParser, EpgManager, TimeshiftManager abstract interfaces
+  - LiveService facade coordinating all services
+  - LiveStore with Riverpod state management
+  - LiveScreen (channel list) and LivePlayerScreen (player)
+  - ChannelTile, EpgProgramTile, EpgProgramList widgets
+  - TimeshiftControlBar and SignalErrorWidget
+  - Full TV remote + touch support
+  - BDD integration tests (10 scenarios)
+  - Router integration (/live, /live/player)
+  - 107 tests passing for live feature
+
 ## [0.2.1] - 2026-05-21
 
 ### Added
@@ -76,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remote control server for external device control
 - Automatic update checking system
 
+[0.3.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.3.0
 [0.2.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.1
 [0.2.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.0
 [0.1.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.1.0
