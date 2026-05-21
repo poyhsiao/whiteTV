@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/history/history_screen.dart';
 import 'package:white_tv/features/home/home_screen.dart';
+import 'package:white_tv/features/live/presentation/screens/live_player_screen.dart';
+import 'package:white_tv/features/live/presentation/screens/live_screen.dart';
 import 'package:white_tv/features/player/player_screen.dart';
 import 'package:white_tv/features/search/search_screen.dart';
 import 'package:white_tv/features/settings/settings_screen.dart';
@@ -48,6 +50,18 @@ final appRouter = GoRouter(
       path: '/history',
       name: 'history',
       builder: (context, state) => const HistoryScreen(),
+    ),
+    GoRoute(
+      path: '/live',
+      name: 'live',
+      builder: (context, state) => const LiveScreen(),
+      routes: [
+        GoRoute(
+          path: 'player',
+          name: 'live-player',
+          builder: (context, state) => const LivePlayerScreen(),
+        ),
+      ],
     ),
   ],
 );
