@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/typography.dart';
+import 'package:white_tv/features/history/widgets/recent_watch_section.dart';
 import 'package:white_tv/features/home/home_store.dart';
 import 'package:white_tv/shared/widgets/poster_card.dart';
 import 'package:white_tv/shared/widgets/skeleton_loader.dart';
@@ -29,9 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final deviceType = DeviceUtils.getDeviceType(context);
 
     if (state.isLoading) {
-      return const Scaffold(
-        body: HomeSkeleton(),
-      );
+      return const Scaffold(body: HomeSkeleton());
     }
 
     if (state.error != null) {
@@ -71,6 +71,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.all(16),
             child: Text('whiteTV', style: AppTypography.headline),
           ),
+          RecentWatchSection(
+            records: state.recentHistory,
+            onTap: (record) => _navigateToDetail(record.videoId),
+          ),
           ...state.categories.map((category) {
             final videos = state.videosByCategory[category.id] ?? [];
             return _buildCategoryRow(category.name, videos, isTV: true);
@@ -86,6 +90,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text('whiteTV', style: AppTypography.headline),
+        ),
+        RecentWatchSection(
+          records: state.recentHistory,
+          onTap: (record) => _navigateToDetail(record.videoId),
         ),
         ...state.categories.map((category) {
           final videos = state.videosByCategory[category.id] ?? [];
@@ -161,6 +169,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _navigateToDetail(String videoId) {
-    // TODO: 使用 go_router 導航
+    context.push('/detail/$videoId');
   }
 }
