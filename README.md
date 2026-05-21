@@ -4,7 +4,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 
 ## Version
 
-**v0.2.1** - Search + Play History Release
+**v0.3.0** - IPTV Live Feature
 
 ## Features
 
@@ -14,8 +14,19 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 - **Settings**: Tab-based settings with persistent storage
 - **Search**: Full-text search with TV remote D-pad navigation, QR code input support
 - **Play History**: Local-first playback history with LunaTV sync, time grouping
+- **IPTV Live**: Live TV streaming with M3U playlist, EPG, and timeshift replay
 
-### Search Feature (v0.2.1)
+### IPTV Live Feature (v0.3.0)
+
+- M3uChannel, EpgProgram, EpgChannel data models
+- M3uParser, EpgManager, TimeshiftManager abstract interfaces
+- LiveService facade with LiveStore (Riverpod)
+- LiveScreen (channel list) + LivePlayerScreen (full-screen player)
+- ChannelTile, EpgProgramTile, EpgProgramList widgets
+- TimeshiftControlBar, SignalErrorWidget
+- Full TV remote + touch support
+- Router integration (/live, /live/player)
+- BDD integration tests (10 scenarios)
 
 - KeyboardInputView for TV remote D-pad text input
 - CategoryFilter for filtering by category
@@ -34,7 +45,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 
 ### Architecture
 
-- **State Management**: Riverpod (HomeStore, DetailStore, PlayerStore, SettingsStore, AuthStore, SearchStore, HistoryStore)
+- **State Management**: Riverpod (HomeStore, DetailStore, PlayerStore, SettingsStore, AuthStore, SearchStore, HistoryStore, LiveStore)
 - **Navigation**: GoRouter
 - **API**: LunaClient with MockClient fallback
 - **Design System**: Glassmorphism components
