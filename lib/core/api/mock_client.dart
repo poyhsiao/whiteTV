@@ -162,11 +162,14 @@ class MockClient implements ApiClient {
   @override
   Future<List<int>> search(String query, {SearchCategory? category}) async {
     await Future.delayed(_delay);
-    if (query.isEmpty) return [];
+    // Sanitize search query - trim whitespace and limit length
+    final sanitizedQuery = query.trim();
+    if (sanitizedQuery.isEmpty || sanitizedQuery.length > 200) return [];
+
     // Return mock video IDs that match the query
     final allVideos = _videosByCategory.values.expand((v) => v).toList();
     final filtered = allVideos.where((v) =>
-        v.title.toLowerCase().contains(query.toLowerCase()) &&
+        v.title.toLowerCase().contains(sanitizedQuery.toLowerCase()) &&
         (category == null ||
             category == SearchCategory.all ||
             v.categoryId == category.apiValue));

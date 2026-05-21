@@ -83,10 +83,16 @@ class LunaClient implements ApiClient {
   @override
   Future<List<int>> search(String query, {SearchCategory? category}) async {
     try {
+      // Sanitize search query - trim whitespace and limit length
+      final sanitizedQuery = query.trim();
+      if (sanitizedQuery.isEmpty || sanitizedQuery.length > 200) {
+        return [];
+      }
+
       final response = await _dio.get(
         '/api/search',
         queryParameters: {
-          'q': query,
+          'q': sanitizedQuery,
           if (category != null && category != SearchCategory.all)
             'category': category.apiValue,
         },

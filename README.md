@@ -1,93 +1,61 @@
 # whiteTV
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
+A Flutter TV application for streaming video content, designed for Apple TV and Android TV with remote control support.
 
-A cross-platform TV streaming application built with Flutter, optimized for Apple TV and Android TV with remote control support, while also supporting mobile and tablet devices.
+## Version
+
+**v0.2.1** - Search Feature Release
 
 ## Features
 
-- **Multi-Platform Support**: Apple TV, Android TV, iOS, Android, macOS, Linux
-- **Responsive Design**: Adaptive layouts for TV, tablet, and mobile devices
-- **Remote Control**: Built-in remote control server for external device control
-- **Video Playback**: media_kit-powered video player with full controls
-- **State Management**: Riverpod for predictable state management
-- **Navigation**: GoRouter for type-safe routing
-- **API Integration**: LunaTV API with mock data fallback
-- **Settings System**: Tab-based settings with persistent storage and authentication
+- **Home Screen**: Category-based video browsing with responsive layout
+- **Detail Screen**: TV/Mobile adaptive layout with episode selection
+- **Player Screen**: Video playback with media_kit
+- **Settings**: Tab-based settings with persistent storage
+- **Search**: Full-text search with TV remote D-pad navigation, QR code input support
 
-## Tech Stack
+### Search Feature (v0.2.1)
 
-- **Flutter SDK** 3.x
-- **State Management**: Riverpod
+- KeyboardInputView for TV remote D-pad text input
+- CategoryFilter for filtering by category
+- QRInputView for QR code scanning
+- SearchHistoryService for persistent search history
+- BDD integration tests
+
+### Architecture
+
+- **State Management**: Riverpod (HomeStore, DetailStore, PlayerStore, SettingsStore, AuthStore, SearchStore)
 - **Navigation**: GoRouter
-- **Video Player**: media_kit
-- **HTTP Client**: Dio
-- **Testing**: flutter_test, mockito
+- **API**: LunaClient with MockClient fallback
+- **Design System**: Glassmorphism components
 
 ## Getting Started
 
-### Prerequisites
-
-- Flutter SDK 3.x
-- Xcode (for iOS/macOS)
-- Android SDK (for Android)
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/poyhsiao/whiteTV.git
-   cd whiteTV
-   ```
-
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-
-3. Configure environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API configuration
-   ```
-
-### Development
-
 ```bash
-# Start Metro bundler in TV mode
-EXPO_TV=1 flutter run
+# Install dependencies
+yarn install
 
-# Mobile/Tablet development
-flutter run
+# Run on TV
+yarn start           # Start Metro bundler (TV mode)
+yarn android         # Build and run on Android TV
+yarn ios             # Build and run on Apple TV
 
-# Run tests
-flutter test
+# Testing
+yarn test            # Run all tests (153 tests)
 
-# Analyze code
-flutter analyze
+# Build
+yarn build           # Build release APK
 ```
 
-## Project Structure
+## Tech Stack
 
-```
-lib/
-├── core/           # Core utilities, theme, constants
-├── features/       # Feature modules (home, detail, player)
-├── services/       # API, storage, remote control services
-├── stores/         # Riverpod state stores
-├── models/         # Data models
-└── main.dart       # App entry point
-```
+- Flutter TVOS (0.74.x)
+- Expo SDK 51
+- TypeScript
+- Riverpod
+- GoRouter
+- media_kit
 
 ## License
 
-This project is licensed under the [Mozilla Public License Version 2.0](LICENSE).
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development standards and guidelines.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history.
+Private - All rights reserved

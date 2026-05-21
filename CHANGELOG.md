@@ -46,13 +46,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Content source blocklist management
 - Customizable UI tab ordering
 
-## [Unreleased]
+## [0.2.1] - 2026-05-21
+
+### Added
+- **Search Feature**: Full search system with TV remote D-pad navigation
+  - SearchScreen with search input and category filter
+  - KeyboardInputView for TV remote D-pad text input
+  - SearchStore with search history management
+  - SearchHistoryService for persistent search history
+  - CategoryFilter for filtering by category
+  - QRInputView for QR code scanning input
+  - SearchResults widget for displaying results
+  - BDD integration tests for search feature (20 tests)
+
+### Security
+- Input validation and sanitization for search queries
+- Search query length limit (200 chars) and whitespace trimming
 
 ### Planned
-- Search functionality
 - User authentication
 - Favorites management
 - Playback history
 - Multi-language support
 
 [0.1.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.1.0
+[0.2.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.0
