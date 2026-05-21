@@ -58,16 +58,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - QRInputView for QR code scanning input
   - SearchResults widget for displaying results
   - BDD integration tests for search feature (20 tests)
+- **Play History Feature**: Playback history with local-first sync
+  - HistoryScreen with time grouping (今天/昨天/更早)
+  - HistoryStore with loadHistory, addRecord, deleteRecord
+  - HistoryService facade with local + LunaTV sync
+  - HistoryLocalService (SharedPreferences storage)
+  - HistoryRemoteService (LunaTV /api/user/stats integration)
+  - RecentWatchSection for home screen (max 10 records)
+  - HistoryTile widget with progress display
+  - BDD integration tests for play history (4 scenarios)
 
 ### Security
 - Input validation and sanitization for search queries
 - Search query length limit (200 chars) and whitespace trimming
 
 ### Planned
-- User authentication
 - Favorites management
-- Playback history
 - Multi-language support
 
 [0.1.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.1.0
 [0.2.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.0
+[0.2.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.1
