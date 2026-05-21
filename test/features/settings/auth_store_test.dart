@@ -105,7 +105,11 @@ class FakeApiClient implements ApiClient {
   Future<int> testSourceLatency(String sourceUrl) async => 0;
 
   @override
-  Future<List<int>> search(String query, {SearchCategory? category}) async => [];
+  Future<List<int>> search(String query, {SearchCategory? category}) async =>
+      [];
+
+  @override
+  Future<Map<String, dynamic>> getUserStats() async => {};
 }
 
 void main() {

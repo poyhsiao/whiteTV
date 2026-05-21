@@ -168,11 +168,21 @@ class MockClient implements ApiClient {
 
     // Return mock video IDs that match the query
     final allVideos = _videosByCategory.values.expand((v) => v).toList();
-    final filtered = allVideos.where((v) =>
-        v.title.toLowerCase().contains(sanitizedQuery.toLowerCase()) &&
-        (category == null ||
-            category == SearchCategory.all ||
-            v.categoryId == category.apiValue));
+    final filtered = allVideos.where(
+      (v) =>
+          v.title.toLowerCase().contains(sanitizedQuery.toLowerCase()) &&
+          (category == null ||
+              category == SearchCategory.all ||
+              v.categoryId == category.apiValue),
+    );
     return filtered.map((v) => v.id.hashCode).toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserStats() async {
+    await Future.delayed(_delay);
+    return {
+      'stats': {'continueWatch': []},
+    };
   }
 }

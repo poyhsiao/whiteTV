@@ -103,4 +103,14 @@ class LunaClient implements ApiClient {
       return [];
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> getUserStats() async {
+    try {
+      final response = await _dio.get('/api/user/stats');
+      return response.data as Map<String, dynamic>;
+    } on DioException {
+      return {};
+    }
+  }
 }
