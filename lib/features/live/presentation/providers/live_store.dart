@@ -66,4 +66,33 @@ class LiveStore extends StateNotifier<LiveState> {
   List<M3uChannel> searchChannels(String query) {
     return _service.searchChannels(query);
   }
+
+  Future<void> nextChannel() async {
+    if (state.channels.isEmpty) return;
+    final currentIndex = state.currentChannel != null
+        ? state.channels.indexWhere((c) => c.url == state.currentChannel!.url)
+        : -1;
+    final nextIndex = (currentIndex + 1) % state.channels.length;
+    await selectChannel(state.channels[nextIndex]);
+  }
+
+  Future<void> previousChannel() async {
+    if (state.channels.isEmpty) return;
+    final currentIndex = state.currentChannel != null
+        ? state.channels.indexWhere((c) => c.url == state.currentChannel!.url)
+        : -1;
+    final prevIndex = currentIndex <= 0 ? state.channels.length - 1 : currentIndex - 1;
+    await selectChannel(state.channels[prevIndex]);
+  }
+
+  Future<void> togglePlayPause() async {
+    // Toggle play/pause state - for now just stops timeshift if active
+    if (state.status == LiveStatus.timeshift) {
+      await stopTimeshift();
+    }
+  }
+
+  Future<void> seekTimeshift(Duration position) async {
+    state = state.copyWith(timeshiftPosition: position);
+  }
 }
