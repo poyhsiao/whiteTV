@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
@@ -55,8 +57,21 @@ class PlayerState {
 
 class PlayerStore extends StateNotifier<PlayerState> {
   final ApiClient _apiClient;
+  Timer? _autoSaveTimer;
 
   PlayerStore(this._apiClient) : super(const PlayerState());
+
+  void _startAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      saveProgress();
+    });
+  }
+
+  void _stopAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+  }
 
   Future<void> setVideo(String videoId, String episodeId) async {
     try {
@@ -81,10 +96,12 @@ class PlayerStore extends StateNotifier<PlayerState> {
 
   void play() {
     state = state.copyWith(isPlaying: true);
+    _startAutoSave();
   }
 
   void pause() {
     state = state.copyWith(isPlaying: false);
+    _stopAutoSave();
   }
 
   void seek(Duration position) {
@@ -111,10 +128,16 @@ class PlayerStore extends StateNotifier<PlayerState> {
   void saveProgress() {
     // TODO(1.4): Implement auto-save timer to persist position to HistoryService
   }
+
+  @override
+  void dispose() {
+    _stopAutoSave();
+    super.dispose();
+  }
 }
 
 // Provider
 final playerStoreProvider =
     StateNotifierProvider.autoDispose<PlayerStore, PlayerState>((ref) {
-  return PlayerStore(ref.watch(apiClientProvider));
-});
+      return PlayerStore(ref.watch(apiClientProvider));
+    });
