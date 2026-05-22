@@ -75,6 +75,84 @@ void main() {
       });
     });
 
+    group('offline queue', () {
+      test('adds record to offline queue when remote sync fails', () async {
+        // Arrange
+        when(() => mockLocalService.save(any())).thenAnswer((_) async {});
+        when(
+          () => mockRemoteService.fetchFromRemote(),
+        ).thenThrow(Exception('Network error'));
+
+        // Act
+        await historyService.addRecord(testRecord);
+
+        // Assert
+        final pendingRecords = historyService.getPendingRecords();
+        expect(pendingRecords, contains(testRecord));
+        expect(pendingRecords.length, 1);
+      });
+
+      test('syncPendingRecords removes records from queue on success',
+          () async {
+        // Arrange
+        when(() => mockLocalService.save(any())).thenAnswer((_) async {});
+        when(
+          () => mockRemoteService.fetchFromRemote(),
+        ).thenAnswer((_) async => []);
+
+        // Add a record that fails remote sync (queue it)
+        when(
+          () => mockRemoteService.fetchFromRemote(),
+        ).thenThrow(Exception('Network error'));
+        await historyService.addRecord(testRecord);
+
+        // Now remote works
+        when(
+          () => mockRemoteService.fetchFromRemote(),
+        ).thenAnswer((_) async => []);
+
+        // Act
+        await historyService.syncPendingRecords();
+
+        // Assert
+        final pendingRecords = historyService.getPendingRecords();
+        expect(pendingRecords, isEmpty);
+      });
+
+      test('getPendingRecords returns all queued records', () async {
+        // Arrange
+        when(() => mockLocalService.save(any())).thenAnswer((_) async {});
+        when(
+          () => mockRemoteService.fetchFromRemote(),
+        ).thenThrow(Exception('Network error'));
+
+        final record2 = PlayHistory(
+          key: 'test_key_2',
+          videoId: 'video_456',
+          title: 'Test Show 2',
+          posterUrl: 'https://example.com/poster2.jpg',
+          sourceName: 'TestSource',
+          currentEpisode: 1,
+          totalEpisodes: 12,
+          playTime: 1800,
+          totalTime: 3600,
+          saveTime: DateTime(2024, 1, 1),
+          type: 'continue_watch',
+        );
+
+        await historyService.addRecord(testRecord);
+        await historyService.addRecord(record2);
+
+        // Act
+        final pendingRecords = historyService.getPendingRecords();
+
+        // Assert
+        expect(pendingRecords.length, 2);
+        expect(pendingRecords, contains(testRecord));
+        expect(pendingRecords, contains(record2));
+      });
+    });
+
     group('deleteRecord', () {
       test('removes from local storage', () async {
         // Arrange

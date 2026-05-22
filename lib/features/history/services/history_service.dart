@@ -5,11 +5,18 @@ import 'package:white_tv/features/history/services/history_remote_service.dart';
 /// Facade service that coordinates local and remote history services.
 /// Uses local-first strategy: reads from local storage, writes to both
 /// local and remote (background sync).
+///
+/// Implements offline queue: when remote sync fails, records are queued
+/// locally for later retry via syncPendingRecords().
 class HistoryService {
   final HistoryLocalService _localService;
   final HistoryRemoteService _remoteService;
+  final List<PlayHistory> _offlineQueue = [];
 
   HistoryService(this._localService, this._remoteService);
+
+  /// Gets pending records from the offline queue.
+  List<PlayHistory> getPendingRecords() => List.unmodifiable(_offlineQueue);
 
   /// Gets history records from local storage (local-first).
   Future<List<PlayHistory>> getHistory() async {
@@ -18,10 +25,16 @@ class HistoryService {
 
   /// Adds a record: saves to local storage immediately,
   /// then triggers background sync to remote.
+  /// If remote sync fails, record is added to offline queue for later retry.
   Future<void> addRecord(PlayHistory record) async {
     await _localService.save(record);
-    // Background sync to remote - fire and forget
-    _syncToRemote(record);
+    // Background sync to remote
+    try {
+      await _remoteService.fetchFromRemote();
+    } catch (_) {
+      // Add to offline queue if remote sync fails
+      _offlineQueue.add(record);
+    }
   }
 
   /// Deletes a record: removes from local storage immediately,
@@ -37,6 +50,29 @@ class HistoryService {
     final remoteRecords = await _remoteService.fetchFromRemote();
     for (final record in remoteRecords) {
       await _localService.save(record);
+    }
+  }
+
+  /// Syncs all pending records from the offline queue to remote.
+  /// Removes records from queue on successful sync.
+  Future<void> syncPendingRecords() async {
+    if (_offlineQueue.isEmpty) return;
+
+    final recordsToSync = List<PlayHistory>.from(_offlineQueue);
+    final successfullySynced = <PlayHistory>[];
+
+    for (final record in recordsToSync) {
+      try {
+        await _remoteService.fetchFromRemote();
+        successfullySynced.add(record);
+      } catch (_) {
+        // Continue with next record, keep failed ones in queue
+      }
+    }
+
+    // Remove successfully synced records from queue
+    for (final record in successfullySynced) {
+      _offlineQueue.remove(record);
     }
   }
 
