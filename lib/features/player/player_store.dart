@@ -6,6 +6,7 @@ import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/home/home_store.dart';
+import 'package:white_tv/features/player/services/download_service.dart';
 
 /// 播放器 Store
 
@@ -60,9 +61,10 @@ class PlayerState {
 class PlayerStore extends StateNotifier<PlayerState> {
   final ApiClient _apiClient;
   final HistoryService? _historyService;
+  final DownloadService? _downloadService;
   Timer? _autoSaveTimer;
 
-  PlayerStore(this._apiClient, [this._historyService])
+  PlayerStore(this._apiClient, [this._historyService, this._downloadService])
       : super(const PlayerState());
 
   void _startAutoSave() {
@@ -79,6 +81,25 @@ class PlayerStore extends StateNotifier<PlayerState> {
 
   Future<void> setVideo(String videoId, String episodeId) async {
     try {
+      // Check local cache first
+      if (_downloadService != null) {
+        final isDownloaded = await _downloadService!.isDownloaded(videoId);
+        if (isDownloaded) {
+          final localPath = await _downloadService!.getLocalPath(videoId);
+          if (localPath != null) {
+            state = state.copyWith(
+              videoId: videoId,
+              episodeId: episodeId,
+              source: VideoSource(id: 'local_$videoId', url: 'file://$localPath', name: 'local'),
+              currentPosition: Duration.zero,
+              error: null,
+            );
+            return;
+          }
+        }
+      }
+
+      // Fall back to online sources
       final sources = await _apiClient.getSources(videoId);
       sources.sort((a, b) => a.latency.compareTo(b.latency));
       final fastestSource = sources.firstWhere(
@@ -158,5 +179,9 @@ class PlayerStore extends StateNotifier<PlayerState> {
 // Provider
 final playerStoreProvider =
     StateNotifierProvider.autoDispose<PlayerStore, PlayerState>((ref) {
-      return PlayerStore(ref.watch(apiClientProvider));
+      return PlayerStore(
+        ref.watch(apiClientProvider),
+        null,
+        null,
+      );
     });

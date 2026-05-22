@@ -5,6 +5,7 @@ import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/player/player_store.dart';
+import 'package:white_tv/features/player/services/download_service.dart';
 
 // Fake HistoryService for testing
 class FakeHistoryService implements HistoryService {
@@ -25,6 +26,46 @@ class FakeHistoryService implements HistoryService {
 
   @override
   Future<void> syncFromRemote() async {}
+
+  @override
+  List<PlayHistory> getPendingRecords() => [];
+
+  @override
+  Future<void> syncPendingRecords() async {}
+}
+
+// Fake DownloadService for testing offline playback
+class FakeDownloadService implements DownloadService {
+  final Map<String, String> downloadedVideos = {};
+
+  void addDownloadedVideo(String videoId, String localPath) {
+    downloadedVideos[videoId] = localPath;
+  }
+
+  @override
+  Future<bool> deleteDownload(String videoId) async {
+    downloadedVideos.remove(videoId);
+    return true;
+  }
+
+  @override
+  Future<String?> download({
+    required String videoId,
+    required String url,
+    void Function(int received, int total)? onProgress,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<String?> getLocalPath(String videoId) async {
+    return downloadedVideos[videoId];
+  }
+
+  @override
+  Future<bool> isDownloaded(String videoId) async {
+    return downloadedVideos.containsKey(videoId);
+  }
 }
 
 void main() {
@@ -116,6 +157,34 @@ void main() {
 
       // After pause, timer should be stopped
       expect(store.state.isPlaying, false);
+    });
+
+    test('setVideo plays from local cache when downloaded', () async {
+      final fakeDownloadService = FakeDownloadService();
+      fakeDownloadService.addDownloadedVideo('movie-1', '/data/downloads/movie-1.mp4');
+      final storeWithDownload = PlayerStore(mockClient, null, fakeDownloadService);
+
+      await storeWithDownload.setVideo('movie-1', 'episode-1');
+
+      expect(storeWithDownload.state.videoId, 'movie-1');
+      expect(storeWithDownload.state.source?.url, 'file:///data/downloads/movie-1.mp4');
+      expect(storeWithDownload.state.source?.name, 'local');
+
+      storeWithDownload.dispose();
+    });
+
+    test('setVideo falls back to online when not downloaded', () async {
+      final fakeDownloadService = FakeDownloadService();
+      final storeWithDownload = PlayerStore(mockClient, null, fakeDownloadService);
+
+      await storeWithDownload.setVideo('movie-1', 'episode-1');
+
+      // Should use online source since not downloaded
+      expect(storeWithDownload.state.videoId, 'movie-1');
+      // source will be from mockClient.getSources
+      expect(storeWithDownload.state.source, isNotNull);
+
+      storeWithDownload.dispose();
     });
   });
 }
