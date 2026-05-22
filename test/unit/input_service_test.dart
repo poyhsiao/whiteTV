@@ -24,9 +24,8 @@ void main() {
     });
 
     test('setOnInputComplete registers callback', () {
-      bool called = false;
       service.setOnInputComplete((text) {
-        called = true;
+        // callback registered
       });
       expect(service.onInputComplete, isNotNull);
     });

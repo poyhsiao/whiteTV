@@ -144,7 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Column(
@@ -178,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               labelText: '帳號',
               labelStyle: const TextStyle(color: Colors.white70),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.1),
+              fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -194,7 +194,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               labelText: '密碼',
               labelStyle: const TextStyle(color: Colors.white70),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.1),
+              fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

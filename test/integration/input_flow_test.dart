@@ -1,18 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/services/input_service.dart';
 import 'package:white_tv/core/services/session_manager.dart';
-import 'package:white_tv/core/services/local_http_server.dart';
 
 void main() {
   group('Input Flow Integration', () {
     late InputService inputService;
     late SessionManager sessionManager;
-    late LocalHttpServer server;
 
     setUp(() {
       inputService = InputService();
       sessionManager = SessionManager();
-      server = LocalHttpServer();
     });
 
     tearDown(() async {

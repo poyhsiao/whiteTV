@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/services/input_service.dart';
-import 'package:white_tv/core/services/local_http_server.dart';
 
 void main() {
   group('Unified Input System BDD', () {
