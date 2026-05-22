@@ -1,6 +1,31 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
+import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/player/player_store.dart';
+
+// Fake HistoryService for testing
+class FakeHistoryService implements HistoryService {
+  final List<PlayHistory> records = [];
+  bool addRecordCalled = false;
+
+  @override
+  Future<List<PlayHistory>> getHistory() async => records;
+
+  @override
+  Future<void> addRecord(PlayHistory record) async {
+    records.add(record);
+    addRecordCalled = true;
+  }
+
+  @override
+  Future<void> deleteRecord(String key) async {}
+
+  @override
+  Future<void> syncFromRemote() async {}
+}
 
 void main() {
   group('PlayerStore', () {
@@ -50,6 +75,22 @@ void main() {
 
       final state = store.state;
       expect(state.currentPosition, const Duration(minutes: 10));
+    });
+
+    test('saveProgress calls HistoryService.addRecord with PlayHistory', () async {
+      final fakeHistory = FakeHistoryService();
+      final storeWithHistory = PlayerStore(mockClient, fakeHistory);
+
+      await storeWithHistory.setVideo('movie-1', 'episode-1');
+      storeWithHistory.seek(const Duration(minutes: 5));
+      storeWithHistory.saveProgress();
+
+      expect(fakeHistory.addRecordCalled, true);
+      expect(fakeHistory.records.length, 1);
+      expect(fakeHistory.records.first.videoId, 'movie-1');
+      expect(fakeHistory.records.first.playTime, 300); // 5 minutes in seconds
+
+      storeWithHistory.dispose();
     });
 
     test(

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/home/home_store.dart';
 
 /// 播放器 Store
@@ -57,9 +59,11 @@ class PlayerState {
 
 class PlayerStore extends StateNotifier<PlayerState> {
   final ApiClient _apiClient;
+  final HistoryService? _historyService;
   Timer? _autoSaveTimer;
 
-  PlayerStore(this._apiClient) : super(const PlayerState());
+  PlayerStore(this._apiClient, [this._historyService])
+      : super(const PlayerState());
 
   void _startAutoSave() {
     _autoSaveTimer?.cancel();
@@ -124,9 +128,24 @@ class PlayerStore extends StateNotifier<PlayerState> {
     state = state.copyWith(isBuffering: buffering);
   }
 
-  /// Save current progress - stub for auto-save functionality
+  /// Save current progress - persists position to HistoryService
   void saveProgress() {
-    // TODO(1.4): Implement auto-save timer to persist position to HistoryService
+    if (_historyService == null || state.videoId == null) return;
+
+    final record = PlayHistory(
+      key: '${state.videoId}_${state.episodeId}',
+      videoId: state.videoId!,
+      title: '', // Will be filled by HistoryService or from state
+      sourceName: state.source?.name ?? 'unknown',
+      playTime: state.currentPosition.inSeconds,
+      totalTime: state.duration.inSeconds,
+      lastPosition: state.currentPosition,
+      lastWatched: DateTime.now(),
+      saveTime: DateTime.now(),
+      type: 'movie',
+    );
+
+    _historyService!.addRecord(record);
   }
 
   @override
