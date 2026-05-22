@@ -1,3 +1,5 @@
+import 'package:white_tv/features/history/models/episode_progress.dart';
+
 class PlayHistory {
   final String key;
   final String videoId;
@@ -14,6 +16,9 @@ class PlayHistory {
   final DateTime saveTime;
   final String type;
   final bool pendingDelete;
+  final List<EpisodeProgress> episodeProgress;
+  final bool isDownloaded;
+  final String? localPath;
 
   const PlayHistory({
     required this.key,
@@ -31,6 +36,9 @@ class PlayHistory {
     required this.saveTime,
     required this.type,
     this.pendingDelete = false,
+    this.episodeProgress = const [],
+    this.isDownloaded = false,
+    this.localPath,
   });
 
   double get progressPercent {
@@ -57,6 +65,12 @@ class PlayHistory {
       saveTime: DateTime.parse(json['saveTime'] as String),
       type: json['type'] as String,
       pendingDelete: json['pendingDelete'] as bool? ?? false,
+      episodeProgress: (json['episodeProgress'] as List<dynamic>?)
+              ?.map((e) => EpisodeProgress.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      isDownloaded: json['isDownloaded'] as bool? ?? false,
+      localPath: json['localPath'] as String?,
     );
   }
 
@@ -77,6 +91,9 @@ class PlayHistory {
       'saveTime': saveTime.toIso8601String(),
       'type': type,
       'pendingDelete': pendingDelete,
+      'episodeProgress': episodeProgress.map((e) => e.toJson()).toList(),
+      'isDownloaded': isDownloaded,
+      'localPath': localPath,
     };
   }
 
@@ -96,6 +113,9 @@ class PlayHistory {
     DateTime? saveTime,
     String? type,
     bool? pendingDelete,
+    List<EpisodeProgress>? episodeProgress,
+    bool? isDownloaded,
+    String? localPath,
   }) {
     return PlayHistory(
       key: key ?? this.key,
@@ -113,6 +133,9 @@ class PlayHistory {
       saveTime: saveTime ?? this.saveTime,
       type: type ?? this.type,
       pendingDelete: pendingDelete ?? this.pendingDelete,
+      episodeProgress: episodeProgress ?? this.episodeProgress,
+      isDownloaded: isDownloaded ?? this.isDownloaded,
+      localPath: localPath ?? this.localPath,
     );
   }
 }
