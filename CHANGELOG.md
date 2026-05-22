@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-05-22
+
+### Added
+- **Unified Input System**: QR code + phone browser input for TV and mobile
+  - SessionManager for QR session lifecycle management
+  - LocalHttpServer (shelf HTTP server) for phone input via browser
+  - InputService facade coordinating all input services
+  - QrInputWidget for QR code display
+  - InputScreen (TV full-screen mode) and LoginScreen (QR input support)
+  - BDD integration tests (input flow, session handling)
+  - 12 integration tests passing
+
+### Changed
+- Login system now supports QR code input for TV devices
+- Flutter analyze passed with no issues
+
 ## [0.4.0] - 2026-05-22
 
 ### Added
@@ -109,6 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remote control server for external device control
 - Automatic update checking system
 
+[0.4.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.4.1
+[0.4.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.4.0
 [0.3.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.3.0
 [0.2.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.1
 [0.2.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.0

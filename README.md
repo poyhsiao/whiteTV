@@ -4,7 +4,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 
 ## Version
 
-**v0.4.0** - Favorites Feature
+**v0.4.1** - Unified Input System
 
 ## Features
 
@@ -16,6 +16,16 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 - **Play History**: Local-first playback history with LunaTV sync, time grouping
 - **IPTV Live**: Live TV streaming with M3U playlist, EPG, and timeshift replay
 - **Favorites**: Local-first favorites with grid/list view, type filtering, LunaTV sync
+- **Unified Input**: QR code + phone browser input for TV (full-screen) and mobile (modal)
+
+### Unified Input System (v0.4.1)
+
+- SessionManager for QR session lifecycle management
+- LocalHttpServer (shelf HTTP server) for phone input via browser
+- InputService facade coordinating all input services
+- QrInputWidget for QR code display
+- InputScreen (TV full-screen mode) and LoginScreen (QR input support)
+- BDD integration tests and 12 integration tests passing
 
 ### IPTV Live Feature (v0.3.0)
 
