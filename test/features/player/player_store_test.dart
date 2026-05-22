@@ -41,5 +41,13 @@ void main() {
       store.seek(const Duration(seconds: 30));
       expect(store.state.currentPosition, const Duration(seconds: 30));
     });
+
+    test('saveProgress updates currentPosition', () {
+      store.seek(const Duration(minutes: 10));
+      store.saveProgress();
+
+      final state = store.state;
+      expect(state.currentPosition, const Duration(minutes: 10));
+    });
   });
 }

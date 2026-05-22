@@ -106,6 +106,11 @@ class PlayerStore extends StateNotifier<PlayerState> {
   void setBuffering(bool buffering) {
     state = state.copyWith(isBuffering: buffering);
   }
+
+  /// Save current progress - stub for auto-save functionality
+  void saveProgress() {
+    // TODO(1.4): Implement auto-save timer to persist position to HistoryService
+  }
 }
 
 // Provider
