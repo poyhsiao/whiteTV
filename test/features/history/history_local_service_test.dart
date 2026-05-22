@@ -133,5 +133,24 @@ void main() {
       expect(result[1].key, 'key3');
       expect(result[2].key, 'key1');
     });
+
+    test('save and getAll preserves lastPosition Duration', () async {
+      final history = PlayHistory(
+        key: 'key1',
+        videoId: 'video1',
+        title: 'Test',
+        sourceName: 'source',
+        playTime: 100,
+        totalTime: 200,
+        saveTime: DateTime.now(),
+        type: 'movie',
+        lastPosition: const Duration(minutes: 5, seconds: 30),
+      );
+
+      await service.save(history);
+      final result = await service.getAll();
+
+      expect(result.first.lastPosition, const Duration(minutes: 5, seconds: 30));
+    });
   });
 }
