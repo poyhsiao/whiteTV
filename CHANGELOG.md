@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-05-22
+
+### Added
+- **Favorites Feature**: Full favorites management with local-first sync
+  - FavoriteItem, FavoritesState models (TDD)
+  - FavoritesRepository abstract interface
+  - FavoritesLocalService (SharedPreferences storage)
+  - FavoritesRemoteService (LunaTV API sync)
+  - FavoritesService facade with background sync
+  - FavoritesStore (Riverpod state management)
+  - FavoritesScreen with grid/list view toggle
+  - FavoritesFilterBar with type filtering (all/movie/series/anime/variety)
+  - FavoriteTile, FavoriteGrid widgets
+  - "已下架" badge for unavailable content
+  - BDD integration tests (26 scenarios)
+  - 74 tests passing for favorites feature
+
 ## [0.3.0] - 2026-05-21
 
 ### Added

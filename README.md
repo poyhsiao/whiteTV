@@ -4,7 +4,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 
 ## Version
 
-**v0.3.0** - IPTV Live Feature
+**v0.4.0** - Favorites Feature
 
 ## Features
 
@@ -15,6 +15,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 - **Search**: Full-text search with TV remote D-pad navigation, QR code input support
 - **Play History**: Local-first playback history with LunaTV sync, time grouping
 - **IPTV Live**: Live TV streaming with M3U playlist, EPG, and timeshift replay
+- **Favorites**: Local-first favorites with grid/list view, type filtering, LunaTV sync
 
 ### IPTV Live Feature (v0.3.0)
 
@@ -27,6 +28,18 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 - Full TV remote + touch support
 - Router integration (/live, /live/player)
 - BDD integration tests (10 scenarios)
+
+### Favorites Feature (v0.4.0)
+
+- FavoriteItem, FavoritesState, FavoritesRepository
+- FavoritesLocalService (SharedPreferences)
+- FavoritesRemoteService (LunaTV API sync)
+- FavoritesService facade with background sync
+- FavoritesStore (Riverpod), FavoritesScreen
+- FavoritesFilterBar (all/movie/series/anime/variety)
+- FavoriteTile, FavoriteGrid widgets
+- "已下架" badge for unavailable content
+- BDD integration tests (26 scenarios)
 
 - KeyboardInputView for TV remote D-pad text input
 - CategoryFilter for filtering by category
@@ -45,7 +58,7 @@ A Flutter TV application for streaming video content, designed for Apple TV and 
 
 ### Architecture
 
-- **State Management**: Riverpod (HomeStore, DetailStore, PlayerStore, SettingsStore, AuthStore, SearchStore, HistoryStore, LiveStore)
+- **State Management**: Riverpod (HomeStore, DetailStore, PlayerStore, SettingsStore, AuthStore, SearchStore, HistoryStore, LiveStore, FavoritesStore)
 - **Navigation**: GoRouter
 - **API**: LunaClient with MockClient fallback
 - **Design System**: Glassmorphism components
