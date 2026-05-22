@@ -32,4 +32,32 @@ void main() {
       expect(find.text('第 5 集/共 24 集'), findsOneWidget);
     });
   });
+
+  group('HistoryTile watched time', () {
+    testWidgets('displays formatted watched time', (tester) async {
+      final history = PlayHistory(
+        key: 'key1',
+        videoId: 'video1',
+        title: 'Test Video',
+        sourceName: 'TestSource',
+        playTime: 300,
+        totalTime: 600,
+        saveTime: DateTime.now(),
+        type: 'movie',
+        watchedTime: 5400, // 1h 30m
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: HistoryTile(
+            history: history,
+            onTap: () {},
+            onDelete: () {},
+          ),
+        ),
+      ));
+
+      expect(find.text('已觀看 1h 30m'), findsOneWidget);
+    });
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/history/utils/time_formatter.dart';
 
 class HistoryTile extends StatelessWidget {
   const HistoryTile({
@@ -51,6 +52,8 @@ class HistoryTile extends StatelessWidget {
         children: [
           Text(history.sourceName),
           if (episodeInfo != null) Text(episodeInfo),
+          if (history.watchedTime > 0)
+            Text('已觀看 ${TimeFormatter.formatWatchTime(history.watchedTime)}'),
         ],
       ),
       trailing: Column(
