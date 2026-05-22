@@ -42,7 +42,8 @@ dependencies:
   cached_network_image: ^3.3.0
   shimmer: ^3.0.0
   google_fonts: ^6.1.0
-  flutter_dotenv: ^5.1.0
+  shelf: ^1.4.0
+  shelf_router: ^1.1.4
   shared_preferences: ^2.2.0
   flutter_secure_storage: ^9.0.0
   mobile_scanner: ^5.1.0
