@@ -8,6 +8,9 @@ class PlayHistory {
   final int? totalEpisodes;
   final int playTime;
   final int totalTime;
+  final Duration lastPosition;
+  final int watchedTime;
+  final DateTime? lastWatched;
   final DateTime saveTime;
   final String type;
   final bool pendingDelete;
@@ -22,6 +25,9 @@ class PlayHistory {
     this.totalEpisodes,
     required this.playTime,
     required this.totalTime,
+    this.lastPosition = Duration.zero,
+    this.watchedTime = 0,
+    this.lastWatched,
     required this.saveTime,
     required this.type,
     this.pendingDelete = false,
@@ -43,6 +49,11 @@ class PlayHistory {
       totalEpisodes: json['totalEpisodes'] as int?,
       playTime: json['playTime'] as int,
       totalTime: json['totalTime'] as int,
+      lastPosition: Duration(seconds: json['lastPosition'] as int? ?? 0),
+      watchedTime: json['watchedTime'] as int? ?? 0,
+      lastWatched: json['lastWatched'] != null
+          ? DateTime.parse(json['lastWatched'] as String)
+          : null,
       saveTime: DateTime.parse(json['saveTime'] as String),
       type: json['type'] as String,
       pendingDelete: json['pendingDelete'] as bool? ?? false,
@@ -60,6 +71,9 @@ class PlayHistory {
       'totalEpisodes': totalEpisodes,
       'playTime': playTime,
       'totalTime': totalTime,
+      'lastPosition': lastPosition.inSeconds,
+      'watchedTime': watchedTime,
+      'lastWatched': lastWatched?.toIso8601String(),
       'saveTime': saveTime.toIso8601String(),
       'type': type,
       'pendingDelete': pendingDelete,
@@ -76,6 +90,9 @@ class PlayHistory {
     int? totalEpisodes,
     int? playTime,
     int? totalTime,
+    Duration? lastPosition,
+    int? watchedTime,
+    DateTime? lastWatched,
     DateTime? saveTime,
     String? type,
     bool? pendingDelete,
@@ -90,6 +107,9 @@ class PlayHistory {
       totalEpisodes: totalEpisodes ?? this.totalEpisodes,
       playTime: playTime ?? this.playTime,
       totalTime: totalTime ?? this.totalTime,
+      lastPosition: lastPosition ?? this.lastPosition,
+      watchedTime: watchedTime ?? this.watchedTime,
+      lastWatched: lastWatched ?? this.lastWatched,
       saveTime: saveTime ?? this.saveTime,
       type: type ?? this.type,
       pendingDelete: pendingDelete ?? this.pendingDelete,
