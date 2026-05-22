@@ -68,7 +68,7 @@ void main() {
         ),
       );
 
-      expect(find.text('第5集/共24集'), findsOneWidget);
+      expect(find.text('第 5 集/共 24 集'), findsOneWidget);
     });
 
     testWidgets('does NOT display episode info for movie type', (tester) async {

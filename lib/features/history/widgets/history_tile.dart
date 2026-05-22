@@ -17,10 +17,9 @@ class HistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTvType = history.type == 'tv';
     final episodeInfo =
-        isTvType &&
-            history.currentEpisode != null &&
+        history.currentEpisode != null &&
             history.totalEpisodes != null
-        ? '第${history.currentEpisode}集/共${history.totalEpisodes}集'
+        ? '第 ${history.currentEpisode} 集/共 ${history.totalEpisodes} 集'
         : null;
 
     return ListTile(
