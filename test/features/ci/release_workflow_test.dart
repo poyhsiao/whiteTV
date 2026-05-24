@@ -105,9 +105,9 @@ void main() {
       final filesStr = withBlock['files']?.toString() ?? '';
 
       // Verify new naming convention: whitetv-vX.Y.Z-{platform}.{ext}
-      expect(filesStr, contains('whitetv-\${VERSION}-mobile.apk'));
-      expect(filesStr, contains('whitetv-\${VERSION}-tv.apk'));
-      expect(filesStr, contains('whitetv-\${VERSION}-web.tgz'));
+      expect(filesStr, contains('whitetv-v*-mobile.apk'));
+      expect(filesStr, contains('whitetv-v*-tv.apk'));
+      expect(filesStr, contains('whitetv-v*-web.tgz'));
     });
 
     test('release workflow extracts version from git tag', () {

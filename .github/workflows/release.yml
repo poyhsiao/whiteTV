@@ -60,8 +60,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/app/outputs/flutter-apk/whitetv-${VERSION}-mobile.apk
-            build/app/outputs/flutter-apk/whitetv-${VERSION}-tv.apk
-            build/whitetv-${VERSION}-web.tgz
+            build/app/outputs/flutter-apk/whitetv-v*-mobile.apk
+            build/app/outputs/flutter-apk/whitetv-v*-tv.apk
+            build/whitetv-v*-web.tgz
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
