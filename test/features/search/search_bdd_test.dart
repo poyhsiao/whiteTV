@@ -428,7 +428,7 @@ void main() {
         (tester) async {
           SharedPreferences.setMockInitialValues({});
           final prefs = await SharedPreferences.getInstance();
-          final service = SearchHistoryService(prefs);
+          final service = SearchHistoryService(prefs, MockClient());
 
           // Save some searches
           await service.saveSearch('query1');
@@ -450,7 +450,7 @@ void main() {
         (tester) async {
           SharedPreferences.setMockInitialValues({});
           final prefs = await SharedPreferences.getInstance();
-          final service = SearchHistoryService(prefs);
+          final service = SearchHistoryService(prefs, MockClient());
 
           // Save searches
           await service.saveSearch('query1');
@@ -471,7 +471,7 @@ void main() {
         (tester) async {
           SharedPreferences.setMockInitialValues({});
           final prefs = await SharedPreferences.getInstance();
-          final service = SearchHistoryService(prefs);
+          final service = SearchHistoryService(prefs, MockClient());
 
           // Save 21 searches (max is 20)
           for (var i = 0; i < 21; i++) {
@@ -494,7 +494,7 @@ void main() {
         (tester) async {
           SharedPreferences.setMockInitialValues({});
           final prefs = await SharedPreferences.getInstance();
-          final service = SearchHistoryService(prefs);
+          final service = SearchHistoryService(prefs, MockClient());
 
           // Save some searches
           await service.saveSearch('query1');
@@ -517,7 +517,7 @@ void main() {
         (tester) async {
           SharedPreferences.setMockInitialValues({});
           final prefs = await SharedPreferences.getInstance();
-          final service = SearchHistoryService(prefs);
+          final service = SearchHistoryService(prefs, MockClient());
 
           // Try to save empty query
           await service.saveSearch('');
