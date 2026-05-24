@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
+import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
 
@@ -12,7 +13,7 @@ void main() {
         ProviderScope(
           overrides: [
             detailStoreProvider.overrideWith((ref) {
-              final store = DetailStore(MockClient());
+              final store = DetailStore(MockClient(), SourceSelector());
               return store;
             }),
           ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/mock_client.dart';
+import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/player/player_store.dart';
 import 'package:white_tv/features/player/player_screen.dart';
 
@@ -34,7 +35,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            playerStoreProvider.overrideWith((ref) => PlayerStore(mockClient)),
+            playerStoreProvider.overrideWith((ref) => PlayerStore(mockClient, SourceSelector())),
             videoPlayerControllerProvider.overrideWithValue(FakeVideoPlayerController()),
           ],
           child: const MaterialApp(
