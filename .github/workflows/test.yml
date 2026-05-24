@@ -40,12 +40,3 @@ jobs:
 
       - name: Run analyzer
         run: flutter analyze --no-pub
-
-      - name: Upload coverage
-        if: success() || failure()
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
