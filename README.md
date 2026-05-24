@@ -1,6 +1,8 @@
 # whiteTV
 
-A Flutter TV application for streaming video content, designed for Apple TV and Android TV with remote control support.
+> A cross-platform TV streaming application built with Flutter, supporting Apple TV, Android TV, and mobile devices with unified remote control and QR-code input.
+
+A production-ready Flutter TV application for streaming video content, featuring IPTV live TV, VOD playback, favorites sync, and play history — optimized for both physical TV remote controls and mobile phone input via QR code.
 
 ## Version
 
