@@ -37,8 +37,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Android APK
-        run: flutter build apk --release
+      - name: Build Mobile/Pad APK
+        run: flutter build apk --release --target-platform android-arm
+
+      - name: Build TV APK (arm64)
+        run: flutter build apk --release --target-platform android-arm64
 
       - name: Build Web App
         run: flutter build web
@@ -51,6 +54,8 @@ jobs:
         with:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release-arm.apk
+            build/app/outputs/flutter-apk/app-release-arm64.apk
             build/whitetv-web.zip
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -16,7 +16,7 @@ void main() {
       expect(yaml['permissions']['contents'], equals('write'));
     });
 
-    test('release workflow builds android APK', () {
+    test('release workflow builds mobile/pad APK', () {
       final workflowFile = File('.github/workflows/release.yml');
       final content = workflowFile.readAsStringSync();
       final yaml = loadYaml(content) as YamlMap;
@@ -25,13 +25,31 @@ void main() {
       final buildJob = jobs['build'] as YamlMap;
       final steps = buildJob['steps'] as YamlList;
 
-      final hasAndroidBuild = steps.any((step) =>
+      final hasMobileBuild = steps.any((step) =>
         step is YamlMap &&
-        step['name'] == 'Build Android APK' &&
-        (step['run'] as String).contains('flutter build apk --release')
+        step['name'] == 'Build Mobile/Pad APK' &&
+        (step['run'] as String).contains('--target-platform android-arm')
       );
 
-      expect(hasAndroidBuild, isTrue);
+      expect(hasMobileBuild, isTrue);
+    });
+
+    test('release workflow builds TV APK', () {
+      final workflowFile = File('.github/workflows/release.yml');
+      final content = workflowFile.readAsStringSync();
+      final yaml = loadYaml(content) as YamlMap;
+
+      final jobs = yaml['jobs'] as YamlMap;
+      final buildJob = jobs['build'] as YamlMap;
+      final steps = buildJob['steps'] as YamlList;
+
+      final hasTVBuild = steps.any((step) =>
+        step is YamlMap &&
+        step['name'] == 'Build TV APK (arm64)' &&
+        (step['run'] as String).contains('--target-platform android-arm64')
+      );
+
+      expect(hasTVBuild, isTrue);
     });
 
     test('release workflow builds web app', () {
@@ -69,7 +87,7 @@ void main() {
       expect(uses, equals('softprops/action-gh-release@v2'));
     });
 
-    test('release workflow uploads both APK and web zip', () {
+    test('release workflow uploads all APK variants and web zip', () {
       final workflowFile = File('.github/workflows/release.yml');
       final content = workflowFile.readAsStringSync();
       final yaml = loadYaml(content) as YamlMap;
@@ -87,6 +105,7 @@ void main() {
       final filesStr = withBlock['files']?.toString() ?? '';
 
       expect(filesStr, contains('app-release.apk'));
+      expect(filesStr, contains('app-release-arm64.apk'));
       expect(filesStr, contains('whitetv-web.zip'));
     });
   });
