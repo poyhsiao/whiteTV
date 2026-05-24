@@ -42,10 +42,10 @@ jobs:
           flutter build apk --release --target-platform android-arm
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-arm.apk
 
-      - name: Build TV APK (arm64)
+      - name: Build TV APK (Google TV/Android TV)
         run: |
           flutter build apk --release --target-platform android-arm64
-          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-arm64.apk
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-tv.apk
 
       - name: Build Web App
         run: flutter build web
@@ -59,7 +59,7 @@ jobs:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-release-arm.apk
-            build/app/outputs/flutter-apk/app-release-arm64.apk
+            build/app/outputs/flutter-apk/app-release-tv.apk
             build/whitetv-web.zip
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}

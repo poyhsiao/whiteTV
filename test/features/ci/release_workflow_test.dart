@@ -45,7 +45,7 @@ void main() {
 
       final hasTVBuild = steps.any((step) =>
         step is YamlMap &&
-        step['name'] == 'Build TV APK (arm64)' &&
+        step['name'] == 'Build TV APK (Google TV/Android TV)' &&
         (step['run'] as String).contains('--target-platform android-arm64')
       );
 
@@ -105,7 +105,7 @@ void main() {
       final filesStr = withBlock['files']?.toString() ?? '';
 
       expect(filesStr, contains('app-release.apk'));
-      expect(filesStr, contains('app-release-arm64.apk'));
+      expect(filesStr, contains('app-release-tv.apk'));
       expect(filesStr, contains('whitetv-web.zip'));
     });
   });
