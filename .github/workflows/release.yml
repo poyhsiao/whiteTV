@@ -35,12 +35,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Android Release APK
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/app-release.apk
           draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
