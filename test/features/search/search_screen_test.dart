@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/search/search_screen.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/search_state.dart';
+import 'package:white_tv/features/search/widgets/voice_input_button.dart';
 import 'package:white_tv/core/api/api_client.dart';
 
 void main() {
@@ -55,6 +56,19 @@ void main() {
       );
       // Category filter should have ChoiceChips for each category
       expect(find.byType(ChoiceChip), findsWidgets);
+    });
+
+    testWidgets('shows search input and results', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            searchStoreProvider.overrideWith((ref) => SearchStore(FakeApiClient())),
+          ],
+          child: const MaterialApp(home: SearchScreen()),
+        ),
+      );
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byType(VoiceInputButton), findsOneWidget);
     });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
+import 'package:white_tv/features/search/widgets/voice_input_button.dart';
 
 /// SearchScreen - 搜尋頁面
 class SearchScreen extends ConsumerWidget {
@@ -21,10 +22,15 @@ class SearchScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: '搜尋電影、劇集...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: '輸入搜尋關鍵字...',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: VoiceInputButton(
+                  onResult: (text) {
+                    ref.read(searchStoreProvider.notifier).search(text);
+                  },
+                ),
               ),
               onChanged: (query) {
                 ref.read(searchStoreProvider.notifier).search(query);
