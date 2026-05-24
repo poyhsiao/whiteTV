@@ -1,0 +1,147 @@
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/core/source/source_metrics.dart';
+
+/// 來源選擇器
+/// 負責來源測速、選擇邏輯、歷史追蹤
+
+class SourceSelector {
+  static const Duration cacheMaxAge = Duration(minutes: 30);
+  static const int maxAutoSwitch = 2;
+
+  final Map<String, SourceMetrics> _metrics = {};
+  final Map<String, _CachedSource> _cache = {};
+  List<String> _blockedSources = [];
+
+  /// 選擇最佳來源
+  /// 1. 過濾屏蔽和不可用來源
+  /// 2. 檢查快取是否有效
+  /// 3. 如果快取過期則重新測速
+  /// 4. 返回最快來源
+  Future<VideoSource> selectSource(List<VideoSource> sources, String videoId) async {
+    if (sources.isEmpty) {
+      throw ArgumentError('sources 不能為空');
+    }
+
+    // 過濾屏蔽來源
+    final availableSources = sources.where((s) {
+      return !_blockedSources.contains(s.id) && s.isAvailable;
+    }).toList();
+
+    if (availableSources.isEmpty) {
+      // 如果所有來源都被屏蔽，返回原列表第一個作為備用
+      return sources.first;
+    }
+
+    // 檢查快取
+    final cacheKey = videoId;
+    final cached = _cache[cacheKey];
+
+    if (cached != null && DateTime.now().difference(cached.timestamp) < cacheMaxAge) {
+      // 快取有效，返回快取的最快來源
+      final cachedSource = availableSources.firstWhere(
+        (s) => s.id == cached.sourceId,
+        orElse: () => availableSources.first,
+      );
+      return cachedSource;
+    }
+
+    // 快取過期或不存在，重新測速
+    final testedSources = await _speedTest(availableSources);
+
+    // 更新快取
+    if (testedSources.isNotEmpty) {
+      _cache[cacheKey] = _CachedSource(
+        sourceId: testedSources.first.id,
+        timestamp: DateTime.now(),
+      );
+    }
+
+    return testedSources.isNotEmpty ? testedSources.first : availableSources.first;
+  }
+
+  /// 並行測速所有來源
+  Future<List<VideoSource>> _speedTest(List<VideoSource> sources) async {
+    final results = await Future.wait(
+      sources.map((source) => _testSingleSource(source)),
+    );
+
+    // 按延遲排序
+    results.sort((a, b) => a.latency.compareTo(b.latency));
+
+    return results;
+  }
+
+  /// 測試單個來源（這裡用延遲作為測速結果，實際會調用 HTTP 測試）
+  Future<VideoSource> _testSingleSource(VideoSource source) async {
+    // 模擬測速延遲（實際會調用 API 測試）
+    await Future.delayed(const Duration(milliseconds: 10));
+
+    return source;
+  }
+
+  /// 記錄播放結果
+  void recordResult(String sourceId, {required bool isSuccess, int latency = 0}) {
+    final metrics = _metrics.putIfAbsent(
+      sourceId,
+      () => SourceMetrics(sourceId: sourceId),
+    );
+
+    if (isSuccess) {
+      metrics.recordSuccess(latency: latency > 0 ? latency : 100); // 預設 100ms
+    } else {
+      metrics.recordFailure();
+    }
+  }
+
+  /// 獲取來源指標
+  SourceMetrics? getMetrics(String sourceId) {
+    return _metrics[sourceId];
+  }
+
+  /// 設置屏蔽來源列表
+  Future<void> setBlockedSources(List<String> sources) async {
+    _blockedSources = List.from(sources);
+    // 持久化到 SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('blocked_sources', _blockedSources);
+  }
+
+  /// 獲取屏蔽來源列表
+  List<String> getBlockedSources() {
+    return List.from(_blockedSources);
+  }
+
+  /// 加載屏蔽來源列表（從持久化存儲）
+  Future<void> loadBlockedSources() async {
+    final prefs = await SharedPreferences.getInstance();
+    final blocked = prefs.getStringList('blocked_sources');
+    if (blocked != null) {
+      _blockedSources = blocked;
+    }
+  }
+
+  /// 清除快取
+  void clearCache() {
+    _cache.clear();
+  }
+
+  /// 獲取快取剩餘有效時間
+  Duration? getCacheRemainingTime(String videoId) {
+    final cached = _cache[videoId];
+    if (cached == null) return null;
+
+    final elapsed = DateTime.now().difference(cached.timestamp);
+    final remaining = cacheMaxAge - elapsed;
+
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+}
+
+class _CachedSource {
+  final String sourceId;
+  final DateTime timestamp;
+
+  _CachedSource({required this.sourceId, required this.timestamp});
+}

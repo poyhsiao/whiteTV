@@ -1,15 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
+import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
 
 void main() {
   group('DetailStore', () {
     late MockClient mockClient;
+    late SourceSelector sourceSelector;
     late DetailStore store;
 
     setUp(() {
       mockClient = MockClient();
-      store = DetailStore(mockClient);
+      sourceSelector = SourceSelector();
+      store = DetailStore(mockClient, sourceSelector);
     });
 
     test('initial state has no detail', () {

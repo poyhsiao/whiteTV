@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/core/source/source_selector.dart';
+import 'package:white_tv/core/source/source_selector_provider.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/home/home_store.dart';
@@ -20,6 +22,7 @@ class PlayerState {
   final Duration duration;
   final double playbackSpeed;
   final String? error;
+  final int autoSwitchCount; // 記錄自動切換次數
 
   const PlayerState({
     this.videoId,
@@ -31,6 +34,7 @@ class PlayerState {
     this.duration = Duration.zero,
     this.playbackSpeed = 1.0,
     this.error,
+    this.autoSwitchCount = 0,
   });
 
   PlayerState copyWith({
@@ -43,6 +47,7 @@ class PlayerState {
     Duration? duration,
     double? playbackSpeed,
     String? error,
+    int? autoSwitchCount,
   }) {
     return PlayerState(
       videoId: videoId ?? this.videoId,
@@ -54,6 +59,7 @@ class PlayerState {
       duration: duration ?? this.duration,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       error: error,
+      autoSwitchCount: autoSwitchCount ?? this.autoSwitchCount,
     );
   }
 }
@@ -62,10 +68,15 @@ class PlayerStore extends StateNotifier<PlayerState> {
   final ApiClient _apiClient;
   final HistoryService? _historyService;
   final DownloadService? _downloadService;
+  final SourceSelector _sourceSelector;
   Timer? _autoSaveTimer;
 
-  PlayerStore(this._apiClient, [this._historyService, this._downloadService])
-      : super(const PlayerState());
+  PlayerStore(
+    this._apiClient,
+    this._sourceSelector, [
+    this._historyService,
+    this._downloadService,
+  ]) : super(const PlayerState());
 
   void _startAutoSave() {
     _autoSaveTimer?.cancel();
@@ -93,19 +104,16 @@ class PlayerStore extends StateNotifier<PlayerState> {
               source: VideoSource(id: 'local_$videoId', url: 'file://$localPath', name: 'local'),
               currentPosition: Duration.zero,
               error: null,
+              autoSwitchCount: 0,
             );
             return;
           }
         }
       }
 
-      // Fall back to online sources
+      // Fall back to online sources - 使用 SourceSelector 選擇來源
       final sources = await _apiClient.getSources(videoId);
-      sources.sort((a, b) => a.latency.compareTo(b.latency));
-      final fastestSource = sources.firstWhere(
-        (s) => s.isAvailable,
-        orElse: () => sources.first,
-      );
+      final fastestSource = await _sourceSelector.selectSource(sources, videoId);
 
       state = state.copyWith(
         videoId: videoId,
@@ -113,6 +121,7 @@ class PlayerStore extends StateNotifier<PlayerState> {
         source: fastestSource,
         currentPosition: Duration.zero,
         error: null,
+        autoSwitchCount: 0,
       );
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -149,6 +158,53 @@ class PlayerStore extends StateNotifier<PlayerState> {
     state = state.copyWith(isBuffering: buffering);
   }
 
+  /// 播放失敗時自動切換來源
+  /// 返回是否成功切換，null 表示無需切換或無法切換
+  Future<VideoSource?> switchToNextSource(List<VideoSource> allSources) async {
+    final currentSource = state.source;
+    if (currentSource == null) return null;
+
+    // 檢查是否超過最大自動切換次數
+    if (state.autoSwitchCount >= SourceSelector.maxAutoSwitch) {
+      return null; // 超過限制，需要用戶手動選擇
+    }
+
+    // 過濾當前來源
+    final otherSources = allSources.where((s) => s.id != currentSource.id).toList();
+    if (otherSources.isEmpty) return null;
+
+    // 選擇下一個最快來源
+    otherSources.sort((a, b) => a.latency.compareTo(b.latency));
+    final nextSource = otherSources.firstWhere(
+      (s) => s.isAvailable,
+      orElse: () => otherSources.first,
+    );
+
+    // 記錄當前來源失敗
+    _sourceSelector.recordResult(currentSource.id, isSuccess: false, latency: 0);
+
+    // 更新狀態
+    state = state.copyWith(
+      source: nextSource,
+      autoSwitchCount: state.autoSwitchCount + 1,
+      error: null,
+    );
+
+    return nextSource;
+  }
+
+  /// 記錄播放結果到 SourceSelector
+  void recordSourceResult({required bool isSuccess, int latency = 0}) {
+    final currentSource = state.source;
+    if (currentSource != null) {
+      _sourceSelector.recordResult(
+        currentSource.id,
+        isSuccess: isSuccess,
+        latency: latency,
+      );
+    }
+  }
+
   /// Save current progress - persists position to HistoryService
   void saveProgress() {
     if (_historyService == null || state.videoId == null) return;
@@ -176,12 +232,11 @@ class PlayerStore extends StateNotifier<PlayerState> {
   }
 }
 
-// Provider
+// Provider - 注入 SourceSelector
 final playerStoreProvider =
     StateNotifierProvider.autoDispose<PlayerStore, PlayerState>((ref) {
       return PlayerStore(
         ref.watch(apiClientProvider),
-        null,
-        null,
+        ref.watch(sourceSelectorProvider),
       );
     });

@@ -1,6 +1,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
+import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/services/history_service.dart';
 import 'package:white_tv/features/player/player_store.dart';
@@ -70,11 +71,13 @@ class FakeDownloadService implements DownloadService {
 void main() {
   group('PlayerStore', () {
     late MockClient mockClient;
+    late SourceSelector sourceSelector;
     late PlayerStore store;
 
     setUp(() {
       mockClient = MockClient();
-      store = PlayerStore(mockClient);
+      sourceSelector = SourceSelector();
+      store = PlayerStore(mockClient, sourceSelector);
     });
 
     tearDown(() => store.dispose());
@@ -119,7 +122,7 @@ void main() {
 
     test('saveProgress calls HistoryService.addRecord with PlayHistory', () async {
       final fakeHistory = FakeHistoryService();
-      final storeWithHistory = PlayerStore(mockClient, fakeHistory);
+      final storeWithHistory = PlayerStore(mockClient, sourceSelector, fakeHistory);
 
       await storeWithHistory.setVideo('movie-1', 'episode-1');
       storeWithHistory.seek(const Duration(minutes: 5));
@@ -161,7 +164,7 @@ void main() {
     test('setVideo plays from local cache when downloaded', () async {
       final fakeDownloadService = FakeDownloadService();
       fakeDownloadService.addDownloadedVideo('movie-1', '/data/downloads/movie-1.mp4');
-      final storeWithDownload = PlayerStore(mockClient, null, fakeDownloadService);
+      final storeWithDownload = PlayerStore(mockClient, sourceSelector, null, fakeDownloadService);
 
       await storeWithDownload.setVideo('movie-1', 'episode-1');
 
@@ -174,7 +177,7 @@ void main() {
 
     test('setVideo falls back to online when not downloaded', () async {
       final fakeDownloadService = FakeDownloadService();
-      final storeWithDownload = PlayerStore(mockClient, null, fakeDownloadService);
+      final storeWithDownload = PlayerStore(mockClient, sourceSelector, null, fakeDownloadService);
 
       await storeWithDownload.setVideo('movie-1', 'episode-1');
 

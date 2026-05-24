@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/core/source/source_selector.dart';
+import 'package:white_tv/core/source/source_selector_provider.dart';
 import 'package:white_tv/features/home/home_store.dart';
 
 /// 詳情頁 Store
@@ -39,8 +41,9 @@ class DetailState {
 
 class DetailStore extends StateNotifier<DetailState> {
   final ApiClient _apiClient;
+  final SourceSelector _sourceSelector;
 
-  DetailStore(this._apiClient) : super(const DetailState());
+  DetailStore(this._apiClient, this._sourceSelector) : super(const DetailState());
 
   Future<void> loadDetail(String videoId) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -48,12 +51,9 @@ class DetailStore extends StateNotifier<DetailState> {
     try {
       final detail = await _apiClient.getVideoDetail(videoId);
 
+      // 使用 SourceSelector 選擇來源
       final sources = await _apiClient.getSources(videoId);
-      sources.sort((a, b) => a.latency.compareTo(b.latency));
-      final fastestSource = sources.firstWhere(
-        (s) => s.isAvailable,
-        orElse: () => sources.first,
-      );
+      final selectedSource = await _sourceSelector.selectSource(sources, videoId);
 
       final firstEpisode = detail.episodes.isNotEmpty
           ? detail.episodes.first
@@ -61,7 +61,7 @@ class DetailStore extends StateNotifier<DetailState> {
 
       state = state.copyWith(
         detail: detail,
-        selectedSource: fastestSource,
+        selectedSource: selectedSource,
         selectedEpisode: firstEpisode,
         isLoading: false,
       );
@@ -80,10 +80,25 @@ class DetailStore extends StateNotifier<DetailState> {
   void selectEpisode(Episode episode) {
     state = state.copyWith(selectedEpisode: episode);
   }
+
+  /// 記錄播放結果到 SourceSelector
+  void recordSourceResult({required bool isSuccess, int latency = 0}) {
+    final selected = state.selectedSource;
+    if (selected != null) {
+      _sourceSelector.recordResult(
+        selected.id,
+        isSuccess: isSuccess,
+        latency: latency,
+      );
+    }
+  }
 }
 
-// Provider
+// Provider - 注入 SourceSelector
 final detailStoreProvider =
     StateNotifierProvider.autoDispose<DetailStore, DetailState>((ref) {
-  return DetailStore(ref.watch(apiClientProvider));
+  return DetailStore(
+    ref.watch(apiClientProvider),
+    ref.watch(sourceSelectorProvider),
+  );
 });
