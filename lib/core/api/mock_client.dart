@@ -185,4 +185,16 @@ class MockClient implements ApiClient {
       'stats': {'continueWatch': []},
     };
   }
+
+  @override
+  Future<void> syncSearchHistory(List<String> history) async {
+    await Future.delayed(_delay);
+    // Mock implementation - just acknowledge the call
+  }
+
+  @override
+  Future<List<String>> getSearchHistory() async {
+    await Future.delayed(_delay);
+    return [];
+  }
 }

@@ -113,4 +113,24 @@ class LunaClient implements ApiClient {
       return {};
     }
   }
+
+  @override
+  Future<void> syncSearchHistory(List<String> history) async {
+    try {
+      await _dio.post('/api/user/search-history', data: {'history': history});
+    } on DioException {
+      // Silently fail - will retry on next network event
+    }
+  }
+
+  @override
+  Future<List<String>> getSearchHistory() async {
+    try {
+      final response = await _dio.get('/api/user/search-history');
+      final List<dynamic> data = response.data['history'] ?? [];
+      return data.cast<String>();
+    } on DioException {
+      return [];
+    }
+  }
 }

@@ -28,4 +28,10 @@ abstract class ApiClient {
 
   /// 取得使用者統計資料（包含播放歷史）
   Future<Map<String, dynamic>> getUserStats();
+
+  /// 同步搜尋歷史到雲端
+  Future<void> syncSearchHistory(List<String> history);
+
+  /// 從雲端取得搜尋歷史
+  Future<List<String>> getSearchHistory();
 }

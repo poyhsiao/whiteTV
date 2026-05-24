@@ -1,17 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/features/search/services/search_history_service.dart';
+import 'package:white_tv/core/api/api_client.dart';
+import 'package:white_tv/core/api/mock_client.dart';
+
+class MockApiClient extends Mock implements MockClient {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('SearchHistoryService', () {
     late SearchHistoryService service;
+    late MockApiClient mockClient;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      service = SearchHistoryService(prefs);
+      mockClient = MockApiClient();
+      service = SearchHistoryService(prefs, mockClient);
     });
 
     group('getHistory', () {
@@ -95,6 +102,51 @@ void main() {
         await service.clearHistory();
 
         final history = await service.getHistory();
+        expect(history, isEmpty);
+      });
+    });
+
+    group('Cloud Sync', () {
+      test('syncToCloud calls LunaTV API', () async {
+        when(() => mockClient.syncSearchHistory(any()))
+            .thenAnswer((_) async {});
+
+        await service.saveSearch('test');
+        await service.syncToCloud();
+
+        verify(() => mockClient.syncSearchHistory(['test'])).called(1);
+      });
+
+      test('syncToCloud does nothing when history is empty', () async {
+        await service.syncToCloud();
+
+        verifyNever(() => mockClient.syncSearchHistory(any()));
+      });
+
+      test('syncToCloud silently fails on error', () async {
+        when(() => mockClient.syncSearchHistory(any()))
+            .thenThrow(Exception('Network error'));
+
+        // Should not throw
+        await service.saveSearch('test');
+        await expectLater(() => service.syncToCloud(), returnsNormally);
+      });
+
+      test('fetchFromCloud returns cloud history', () async {
+        when(() => mockClient.getSearchHistory())
+            .thenAnswer((_) async => ['cloud1', 'cloud2']);
+
+        final history = await service.fetchFromCloud();
+
+        expect(history, equals(['cloud1', 'cloud2']));
+      });
+
+      test('fetchFromCloud returns empty on error', () async {
+        when(() => mockClient.getSearchHistory())
+            .thenThrow(Exception('Network error'));
+
+        final history = await service.fetchFromCloud();
+
         expect(history, isEmpty);
       });
     });
