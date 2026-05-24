@@ -6,28 +6,9 @@ on:
       - 'v*'
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-android:
     name: Build Android APK
-    needs: [create-release]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -56,11 +37,10 @@ jobs:
       - name: Build Android Release APK
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload Android APK
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          release_id: ${{ needs.create-release.outputs.id }}
-          assets_path: build/app/outputs/flutter-apk
-          asset_name: whiteTV-release
+          files: build/app/outputs/flutter-apk/app-release.apk
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
