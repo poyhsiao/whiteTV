@@ -33,6 +33,14 @@ class MockHistoryService implements HistoryService {
     // Mock implementation
   }
 
+  @override
+  List<PlayHistory> getPendingRecords() => List.from(_records);
+
+  @override
+  Future<void> syncPendingRecords() async {
+    // Mock implementation - no-op for tests
+  }
+
   void setRecords(List<PlayHistory> records) {
     _records = List.from(records);
   }
