@@ -3,8 +3,15 @@ import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
+import 'package:white_tv/features/search/services/search_history_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:white_tv/core/api/api_client.dart';
 
 class MockApiClient extends Mock implements MockClient {}
+
+class MockSearchHistoryService extends Mock implements SearchHistoryService {}
+
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   group('SearchStore', () {
@@ -65,6 +72,36 @@ void main() {
       store.clearSearch();
       expect(store.state.query, '');
       expect(store.state.results, isEmpty);
+    });
+
+    test('loadHistory populates searchHistory from local and cloud', () async {
+      final mockHistoryService = MockSearchHistoryService();
+      final prefs = MockSharedPreferences();
+
+      when(() => mockHistoryService.getHistory()).thenAnswer((_) async => ['local1', 'local2']);
+      when(() => mockHistoryService.fetchFromCloud()).thenAnswer((_) async => ['cloud1']);
+
+      final storeWithHistory = SearchStore(mockClient, mockHistoryService);
+
+      await storeWithHistory.loadHistory();
+
+      // Merged: local priority, cloud as backup, max 20 items
+      expect(storeWithHistory.state.searchHistory, containsAll(['local1', 'local2', 'cloud1']));
+    });
+
+    test('saveToHistory calls SearchHistoryService.saveSearch and reloads', () async {
+      final mockHistoryService = MockSearchHistoryService();
+      final prefs = MockSharedPreferences();
+
+      when(() => mockHistoryService.getHistory()).thenAnswer((_) async => ['test1']);
+      when(() => mockHistoryService.fetchFromCloud()).thenAnswer((_) async => []);
+      when(() => mockHistoryService.saveSearch(any())).thenAnswer((_) async {});
+
+      final storeWithHistory = SearchStore(mockClient, mockHistoryService);
+
+      await storeWithHistory.saveToHistory('test1');
+
+      verify(() => mockHistoryService.saveSearch('test1')).called(1);
     });
   });
 }

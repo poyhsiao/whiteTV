@@ -1,13 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/features/search/search_state.dart';
+import 'package:white_tv/features/search/services/search_history_service.dart';
 
 /// SearchStore - 搜尋功能狀態管理
 class SearchStore extends StateNotifier<SearchState> {
   final ApiClient _apiClient;
+  final SearchHistoryService? _historyService;
   bool _isSearching = false;
 
-  SearchStore(this._apiClient) : super(const SearchState());
+  SearchStore(this._apiClient, [this._historyService]) : super(const SearchState());
+
+  /// 載入搜尋歷史
+  Future<void> loadHistory() async {
+    if (_historyService == null) return;
+
+    final localHistory = await _historyService.getHistory();
+    final cloudHistory = await _historyService.fetchFromCloud();
+
+    // Merge: local priority, cloud as backup
+    final merged = <String>{...localHistory, ...cloudHistory}.toList();
+    state = state.copyWith(searchHistory: merged.take(20).toList());
+  }
+
+  /// 保存搜尋記錄
+  Future<void> saveToHistory(String query) async {
+    if (_historyService == null) return;
+    await _historyService.saveSearch(query);
+    await loadHistory();
+  }
 
   /// 搜尋影片
   Future<void> search(String query) async {
