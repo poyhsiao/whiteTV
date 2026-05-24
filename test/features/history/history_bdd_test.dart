@@ -17,13 +17,20 @@ class MockHistoryService implements HistoryService {
 
   @override
   Future<List<PlayHistory>> getHistory() async {
-    if (shouldThrowError) throw Exception('Failed to load history');
+    // getHistory reads from local storage - it should NOT throw when offline
+    // Only sync operations (syncFromRemote) should throw on network errors
     return List.from(_records);
   }
 
   @override
   Future<void> addRecord(PlayHistory record) async {
-    _records.add(record);
+    // Upsert: replace existing record with same key, otherwise add new
+    final index = _records.indexWhere((r) => r.key == record.key);
+    if (index >= 0) {
+      _records[index] = record;
+    } else {
+      _records.add(record);
+    }
   }
 
   @override
@@ -139,8 +146,8 @@ void main() {
           );
           await store.addRecord(updatedRecord);
 
-          // Assert
-          expect(store.state.records.length, 2);
+          // Assert - Record was upserted (updated, not duplicated)
+          expect(store.state.records.length, 1);
           expect(
             store.state.records.any((r) => r.lastPosition.inSeconds == 1530),
             isTrue,

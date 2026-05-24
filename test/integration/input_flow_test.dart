@@ -24,8 +24,8 @@ void main() {
       expect(session.id, isNotEmpty);
       expect(session.isValid, isTrue);
 
-      // 2. Start server
-      final started = await inputService.startServer(port: 8080);
+      // 2. Start server on available port (8080 may be occupied)
+      final started = await inputService.startServer(port: 0);
       expect(started, isTrue);
       expect(inputService.isRunning, isTrue);
 
