@@ -7,8 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  metadata: read
+  repository: write
 
 jobs:
   update-metadata:
