@@ -87,7 +87,7 @@ void main() {
       expect(uses, equals('softprops/action-gh-release@v2'));
     });
 
-    test('release workflow uploads all APK variants and web zip', () {
+    test('release workflow uploads correctly named APK variants and web archive', () {
       final workflowFile = File('.github/workflows/release.yml');
       final content = workflowFile.readAsStringSync();
       final yaml = loadYaml(content) as YamlMap;
@@ -104,9 +104,29 @@ void main() {
       final withBlock = uploadStep['with'] as YamlMap;
       final filesStr = withBlock['files']?.toString() ?? '';
 
-      expect(filesStr, contains('app-release.apk'));
-      expect(filesStr, contains('app-release-tv.apk'));
-      expect(filesStr, contains('whitetv-web.zip'));
+      // Verify new naming convention: whitetv-vX.Y.Z-{platform}.{ext}
+      expect(filesStr, contains('whitetv-\${VERSION}-mobile.apk'));
+      expect(filesStr, contains('whitetv-\${VERSION}-tv.apk'));
+      expect(filesStr, contains('whitetv-\${VERSION}-web.tgz'));
+    });
+
+    test('release workflow extracts version from git tag', () {
+      final workflowFile = File('.github/workflows/release.yml');
+      final content = workflowFile.readAsStringSync();
+      final yaml = loadYaml(content) as YamlMap;
+
+      final jobs = yaml['jobs'] as YamlMap;
+      final buildJob = jobs['build'] as YamlMap;
+      final steps = buildJob['steps'] as YamlList;
+
+      // Look for step that sets VERSION from tag
+      final hasVersionStep = steps.any((step) =>
+        step is YamlMap &&
+        (step['run'] as String?)?.contains('VERSION=') == true &&
+        (step['run'] as String).contains('GITHUB_REF')
+      );
+
+      expect(hasVersionStep, isTrue);
     });
   });
 }
