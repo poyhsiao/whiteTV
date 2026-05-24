@@ -110,6 +110,12 @@ class FakeApiClient implements ApiClient {
 
   @override
   Future<Map<String, dynamic>> getUserStats() async => {};
+
+  @override
+  Future<void> syncSearchHistory(List<String> history) async {}
+
+  @override
+  Future<List<String>> getSearchHistory() async => [];
 }
 
 void main() {
