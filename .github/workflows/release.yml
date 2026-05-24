@@ -38,10 +38,14 @@ jobs:
         run: flutter pub get
 
       - name: Build Mobile/Pad APK
-        run: flutter build apk --release --target-platform android-arm
+        run: |
+          flutter build apk --release --target-platform android-arm
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-arm.apk
 
       - name: Build TV APK (arm64)
-        run: flutter build apk --release --target-platform android-arm64
+        run: |
+          flutter build apk --release --target-platform android-arm64
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-release-arm64.apk
 
       - name: Build Web App
         run: flutter build web
