@@ -5,7 +5,6 @@ import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/services/search_history_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:white_tv/core/api/api_client.dart';
 
 class MockApiClient extends Mock implements MockClient {}
 
@@ -76,7 +75,7 @@ void main() {
 
     test('loadHistory populates searchHistory from local and cloud', () async {
       final mockHistoryService = MockSearchHistoryService();
-      final prefs = MockSharedPreferences();
+      final _ = MockSharedPreferences();
 
       when(() => mockHistoryService.getHistory()).thenAnswer((_) async => ['local1', 'local2']);
       when(() => mockHistoryService.fetchFromCloud()).thenAnswer((_) async => ['cloud1']);
@@ -91,7 +90,7 @@ void main() {
 
     test('saveToHistory calls SearchHistoryService.saveSearch and reloads', () async {
       final mockHistoryService = MockSearchHistoryService();
-      final prefs = MockSharedPreferences();
+      final _ = MockSharedPreferences();
 
       when(() => mockHistoryService.getHistory()).thenAnswer((_) async => ['test1']);
       when(() => mockHistoryService.fetchFromCloud()).thenAnswer((_) async => []);

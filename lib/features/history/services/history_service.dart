@@ -76,15 +76,6 @@ class HistoryService {
     }
   }
 
-  Future<void> _syncToRemote(PlayHistory record) async {
-    // Background sync - ignore errors
-    try {
-      await _remoteService.fetchFromRemote();
-    } catch (_) {
-      // Silently ignore remote sync failures
-    }
-  }
-
   Future<void> _syncToRemoteDelete(String key) async {
     // Background sync - ignore errors
     try {

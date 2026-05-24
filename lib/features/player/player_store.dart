@@ -83,9 +83,9 @@ class PlayerStore extends StateNotifier<PlayerState> {
     try {
       // Check local cache first
       if (_downloadService != null) {
-        final isDownloaded = await _downloadService!.isDownloaded(videoId);
+        final isDownloaded = await _downloadService.isDownloaded(videoId);
         if (isDownloaded) {
-          final localPath = await _downloadService!.getLocalPath(videoId);
+          final localPath = await _downloadService.getLocalPath(videoId);
           if (localPath != null) {
             state = state.copyWith(
               videoId: videoId,
@@ -166,7 +166,7 @@ class PlayerStore extends StateNotifier<PlayerState> {
       type: 'movie',
     );
 
-    _historyService!.addRecord(record);
+    _historyService.addRecord(record);
   }
 
   @override

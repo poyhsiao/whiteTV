@@ -16,7 +16,6 @@ class HistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTvType = history.type == 'tv';
     final episodeInfo =
         history.currentEpisode != null &&
             history.totalEpisodes != null

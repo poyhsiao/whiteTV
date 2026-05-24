@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/features/search/services/search_history_service.dart';
-import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 
 class MockApiClient extends Mock implements MockClient {}

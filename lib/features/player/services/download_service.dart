@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
-import 'package:white_tv/features/history/models/play_history.dart';
 
 class DownloadService {
   final Dio _dio;
@@ -24,7 +23,6 @@ class DownloadService {
       }
 
       final filePath = '${downloadsDir.path}/$videoId.mp4';
-      final file = File(filePath);
 
       await _dio.download(
         url,

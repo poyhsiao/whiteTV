@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/history/history_store.dart';
-import 'package:white_tv/features/history/history_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/models/episode_progress.dart';
 import 'package:white_tv/features/history/services/history_service.dart';
