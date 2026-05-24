@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/core/api/models.dart';
-import 'package:white_tv/core/source/source_metrics.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 
 void main() {

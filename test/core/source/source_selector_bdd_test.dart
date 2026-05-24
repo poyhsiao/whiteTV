@@ -48,11 +48,6 @@ void main() {
 
     group('場景 2: 播放失敗時自動切換到下一個來源', () {
       test('記錄失敗後，下一次選擇時該來源評分降低', () async {
-        final sources = [
-          const VideoSource(id: 'src1', name: '量子資源', url: 'http://a.com', latency: 80, isAvailable: true),
-          const VideoSource(id: 'src2', name: '非凡資源', url: 'http://b.com', latency: 120, isAvailable: true),
-        ];
-
         // 記錄 src1 失敗
         selector.recordResult('src1', isSuccess: false, latency: 0);
 
