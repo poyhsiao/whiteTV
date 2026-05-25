@@ -51,6 +51,15 @@ class MockHistoryService implements HistoryService {
   @override
   List<PlayHistory> getPendingRecords() => [];
 
+  @override
+  bool get hasPendingRecords => false;
+
+  @override
+  int get pendingRecordCount => 0;
+
+  @override
+  Future<bool> pushRecordToRemote(PlayHistory record) async => true;
+
   void setRecords(List<PlayHistory> records) {
     _records = List.from(records);
   }
@@ -208,6 +217,33 @@ void main() {
           expect(addedRecord.progressPercent, 100.0);
         },
       );
+
+      test(
+        'Progress is recorded when position exceeds 5%',
+        () async {
+          // Given user is watching a video
+          final mockService = MockHistoryService();
+          mockService.setRecords([]);
+          final store = HistoryStore(mockService);
+
+          await store.loadHistory();
+          expect(store.state.records.isEmpty, isTrue);
+
+          // When playback position exceeds 5%
+          final newRecord = testMovieHistory.copyWith(
+            playTime: 400,
+            totalTime: 7200,
+            lastPosition: const Duration(seconds: 400),
+          );
+          await store.addRecord(newRecord);
+
+          // Then a history record is created with correct progress
+          expect(store.state.records.length, 1);
+          final savedRecord = store.state.records.first;
+          expect(savedRecord.progressPercent, closeTo(5.56, 0.01));
+          expect(savedRecord.lastPosition.inSeconds, 400);
+        },
+      );
     });
 
     // ========================================================================
@@ -294,6 +330,30 @@ void main() {
           // Assert
           final record = store.state.records.first;
           expect(record.progressPercent, 90.0);
+        },
+      );
+
+      test(
+        'User can resume playback from correct position',
+        () async {
+          // Given a user has a watch record with 85% progress
+          final mockService = MockHistoryService();
+          final eightyFivePercentRecord = testMovieHistory.copyWith(
+            playTime: 6120,
+            totalTime: 7200,
+            lastPosition: const Duration(seconds: 6120),
+          );
+          mockService.setRecords([eightyFivePercentRecord]);
+          final store = HistoryStore(mockService);
+
+          await store.loadHistory();
+
+          // When user clicks continue watching
+          final recordToResume = store.state.records.first;
+
+          // Then playback starts from 85% position
+          expect(recordToResume.progressPercent, 85.0);
+          expect(recordToResume.lastPosition.inSeconds, 6120);
         },
       );
     });
@@ -547,6 +607,33 @@ void main() {
           await store.syncFromRemote();
 
           // Assert
+          expect(mockService.remoteSyncCalled, isTrue);
+          expect(store.state.error, isNull);
+        },
+      );
+
+      test(
+        'Offline records sync when network recovers',
+        () async {
+          // Given user watched video while offline
+          final mockService = MockHistoryService();
+          mockService.setShouldThrowError(true); // Simulate offline
+          final store = HistoryStore(mockService);
+
+          // Act - Watch video offline, record is saved locally
+          await store.addRecord(testMovieHistory);
+          expect(store.state.records.isNotEmpty, isTrue);
+          expect(mockService.remoteSyncCalled, isFalse);
+
+          // Given history record is saved locally
+          final localRecord = store.state.records.first;
+          expect(localRecord.key, testMovieHistory.key);
+
+          // When network recovers
+          mockService.setShouldThrowError(false);
+
+          // Then record is synced to remote server
+          await store.syncFromRemote();
           expect(mockService.remoteSyncCalled, isTrue);
           expect(store.state.error, isNull);
         },
