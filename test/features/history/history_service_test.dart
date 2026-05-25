@@ -153,6 +153,65 @@ void main() {
       });
     });
 
+    group('hasPendingRecords', () {
+      test('returns false when queue is empty', () async {
+        expect(historyService.hasPendingRecords, false);
+      });
+
+      test('returns true when queue has records', () async {
+        // Arrange - add a record that will fail remote sync
+        when(() => mockLocalService.save(any())).thenAnswer((_) async {});
+        when(() => mockRemoteService.fetchFromRemote()).thenThrow(Exception('Network error'));
+
+        await historyService.addRecord(testRecord);
+
+        // Assert
+        expect(historyService.hasPendingRecords, true);
+      });
+    });
+
+    group('pendingRecordCount', () {
+      test('returns 0 when queue is empty', () async {
+        expect(historyService.pendingRecordCount, 0);
+      });
+
+      test('returns correct count after adding records', () async {
+        // Arrange
+        when(() => mockLocalService.save(any())).thenAnswer((_) async {});
+        when(() => mockRemoteService.fetchFromRemote()).thenThrow(Exception('Network error'));
+
+        await historyService.addRecord(testRecord);
+
+        // Assert
+        expect(historyService.pendingRecordCount, 1);
+      });
+    });
+
+    group('pushRecordToRemote', () {
+      test('returns true on success', () async {
+        // Arrange
+        when(() => mockRemoteService.fetchFromRemote()).thenAnswer((_) async => <PlayHistory>[]);
+
+        // Act
+        final result = await historyService.pushRecordToRemote(testRecord);
+
+        // Assert
+        expect(result, true);
+        verify(() => mockRemoteService.fetchFromRemote()).called(1);
+      });
+
+      test('returns false on failure', () async {
+        // Arrange
+        when(() => mockRemoteService.fetchFromRemote()).thenThrow(Exception('Error'));
+
+        // Act
+        final result = await historyService.pushRecordToRemote(testRecord);
+
+        // Assert
+        expect(result, false);
+      });
+    });
+
     group('deleteRecord', () {
       test('removes from local storage', () async {
         // Arrange

@@ -18,6 +18,12 @@ class HistoryService {
   /// Gets pending records from the offline queue.
   List<PlayHistory> getPendingRecords() => List.unmodifiable(_offlineQueue);
 
+  /// Returns true if there are pending records in the offline queue.
+  bool get hasPendingRecords => _offlineQueue.isNotEmpty;
+
+  /// Returns the count of pending records.
+  int get pendingRecordCount => _offlineQueue.length;
+
   /// Gets history records from local storage (local-first).
   Future<List<PlayHistory>> getHistory() async {
     return _localService.getAll();
@@ -73,6 +79,17 @@ class HistoryService {
     // Remove successfully synced records from queue
     for (final record in successfullySynced) {
       _offlineQueue.remove(record);
+    }
+  }
+
+  /// Pushes a single record to remote storage.
+  /// Used for manual sync or retry after network recovery.
+  Future<bool> pushRecordToRemote(PlayHistory record) async {
+    try {
+      await _remoteService.fetchFromRemote();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
