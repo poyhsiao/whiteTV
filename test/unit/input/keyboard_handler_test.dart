@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/device/device_type.dart';
-import 'package:white_tv/core/device/feature_flags.dart';
 import 'package:white_tv/core/input/keyboard_handler.dart';
 
 void main() {

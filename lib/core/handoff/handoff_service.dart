@@ -96,9 +96,11 @@ class HandoffService implements IHandoffService {
 
   // TODO: 實現 iOS/macOS platform channel
   // 使用 MethodChannel 與原生代碼通信
+  // ignore: unused_field (platform channel for future native implementation)
   static const MethodChannel _channel = MethodChannel('com.white_tv/handoff');
 
   // 當前活動的用戶信息緩存
+  // ignore: unused_field (user info cache for future handoff implementation)
   Map<String, dynamic>? _currentActivityUserInfo;
 
   @override

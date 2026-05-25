@@ -37,7 +37,7 @@ void main() {
       test('registerPlayPauseHandler registers successfully', () async {
         // TODO: Implement platform channel for iOS
         // This test verifies the API contract
-        final handler = () {};
+        void handler() {}
         // Should not throw when platform channel is implemented
         expect(() => siriShortcuts.registerPlayPauseHandler(handler), returnsNormally);
       });
@@ -63,7 +63,7 @@ void main() {
       test('registerSearchHandler registers successfully', () async {
         // TODO: Implement platform channel for iOS
         // This test verifies the API contract
-        final handler = (String query) {};
+        void handler(String query) {}
         // Should not throw when platform channel is implemented
         expect(() => siriShortcuts.registerSearchHandler(handler), returnsNormally);
       });

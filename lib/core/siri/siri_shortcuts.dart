@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:white_tv/core/device/device_type.dart';
 
 /// Siri Shortcuts support for iOS
@@ -17,6 +16,7 @@ class SiriShortcuts {
   SiriShortcuts();
 
   /// Platform channel name for Siri Shortcuts
+  // ignore: unused_field (platform channel name for future native implementation)
   static const String _channelName = 'com.whitetv/siri_shortcuts';
 
   /// Play/Pause command identifier
