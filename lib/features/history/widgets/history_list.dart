@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/history/utils/time_grouper.dart';
 import 'package:white_tv/features/history/widgets/history_tile.dart';
 
 class HistoryList extends StatelessWidget {
@@ -29,7 +30,7 @@ class HistoryList extends StatelessWidget {
       );
     }
 
-    final groupedRecords = _groupByTime(records);
+    final groupedRecords = TimeGrouper.groupByTime(records);
 
     return ListView.builder(
       itemCount: _calculateItemCount(groupedRecords),
