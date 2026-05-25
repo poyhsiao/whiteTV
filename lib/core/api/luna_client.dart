@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_client.dart';
 import 'models.dart';
 import '../../features/search/search_state.dart';
+import '../../features/history/models/play_history.dart';
 
 /// LunaTV API Client - 真實 API 串接
 /// Base URL: https://moon2.kimhsiao.com
@@ -131,6 +132,16 @@ class LunaClient implements ApiClient {
       return data.cast<String>();
     } on DioException {
       return [];
+    }
+  }
+
+  @override
+  Future<bool> savePlayHistory(PlayHistory record) async {
+    try {
+      await _dio.post('/api/user/play-history', data: record.toJson());
+      return true;
+    } on DioException {
+      return false;
     }
   }
 }

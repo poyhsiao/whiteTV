@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/source/source_selector.dart';
@@ -7,13 +8,18 @@ void main() {
   group('DetailStore', () {
     late MockClient mockClient;
     late SourceSelector sourceSelector;
+    late ProviderContainer container;
     late DetailStore store;
 
     setUp(() {
       mockClient = MockClient();
       sourceSelector = SourceSelector();
-      store = DetailStore(mockClient, sourceSelector);
+      container = ProviderContainer();
+      // Pass null for ref since getProgressForMedia is not tested here
+      store = DetailStore(mockClient, sourceSelector, null);
     });
+
+    tearDown(() => container.dispose());
 
     test('initial state has no detail', () {
       expect(store.state.detail, isNull);

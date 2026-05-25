@@ -1,6 +1,7 @@
 import 'api_client.dart';
 import 'models.dart';
 import '../../features/search/search_state.dart';
+import '../../features/history/models/play_history.dart';
 
 /// Mock API Client - 用於開發/測試/離線驗證
 /// 回傳模擬資料，不依賴網路
@@ -196,5 +197,11 @@ class MockClient implements ApiClient {
   Future<List<String>> getSearchHistory() async {
     await Future.delayed(_delay);
     return [];
+  }
+
+  @override
+  Future<bool> savePlayHistory(PlayHistory record) async {
+    await Future.delayed(_delay);
+    return true;
   }
 }

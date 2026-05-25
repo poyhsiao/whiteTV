@@ -3,6 +3,8 @@ import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/core/source/source_selector_provider.dart';
+import 'package:white_tv/features/history/history_store.dart';
+import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/home/home_store.dart';
 
 /// 詳情頁 Store
@@ -42,8 +44,9 @@ class DetailState {
 class DetailStore extends StateNotifier<DetailState> {
   final ApiClient _apiClient;
   final SourceSelector _sourceSelector;
+  final Ref? _ref;
 
-  DetailStore(this._apiClient, this._sourceSelector) : super(const DetailState());
+  DetailStore(this._apiClient, this._sourceSelector, this._ref) : super(const DetailState());
 
   Future<void> loadDetail(String videoId) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -92,6 +95,18 @@ class DetailStore extends StateNotifier<DetailState> {
       );
     }
   }
+
+  /// Gets the watch progress for a specific media.
+  /// Returns null if no progress exists.
+  PlayHistory? getProgressForMedia(String mediaId) {
+    if (_ref == null) return null;
+    try {
+      final historyState = _ref!.read(historyStoreProvider);
+      return historyState.records.firstWhere((r) => r.videoId == mediaId);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 // Provider - 注入 SourceSelector
@@ -100,5 +115,6 @@ final detailStoreProvider =
   return DetailStore(
     ref.watch(apiClientProvider),
     ref.watch(sourceSelectorProvider),
+    ref,
   );
 });
