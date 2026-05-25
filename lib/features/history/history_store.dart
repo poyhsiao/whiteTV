@@ -50,6 +50,27 @@ class HistoryStore extends StateNotifier<HistoryState> {
     }
   }
 
+  /// Returns records with progress > 5% for "Continue Watching" feature.
+  List<PlayHistory> get continueWatchRecords {
+    return state.records.where((record) {
+      final progress = record.progressPercent;
+      return progress > 5.0 && progress < 100.0;
+    }).toList()
+      ..sort((a, b) => (b.lastWatched ?? b.saveTime)
+          .compareTo(a.lastWatched ?? a.saveTime));
+  }
+
+  /// Syncs pending records to remote when network is restored.
+  Future<void> syncPendingRecords() async {
+    state = state.copyWith(isSyncing: true, clearError: true);
+    try {
+      await _historyService.syncPendingRecords();
+      state = state.copyWith(isSyncing: false);
+    } on Exception catch (e) {
+      state = state.copyWith(isSyncing: false, error: e.toString());
+    }
+  }
+
   /// Syncs records from remote storage.
   /// Sets [isSyncing] during the sync operation.
   Future<void> syncFromRemote() async {

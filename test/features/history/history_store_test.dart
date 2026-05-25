@@ -38,6 +38,18 @@ class MockHistoryService implements HistoryService {
     // Mock implementation - no-op for tests
   }
 
+  @override
+  bool get hasPendingRecords => _records.isNotEmpty;
+
+  @override
+  int get pendingRecordCount => _records.length;
+
+  @override
+  Future<bool> pushRecordToRemote(PlayHistory record) async {
+    // Mock implementation - always succeeds
+    return true;
+  }
+
   void setRecords(List<PlayHistory> records) {
     _records = List.from(records);
   }
