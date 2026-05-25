@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-05-26
+
+### Added
+- **Play History Enhancement**: Continue watching feature with progress tracking
+  - MediaType enum for play history classification
+  - HistoryService offline queue with pushRecordToRemote method
+  - NetworkRestored callback in NetworkListener
+  - continueWatchRecords getter in HistoryStore
+  - RecentContinueSection widget for home screen
+  - Continue watching button in detail screen
+  - Progress bar and source tag in HistoryTile
+  - Time grouping (今天/昨天/更早) in history list
+  - BDD scenarios for play history feature
+
+### Fixed
+- Flutter analyzer warnings (unused imports, deprecated methods)
+- Test mock implementations for HistoryService interface
+
 ## [0.4.1] - 2026-05-22
 
 ### Added
