@@ -120,6 +120,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI workflow
 
 ### Features
+
+## [0.6.1] - 2026-05-26
+
+### Added
+- Version bump
+
 - TV Leanback support for Android TV
 - Cross-platform responsive design
 - Remote control server for external device control
