@@ -49,24 +49,48 @@ class HistoryTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(history.sourceName),
+          _buildSourceBadge(),
           if (episodeInfo != null) Text(episodeInfo),
           if (history.watchedTime > 0)
             Text('已觀看 ${TimeFormatter.formatWatchTime(history.watchedTime)}'),
         ],
       ),
-      trailing: Column(
+      trailing: _buildProgressBar(),
+    );
+  }
+
+  Widget _buildProgressBar() {
+    return SizedBox(
+      width: 60,
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text('${history.progressPercent.toInt()}%'),
-          SizedBox(
-            width: 60,
-            child: LinearProgressIndicator(
-              value: history.progressPercent / 100,
-            ),
+          LinearProgressIndicator(
+            value: history.progressPercent / 100,
+            backgroundColor: Colors.grey[800],
+            valueColor: const AlwaysStoppedAnimation(Colors.amber),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${history.progressPercent.toStringAsFixed(0)}%',
+            style: const TextStyle(fontSize: 10, color: Colors.white60),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSourceBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.amber.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.amber),
+      ),
+      child: Text(
+        history.sourceName,
+        style: const TextStyle(fontSize: 10, color: Colors.amber),
       ),
     );
   }
