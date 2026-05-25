@@ -7,8 +7,6 @@ import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/core/theme/glass_card.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
-import 'package:white_tv/features/history/history_store.dart';
-import 'package:white_tv/features/history/models/play_history.dart';
 
 /// 詳情頁
 /// 參照: docs/spec/UI_UX.md Section 10

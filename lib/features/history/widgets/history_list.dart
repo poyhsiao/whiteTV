@@ -40,32 +40,6 @@ class HistoryList extends StatelessWidget {
     );
   }
 
-  Map<String, List<PlayHistory>> _groupByTime(List<PlayHistory> records) {
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final yesterdayStart = todayStart.subtract(const Duration(days: 1));
-
-    final Map<String, List<PlayHistory>> grouped = {
-      '今天': [],
-      '昨天': [],
-      '更早': [],
-    };
-
-    for (final record in records) {
-      if (record.saveTime.isAfter(todayStart) ||
-          record.saveTime.isAtSameMomentAs(todayStart)) {
-        grouped['今天']!.add(record);
-      } else if (record.saveTime.isAfter(yesterdayStart) ||
-          record.saveTime.isAtSameMomentAs(yesterdayStart)) {
-        grouped['昨天']!.add(record);
-      } else {
-        grouped['更早']!.add(record);
-      }
-    }
-
-    return grouped;
-  }
-
   int _calculateItemCount(Map<String, List<PlayHistory>> grouped) {
     int count = 0;
     for (final entry in grouped.entries) {

@@ -9,7 +9,7 @@ class RecentContinueSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final historyState = ref.watch(historyStoreProvider);
+    ref.watch(historyStoreProvider);
     final continueRecords = ref.read(historyStoreProvider.notifier).continueWatchRecords;
 
     if (continueRecords.isEmpty) {

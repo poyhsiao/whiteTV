@@ -101,7 +101,7 @@ class DetailStore extends StateNotifier<DetailState> {
   PlayHistory? getProgressForMedia(String mediaId) {
     if (_ref == null) return null;
     try {
-      final historyState = _ref!.read(historyStoreProvider);
+      final historyState = _ref.read(historyStoreProvider);
       return historyState.records.firstWhere((r) => r.videoId == mediaId);
     } catch (_) {
       return null;
