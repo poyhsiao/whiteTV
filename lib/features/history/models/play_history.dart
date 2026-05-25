@@ -1,4 +1,5 @@
 import 'package:white_tv/features/history/models/episode_progress.dart';
+import 'package:white_tv/features/history/models/media_type.dart';
 
 class PlayHistory {
   final String key;
@@ -15,6 +16,7 @@ class PlayHistory {
   final DateTime? lastWatched;
   final DateTime saveTime;
   final String type;
+  final MediaType mediaType;
   final bool pendingDelete;
   final List<EpisodeProgress> episodeProgress;
   final bool isDownloaded;
@@ -35,6 +37,7 @@ class PlayHistory {
     this.lastWatched,
     required this.saveTime,
     required this.type,
+    this.mediaType = MediaType.movie,
     this.pendingDelete = false,
     this.episodeProgress = const [],
     this.isDownloaded = false,
@@ -64,6 +67,7 @@ class PlayHistory {
           : null,
       saveTime: DateTime.parse(json['saveTime'] as String),
       type: json['type'] as String,
+      mediaType: MediaType.fromString(json['mediaType'] as String? ?? 'movie'),
       pendingDelete: json['pendingDelete'] as bool? ?? false,
       episodeProgress: (json['episodeProgress'] as List<dynamic>?)
               ?.map((e) => EpisodeProgress.fromJson(e as Map<String, dynamic>))
@@ -90,6 +94,7 @@ class PlayHistory {
       'lastWatched': lastWatched?.toIso8601String(),
       'saveTime': saveTime.toIso8601String(),
       'type': type,
+      'mediaType': mediaType.value,
       'pendingDelete': pendingDelete,
       'episodeProgress': episodeProgress.map((e) => e.toJson()).toList(),
       'isDownloaded': isDownloaded,
