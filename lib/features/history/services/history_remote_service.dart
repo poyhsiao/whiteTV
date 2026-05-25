@@ -42,4 +42,9 @@ class HistoryRemoteService {
       type: 'continue_watch',
     );
   }
+
+  /// Saves a play history record to remote API.
+  Future<bool> saveRecord(PlayHistory record) async {
+    return _apiClient.savePlayHistory(record);
+  }
 }

@@ -32,6 +32,15 @@ class FakeHistoryService implements HistoryService {
 
   @override
   Future<void> syncPendingRecords() async {}
+
+  @override
+  bool get hasPendingRecords => false;
+
+  @override
+  int get pendingRecordCount => 0;
+
+  @override
+  Future<bool> pushRecordToRemote(PlayHistory record) async => true;
 }
 
 // Fake DownloadService for testing offline playback

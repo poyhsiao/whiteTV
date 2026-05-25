@@ -190,19 +190,19 @@ void main() {
     group('pushRecordToRemote', () {
       test('returns true on success', () async {
         // Arrange
-        when(() => mockRemoteService.fetchFromRemote()).thenAnswer((_) async => <PlayHistory>[]);
+        when(() => mockRemoteService.saveRecord(any())).thenAnswer((_) async => true);
 
         // Act
         final result = await historyService.pushRecordToRemote(testRecord);
 
         // Assert
         expect(result, true);
-        verify(() => mockRemoteService.fetchFromRemote()).called(1);
+        verify(() => mockRemoteService.saveRecord(testRecord)).called(1);
       });
 
       test('returns false on failure', () async {
         // Arrange
-        when(() => mockRemoteService.fetchFromRemote()).thenThrow(Exception('Error'));
+        when(() => mockRemoteService.saveRecord(any())).thenAnswer((_) async => false);
 
         // Act
         final result = await historyService.pushRecordToRemote(testRecord);

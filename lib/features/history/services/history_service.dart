@@ -83,12 +83,12 @@ class HistoryService {
   }
 
   /// Pushes a single record to remote storage.
-  /// Used for manual sync or retry after network recovery.
+/// Used for manual sync or retry after network recovery.
   Future<bool> pushRecordToRemote(PlayHistory record) async {
     try {
-      await _remoteService.fetchFromRemote();
-      return true;
-    } catch (_) {
+      final result = await _remoteService.saveRecord(record);
+      return result;
+    } on Exception catch (_) {
       return false;
     }
   }

@@ -83,6 +83,16 @@ class HistoryStore extends StateNotifier<HistoryState> {
       state = state.copyWith(isSyncing: false, error: e.toString());
     }
   }
+
+  /// Gets the watch progress for a specific media.
+  /// Returns null if no progress exists.
+  PlayHistory? getProgressForMedia(String mediaId) {
+    try {
+      return state.records.firstWhere((r) => r.videoId == mediaId);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 /// Provider for HistoryStore that auto-disposes when no longer needed.

@@ -93,5 +93,43 @@ void main() {
 
       expect(initCallback, isFalse);
     });
+
+    test('setOnNetworkRestored sets the callback correctly', () async {
+      var networkRestoredCalled = false;
+      listener = NetworkListener(connectivity: mockConnectivity);
+
+      listener.setOnNetworkRestored(() {
+        networkRestoredCalled = true;
+      });
+
+      // Go offline first
+      controller.add([ConnectivityResult.none]);
+      await Future.delayed(Duration.zero);
+
+      // Come back online - should trigger _notifyNetworkRestored
+      controller.add([ConnectivityResult.wifi]);
+      await Future.delayed(Duration.zero);
+
+      expect(networkRestoredCalled, isTrue);
+    });
+
+    test('_notifyNetworkRestored is called when network is restored', () async {
+      var restoredCallbackCalled = false;
+      listener = NetworkListener(connectivity: mockConnectivity);
+
+      listener.setOnNetworkRestored(() {
+        restoredCallbackCalled = true;
+      });
+
+      // Go offline
+      controller.add([ConnectivityResult.none]);
+      await Future.delayed(Duration.zero);
+
+      // Come back online - _notifyNetworkRestored should be called
+      controller.add([ConnectivityResult.wifi]);
+      await Future.delayed(Duration.zero);
+
+      expect(restoredCallbackCalled, isTrue);
+    });
   });
 }

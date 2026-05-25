@@ -1,5 +1,6 @@
 import 'models.dart';
 import '../../features/search/search_state.dart';
+import '../../features/history/models/play_history.dart';
 
 /// API Client 抽象介面
 /// 實現: LunaClient (真實) / MockClient (Mock)
@@ -34,4 +35,7 @@ abstract class ApiClient {
 
   /// 從雲端取得搜尋歷史
   Future<List<String>> getSearchHistory();
+
+  /// 保存播放歷史記錄到雲端
+  Future<bool> savePlayHistory(PlayHistory record);
 }
