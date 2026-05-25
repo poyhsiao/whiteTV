@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:white_tv/core/device/device_type.dart';
 import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/history/widgets/recent_watch_section.dart';
