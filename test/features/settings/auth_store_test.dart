@@ -6,6 +6,7 @@ import 'package:white_tv/features/settings/services/settings_storage_service.dar
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/features/search/search_state.dart';
+import 'package:white_tv/features/history/models/play_history.dart';
 
 class FakeSettingsStorageService implements SettingsStorageService {
   String? _authCookie;
@@ -116,6 +117,9 @@ class FakeApiClient implements ApiClient {
 
   @override
   Future<List<String>> getSearchHistory() async => [];
+
+  @override
+  Future<bool> savePlayHistory(PlayHistory record) async => true;
 }
 
 void main() {

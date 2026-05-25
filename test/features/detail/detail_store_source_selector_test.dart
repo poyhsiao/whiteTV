@@ -19,7 +19,7 @@ void main() {
     });
 
     test('loadDetail 使用 SourceSelector 選擇來源', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
 
@@ -36,7 +36,7 @@ void main() {
       // 屏蔽最快來源
       await sourceSelector.setBlockedSources([allSources.first.id]);
 
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
 
@@ -50,7 +50,7 @@ void main() {
 
       await sourceSelector.setBlockedSources(allSources.map((s) => s.id).toList());
 
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
 
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('selectSource 手動選擇來源', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
       final allSources = await mockClient.getSources('movie-1');
@@ -71,7 +71,7 @@ void main() {
     });
 
     test('loadDetail 後 getMetrics 返回 null（因為尚未播放）', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
 
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('loadDetail 後 recordSourceResult 會創建指標', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
       final sourceId = store.state.selectedSource!.id;
@@ -96,7 +96,7 @@ void main() {
     });
 
     test('recordSourceResult 記錄成功', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
       final sourceId = store.state.selectedSource!.id;
@@ -108,7 +108,7 @@ void main() {
     });
 
     test('recordSourceResult 記錄失敗', () async {
-      final store = DetailStore(mockClient, sourceSelector);
+      final store = DetailStore(mockClient, sourceSelector, null);
 
       await store.loadDetail('movie-1');
       final sourceId = store.state.selectedSource!.id;

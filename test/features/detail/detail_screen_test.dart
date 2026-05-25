@@ -13,7 +13,7 @@ void main() {
         ProviderScope(
           overrides: [
             detailStoreProvider.overrideWith((ref) {
-              final store = DetailStore(MockClient(), SourceSelector());
+              final store = DetailStore(MockClient(), SourceSelector(), null);
               return store;
             }),
           ],
