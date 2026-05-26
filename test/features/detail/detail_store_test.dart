@@ -14,7 +14,8 @@ class FakeRef extends Ref {
 
   @override
   T read<T>(ProviderListenable<T> provider) {
-    if (provider == historyStoreProvider) {
+    // Compare provider identity using identical
+    if (identical(provider, historyStoreProvider)) {
       return historyStateOverride as T;
     }
     throw UnimplementedError('FakeRef does not support provider: $provider');
