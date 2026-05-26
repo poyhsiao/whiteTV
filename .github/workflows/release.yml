@@ -8,16 +8,21 @@ on:
 permissions:
   contents: write
 
+env:
+  FLUTTER_VERSION: '3.44.0'
+
 jobs:
-  build:
-    name: Build Release
+  android:
+    name: Build Android/Web
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract version from tag
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Extract version
+        env:
+          REF: ${{ github.ref }}
+        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -26,7 +31,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
 
       - name: Cache Flutter dependencies
@@ -41,11 +46,15 @@ jobs:
         run: flutter pub get
 
       - name: Build Mobile/Pad APK
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
           flutter build apk --release --target-platform android-arm
           cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/whitetv-${VERSION}-mobile.apk"
 
-      - name: Build TV APK (Google TV/Android TV)
+      - name: Build TV APK
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
           flutter build apk --release --target-platform android-arm64
           cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/whitetv-${VERSION}-tv.apk"
@@ -54,14 +63,126 @@ jobs:
         run: flutter build web
 
       - name: Package web
+        env:
+          VERSION: ${{ env.VERSION }}
         run: cd build/web && tar -czf ../whitetv-${VERSION}-web.tgz .
+
+      - name: Upload Android/Web artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-web-artifacts
+          path: |
+            build/app/outputs/flutter-apk/whitetv-v*.apk
+            build/whitetv-v*.tgz
+
+  macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        env:
+          REF: ${{ github.ref }}
+        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/flutter_deps
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build macOS App
+        run: flutter build macos --release
+
+      - name: Package macOS App
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r ../whitetv-${VERSION}-macos.zip whiteTV.app
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifact
+          path: build/macos/Build/Products/Release/whitetv-v*.zip
+
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        env:
+          REF: ${{ github.ref }}
+        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/flutter_deps
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS Simulator App
+        run: flutter build ios --release --no-codesign
+
+      - name: Package iOS App
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: |
+          cd build/ios/iphonesimulator
+          zip -r ../whitetv-${VERSION}-ios.zip whiteTV.app
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact
+          path: build/ios/iphonesimulator/whitetv-v*.zip
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [android, macos, ios]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Organize artifacts
+        run: |
+          mv artifacts/android-web-artifacts/*.apk artifacts/ 2>/dev/null || true
+          mv artifacts/android-web-artifacts/*.tgz artifacts/ 2>/dev/null || true
+          mv artifacts/macos-artifact/*.zip artifacts/ 2>/dev/null || true
+          mv artifacts/ios-artifact/*.zip artifacts/ 2>/dev/null || true
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            build/app/outputs/flutter-apk/whitetv-v*-mobile.apk
-            build/app/outputs/flutter-apk/whitetv-v*-tv.apk
-            build/whitetv-v*-web.tgz
+          files: artifacts/*
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
