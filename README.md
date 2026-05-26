@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.7.0** - Unified Input System
+**v0.7.1** - Search History Overlay
 
 ## Features
 
@@ -14,11 +14,19 @@ A production-ready Flutter TV application for streaming video content, featuring
 - **Detail Screen**: TV/Mobile adaptive layout with episode selection
 - **Player Screen**: Video playback with media_kit
 - **Settings**: Tab-based settings with persistent storage
-- **Search**: Full-text search with TV remote D-pad navigation, QR code input support
+- **Search**: Full-text search with TV remote D-pad navigation, QR code input support, search history overlay
 - **Play History**: Local-first playback history with LunaTV sync, time grouping
 - **IPTV Live**: Live TV streaming with M3U playlist, EPG, and timeshift replay
 - **Favorites**: Local-first favorites with grid/list view, type filtering, LunaTV sync
 - **Unified Input**: QR code + phone browser input for TV (full-screen) and mobile (modal)
+- **Search History**: Frosted glass overlay with tap-to-search, individual delete, clear all
+
+### Search History Overlay (v0.7.1)
+
+- SearchHistoryOverlay widget with glassmorphism effect
+- HistoryCard with tap-to-search and delete functionality
+- TV remote D-pad navigation support
+- Empty state and confirmation dialogs
 
 ### Unified Input System (v0.4.1)
 
