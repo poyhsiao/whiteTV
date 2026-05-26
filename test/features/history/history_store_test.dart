@@ -8,6 +8,8 @@ import 'package:white_tv/features/history/services/history_service.dart';
 class MockHistoryService implements HistoryService {
   List<PlayHistory> _records = [];
   bool shouldThrowError = false;
+  bool shouldThrowOnSync = false;
+  bool shouldThrowOnDelete = false;
 
   @override
   Future<List<PlayHistory>> getHistory() async {
@@ -22,6 +24,7 @@ class MockHistoryService implements HistoryService {
 
   @override
   Future<void> deleteRecord(String key) async {
+    if (shouldThrowOnDelete) throw Exception('Failed to delete record');
     _records.removeWhere((r) => r.key == key);
   }
 
@@ -35,7 +38,7 @@ class MockHistoryService implements HistoryService {
 
   @override
   Future<void> syncPendingRecords() async {
-    // Mock implementation - no-op for tests
+    if (shouldThrowOnSync) throw Exception('Failed to sync pending records');
   }
 
   @override
@@ -56,6 +59,14 @@ class MockHistoryService implements HistoryService {
 
   void setShouldThrowError(bool value) {
     shouldThrowError = value;
+  }
+
+  void setShouldThrowOnSync(bool value) {
+    shouldThrowOnSync = value;
+  }
+
+  void setShouldThrowOnDelete(bool value) {
+    shouldThrowOnDelete = value;
   }
 }
 
@@ -157,6 +168,154 @@ void main() {
 
       expect(store.state.records.length, equals(1));
       expect(store.state.records[0].key, equals('test-key-2'));
+    });
+
+    test('deleteRecord with non-existent key does not throw and state unchanged',
+        () async {
+      mockService.setRecords([testRecord]);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+      expect(store.state.records.length, equals(1));
+
+      // Delete non-existent key should not throw
+      await store.deleteRecord('non-existent-key');
+
+      // State should remain unchanged
+      expect(store.state.records.length, equals(1));
+      expect(store.state.records[0].key, equals('test-key-1'));
+    });
+
+    test('deleteRecord error handling sets error state', () async {
+      mockService.setRecords([testRecord]);
+      mockService.setShouldThrowOnDelete(true);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+      expect(store.state.error, isNull);
+
+      await store.deleteRecord('test-key-1');
+
+      expect(store.state.error, isNotNull);
+      expect(store.state.error, contains('Failed to delete record'));
+    });
+
+    test('syncPendingRecords success clears isSyncing', () async {
+      mockService.setRecords([testRecord]);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+
+      // Start syncing
+      final future = store.syncPendingRecords();
+      expect(store.state.isSyncing, isTrue);
+
+      // Wait for completion
+      await future;
+      expect(store.state.isSyncing, isFalse);
+    });
+
+    test('syncPendingRecords error sets error and clears isSyncing', () async {
+      mockService.setShouldThrowOnSync(true);
+      final store = HistoryStore(mockService);
+
+      await store.syncPendingRecords();
+
+      expect(store.state.error, isNotNull);
+      expect(store.state.error, contains('Failed to sync pending records'));
+      expect(store.state.isSyncing, isFalse);
+    });
+
+    // continueWatchRecords test records
+    final recordWith10Percent = PlayHistory(
+      key: 'key-10pct',
+      videoId: 'video-10pct',
+      title: '10 Percent',
+      sourceName: 'Source',
+      playTime: 100,
+      totalTime: 1000, // 10% progress
+      saveTime: DateTime(2024, 1, 1),
+      lastWatched: DateTime(2024, 1, 3),
+      type: 'movie',
+    );
+
+    final recordWith50Percent = PlayHistory(
+      key: 'key-50pct',
+      videoId: 'video-50pct',
+      title: '50 Percent',
+      sourceName: 'Source',
+      playTime: 500,
+      totalTime: 1000, // 50% progress
+      saveTime: DateTime(2024, 1, 1),
+      lastWatched: DateTime(2024, 1, 5),
+      type: 'movie',
+    );
+
+    final recordWith100Percent = PlayHistory(
+      key: 'key-100pct',
+      videoId: 'video-100pct',
+      title: '100 Percent',
+      sourceName: 'Source',
+      playTime: 1000,
+      totalTime: 1000, // 100% progress (completed)
+      saveTime: DateTime(2024, 1, 1),
+      lastWatched: DateTime(2024, 1, 7),
+      type: 'movie',
+    );
+
+    final recordWith3Percent = PlayHistory(
+      key: 'key-3pct',
+      videoId: 'video-3pct',
+      title: '3 Percent',
+      sourceName: 'Source',
+      playTime: 30,
+      totalTime: 1000, // 3% progress (below threshold)
+      saveTime: DateTime(2024, 1, 1),
+      lastWatched: DateTime(2024, 1, 9),
+      type: 'movie',
+    );
+
+    test('continueWatchRecords filters correctly (5% < progress < 100%)',
+        () async {
+      mockService.setRecords([
+        recordWith10Percent,
+        recordWith50Percent,
+        recordWith100Percent,
+        recordWith3Percent,
+      ]);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+      final continueWatching = store.continueWatchRecords;
+
+      // Should include 10% and 50%, exclude 100% (completed) and 3% (below 5%)
+      expect(continueWatching.length, equals(2));
+      expect(continueWatching.map((r) => r.key), containsAll(['key-10pct', 'key-50pct']));
+    });
+
+    test('continueWatchRecords sorts by lastWatched descending', () async {
+      mockService.setRecords([recordWith10Percent, recordWith50Percent]);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+      final continueWatching = store.continueWatchRecords;
+
+      // 50% has lastWatched Jan 5, 10% has lastWatched Jan 3
+      // Should be sorted: 50% first, then 10%
+      expect(continueWatching[0].key, equals('key-50pct'));
+      expect(continueWatching[1].key, equals('key-10pct'));
+    });
+
+    test('continueWatchRecords empty when no records match criteria',
+        () async {
+      mockService.setRecords([recordWith100Percent, recordWith3Percent]);
+      final store = HistoryStore(mockService);
+
+      await store.loadHistory();
+      final continueWatching = store.continueWatchRecords;
+
+      // All records are either 100% (completed) or 3% (below threshold)
+      expect(continueWatching, isEmpty);
     });
   });
 }
