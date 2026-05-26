@@ -3,6 +3,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
+import 'package:white_tv/features/history/history_state.dart';
+import 'package:white_tv/features/history/history_store.dart';
+import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/history/models/media_type.dart';
+
+// FakeRef using noSuchMethod forwarding to avoid implementing all Ref methods
+class FakeRef extends Ref {
+  HistoryState? historyStateOverride;
+
+  @override
+  T read<T>(ProviderListenable<T> provider) {
+    if (provider == historyStoreProvider) {
+      return historyStateOverride as T;
+    }
+    throw UnimplementedError('FakeRef does not support provider: $provider');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   group('DetailStore', () {
@@ -15,7 +35,6 @@ void main() {
       mockClient = MockClient();
       sourceSelector = SourceSelector();
       container = ProviderContainer();
-      // Pass null for ref since getProgressForMedia is not tested here
       store = DetailStore(mockClient, sourceSelector, null);
     });
 
@@ -47,25 +66,18 @@ void main() {
       expect(store.state.selectedSource, newSource);
     });
 
-    // TDD RED Phase - selectEpisode tests
     test('selectEpisode updates selectedEpisode in state', () async {
       await store.loadDetail('movie-1');
-
-      // Select episode 5
-      final episode5 = store.state.detail!.episodes[4]; // episodes are 0-indexed, so index 4 = episode 5
+      final episode5 = store.state.detail!.episodes[4];
       store.selectEpisode(episode5);
-
       expect(store.state.selectedEpisode, episode5);
       expect(store.state.selectedEpisode!.number, 5);
     });
 
     test('selectEpisode with null clears selectedEpisode', () async {
       await store.loadDetail('movie-1');
-      expect(store.state.selectedEpisode, isNotNull); // Should have first episode selected
-
-      // Clear selectedEpisode by passing null
+      expect(store.state.selectedEpisode, isNotNull);
       store.selectEpisode(null);
-
       expect(store.state.selectedEpisode, isNull);
     });
 
@@ -80,37 +92,114 @@ void main() {
 
     test('copyWith preserves unchanged fields', () async {
       await store.loadDetail('movie-1');
-
-      // Capture current state
       final originalDetail = store.state.detail;
       final originalSource = store.state.selectedSource;
       final originalEpisode = store.state.selectedEpisode;
       final originalLoading = store.state.isLoading;
-
-      // Only update selectedSource via copyWith
       final newSource = store.state.detail!.sources[1];
       store.selectSource(newSource);
-
-      // Verify detail, episode, and loading state are preserved
       expect(store.state.detail, originalDetail);
       expect(store.state.selectedEpisode, originalEpisode);
-      expect(store.state.isLoading, false); // loadDetail completed
-
-      // Verify selectedSource is updated
+      expect(store.state.isLoading, false);
       expect(store.state.selectedSource, newSource);
     });
 
     test('selectSource preserves other state fields', () async {
       await store.loadDetail('movie-1');
-
       final newSource = store.state.detail!.sources[2];
       store.selectSource(newSource);
-
-      // Verify other fields unchanged
       expect(store.state.detail, isNotNull);
       expect(store.state.selectedEpisode, isNotNull);
       expect(store.state.isLoading, false);
       expect(store.state.error, isNull);
+    });
+
+    group('recordSourceResult', () {
+      test('recordSourceResult with success calls sourceSelector.recordResult correctly', () async {
+        await store.loadDetail('movie-1');
+        final selectedSource = store.state.selectedSource!;
+
+        store.recordSourceResult(isSuccess: true, latency: 50);
+
+        final metrics = sourceSelector.getMetrics(selectedSource.id);
+        expect(metrics, isNotNull);
+        expect(metrics!.successCount, 1);
+        expect(metrics.failCount, 0);
+        expect(metrics.avgLatency, 50);
+      });
+
+      test('recordSourceResult with failure calls sourceSelector with isSuccess=false', () async {
+        await store.loadDetail('movie-1');
+        final selectedSource = store.state.selectedSource!;
+
+        store.recordSourceResult(isSuccess: false, latency: 200);
+
+        final metrics = sourceSelector.getMetrics(selectedSource.id);
+        expect(metrics, isNotNull);
+        expect(metrics!.successCount, 0);
+        expect(metrics.failCount, 1);
+      });
+
+      test('recordSourceResult when no source selected does not crash', () {
+        final freshStore = DetailStore(mockClient, sourceSelector, null);
+        expect(freshStore.state.selectedSource, isNull);
+        expect(() => freshStore.recordSourceResult(isSuccess: true, latency: 100), returnsNormally);
+      });
+    });
+
+    group('getProgressForMedia', () {
+      test('getProgressForMedia returns null when ref is null', () {
+        final freshStore = DetailStore(mockClient, sourceSelector, null);
+        final result = freshStore.getProgressForMedia('movie-1');
+        expect(result, isNull);
+      });
+
+      test('getProgressForMedia returns progress when available', () {
+        final fakeRef = FakeRef();
+        final existingRecord = PlayHistory(
+          key: 'key-1',
+          videoId: 'movie-1',
+          title: 'Movie 1',
+          sourceName: 'Source A',
+          playTime: 300,
+          totalTime: 600,
+          saveTime: DateTime.now(),
+          type: 'movie',
+          mediaType: MediaType.movie,
+        );
+        final historyState = HistoryState(records: [existingRecord]);
+        fakeRef.historyStateOverride = historyState;
+
+        final storeWithRef = DetailStore(mockClient, sourceSelector, fakeRef);
+        final result = storeWithRef.getProgressForMedia('movie-1');
+
+        expect(result, isNotNull);
+        expect(result!.videoId, 'movie-1');
+        expect(result.playTime, 300);
+        expect(result.totalTime, 600);
+      });
+
+      test('getProgressForMedia returns null when media not in history', () {
+        final fakeRef = FakeRef();
+        final existingRecord = PlayHistory(
+          key: 'key-1',
+          videoId: 'movie-1',
+          title: 'Movie 1',
+          sourceName: 'Source A',
+          playTime: 300,
+          totalTime: 600,
+          saveTime: DateTime.now(),
+          type: 'movie',
+          mediaType: MediaType.movie,
+        );
+        final historyState = HistoryState(records: [existingRecord]);
+        fakeRef.historyStateOverride = historyState;
+
+        final storeWithRef = DetailStore(mockClient, sourceSelector, fakeRef);
+        final result = storeWithRef.getProgressForMedia('nonexistent-media');
+
+        expect(result, isNull);
+      });
     });
   });
 }
