@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:white_tv/features/search/search_history_overlay.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/widgets/voice_input_button.dart';
@@ -13,65 +14,77 @@ class SearchScreen extends ConsumerWidget {
     final searchState = ref.watch(searchStoreProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('搜尋'),
-      ),
-      body: Column(
+      appBar: AppBar(title: const Text('搜尋')),
+      body: Stack(
         children: [
-          // Search input area
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: '輸入搜尋關鍵字...',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: VoiceInputButton(
-                  onResult: (text) {
-                    ref.read(searchStoreProvider.notifier).search(text);
+          Column(
+            children: [
+              // Search input area
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  key: const Key('search_input'),
+                  decoration: InputDecoration(
+                    hintText: '輸入搜尋關鍵字...',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: VoiceInputButton(
+                      onResult: (text) {
+                        ref.read(searchStoreProvider.notifier).search(text);
+                      },
+                    ),
+                  ),
+                  onTap: () {
+                    ref.read(searchStoreProvider.notifier).openHistoryOverlay();
+                  },
+                  onChanged: (query) {
+                    ref.read(searchStoreProvider.notifier).search(query);
                   },
                 ),
               ),
-              onChanged: (query) {
-                ref.read(searchStoreProvider.notifier).search(query);
-              },
-            ),
-          ),
 
-          // Category filter
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: SearchCategory.values.map((category) {
-                final isSelected = searchState.activeCategory == category;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(_getCategoryLabel(category)),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        ref.read(searchStoreProvider.notifier).setCategory(category);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+              // Category filter
+              SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: SearchCategory.values.map((category) {
+                    final isSelected = searchState.activeCategory == category;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(_getCategoryLabel(category)),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            ref
+                                .read(searchStoreProvider.notifier)
+                                .setCategory(category);
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
 
-          // Search results placeholder
-          Expanded(
-            child: searchState.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : searchState.query.isEmpty
+              // Search results placeholder
+              Expanded(
+                child: searchState.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : searchState.query.isEmpty
                     ? const Center(child: Text('輸入關鍵字搜尋'))
                     : searchState.results.isEmpty
-                        ? const Center(child: Text('無搜尋結果'))
-                        : const Center(child: Text('搜尋結果')),
+                    ? const Center(child: Text('無搜尋結果'))
+                    : const Center(child: Text('搜尋結果')),
+              ),
+            ],
           ),
+
+          // History overlay
+          if (searchState.isHistoryOverlayOpen)
+            const Positioned.fill(child: SearchHistoryOverlay()),
         ],
       ),
     );
