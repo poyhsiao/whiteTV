@@ -221,5 +221,35 @@ void main() {
         expect(store.state.recentHistory, isEmpty);
       });
     });
+
+    group('clearHome', () {
+      test('clearHome resets state to initial', () async {
+        // First load data into the store
+        await store.loadHome();
+        expect(store.state.categories, isNotEmpty);
+        expect(store.state.videosByCategory, isNotEmpty);
+
+        // Clear should reset everything
+        store.clearHome();
+
+        expect(store.state.categories, isEmpty);
+        expect(store.state.videosByCategory, isEmpty);
+        expect(store.state.recentHistory, isEmpty);
+        expect(store.state.isLoading, false);
+        expect(store.state.error, isNull);
+      });
+
+      test('clearHome leaves store in same state as newly created', () async {
+        await store.loadHome();
+        store.clearHome();
+
+        final newStore = HomeStore(mockClient);
+        expect(store.state.categories, newStore.state.categories);
+        expect(store.state.videosByCategory, newStore.state.videosByCategory);
+        expect(store.state.recentHistory, newStore.state.recentHistory);
+        expect(store.state.isLoading, newStore.state.isLoading);
+        expect(store.state.error, newStore.state.error);
+      });
+    });
   });
 }

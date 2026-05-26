@@ -51,6 +51,10 @@ class HomeStore extends StateNotifier<HomeState> {
     _historyService = service;
   }
 
+  void clearHome() {
+    state = const HomeState();
+  }
+
   Future<void> loadHome() async {
     state = state.copyWith(isLoading: true, error: null);
 
