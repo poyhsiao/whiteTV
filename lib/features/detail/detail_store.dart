@@ -28,13 +28,14 @@ class DetailState {
     VideoDetail? detail,
     VideoSource? selectedSource,
     Episode? selectedEpisode,
+    bool clearEpisode = false,
     bool? isLoading,
     String? error,
   }) {
     return DetailState(
       detail: detail ?? this.detail,
       selectedSource: selectedSource ?? this.selectedSource,
-      selectedEpisode: selectedEpisode ?? this.selectedEpisode,
+      selectedEpisode: clearEpisode ? null : (selectedEpisode ?? this.selectedEpisode),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -80,8 +81,12 @@ class DetailStore extends StateNotifier<DetailState> {
     state = state.copyWith(selectedSource: source);
   }
 
-  void selectEpisode(Episode episode) {
-    state = state.copyWith(selectedEpisode: episode);
+  void selectEpisode(Episode? episode) {
+    if (episode == null) {
+      state = state.copyWith(clearEpisode: true);
+    } else {
+      state = state.copyWith(selectedEpisode: episode);
+    }
   }
 
   /// 記錄播放結果到 SourceSelector
