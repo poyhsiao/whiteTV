@@ -71,7 +71,8 @@ void main() {
         ),
       );
 
-      final defaultCard = tester.widget<Container>(find.byType(Container).first);
+      // Verify card renders with proper structure
+      expect(find.byType(HistoryCard), findsOneWidget);
     });
   });
 }

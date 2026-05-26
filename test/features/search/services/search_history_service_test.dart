@@ -94,11 +94,35 @@ void main() {
       });
     });
 
-    group('clearHistory', () {
-      test('clears all history', () async {
+    group('deleteItem', () {
+      test('deleteItem removes single item from history', () async {
+        await service.saveSearch('星際穿越');
+        await service.saveSearch('魷魚遊戲');
+        await service.saveSearch('黑暗騎士');
+
+        await service.deleteItem('魷魚遊戲');
+
+        final history = await service.getHistory();
+        expect(history, equals(['黑暗騎士', '星際穿越']));
+      });
+
+      test('deleteItem does nothing when item not in history', () async {
+        await service.saveSearch('星際穿越');
+        await service.saveSearch('魷魚遊戲');
+
+        await service.deleteItem('不存在');
+
+        final history = await service.getHistory();
+        expect(history, equals(['魷魚遊戲', '星際穿越']));
+      });
+    });
+
+    group('clearAll', () {
+      test('clearAll removes all history', () async {
         await service.saveSearch('query1');
         await service.saveSearch('query2');
-        await service.clearHistory();
+
+        await service.clearAll();
 
         final history = await service.getHistory();
         expect(history, isEmpty);
@@ -107,8 +131,9 @@ void main() {
 
     group('Cloud Sync', () {
       test('syncToCloud calls LunaTV API', () async {
-        when(() => mockClient.syncSearchHistory(any()))
-            .thenAnswer((_) async {});
+        when(
+          () => mockClient.syncSearchHistory(any()),
+        ).thenAnswer((_) async {});
 
         await service.saveSearch('test');
         await service.syncToCloud();
@@ -123,8 +148,9 @@ void main() {
       });
 
       test('syncToCloud silently fails on error', () async {
-        when(() => mockClient.syncSearchHistory(any()))
-            .thenThrow(Exception('Network error'));
+        when(
+          () => mockClient.syncSearchHistory(any()),
+        ).thenThrow(Exception('Network error'));
 
         // Should not throw
         await service.saveSearch('test');
@@ -132,8 +158,9 @@ void main() {
       });
 
       test('fetchFromCloud returns cloud history', () async {
-        when(() => mockClient.getSearchHistory())
-            .thenAnswer((_) async => ['cloud1', 'cloud2']);
+        when(
+          () => mockClient.getSearchHistory(),
+        ).thenAnswer((_) async => ['cloud1', 'cloud2']);
 
         final history = await service.fetchFromCloud();
 
@@ -141,8 +168,9 @@ void main() {
       });
 
       test('fetchFromCloud returns empty on error', () async {
-        when(() => mockClient.getSearchHistory())
-            .thenThrow(Exception('Network error'));
+        when(
+          () => mockClient.getSearchHistory(),
+        ).thenThrow(Exception('Network error'));
 
         final history = await service.fetchFromCloud();
 

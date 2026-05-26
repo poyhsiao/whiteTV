@@ -33,7 +33,13 @@ class SearchHistoryService {
     await _prefs.setStringList(_searchHistoryKey, history);
   }
 
-  Future<void> clearHistory() async {
+  Future<void> deleteItem(String query) async {
+    final history = await getHistory();
+    history.remove(query);
+    await _prefs.setStringList(_searchHistoryKey, history);
+  }
+
+  Future<void> clearAll() async {
     await _prefs.remove(_searchHistoryKey);
   }
 
