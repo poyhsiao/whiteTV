@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.4.1** - Unified Input System
+**v0.7.0** - Unified Input System
 
 ## Features
 
