@@ -9,6 +9,13 @@ import '../../features/history/models/play_history.dart';
 class MockClient implements ApiClient {
   static const _delay = Duration(milliseconds: 300);
 
+  // Error simulation flags
+  bool shouldThrowGetCategories = false;
+  bool shouldThrowGetVideos = false;
+  String videoToThrowOn;
+
+  MockClient({this.videoToThrowOn = ''});
+
   final List<Category> _categories = const [
     Category(id: 'movie', name: '電影'),
     Category(id: 'drama', name: '電視劇'),
@@ -82,12 +89,18 @@ class MockClient implements ApiClient {
   @override
   Future<List<Category>> getCategories() async {
     await Future.delayed(_delay);
+    if (shouldThrowGetCategories) {
+      throw Exception('Mock API: Failed to fetch categories');
+    }
     return _categories;
   }
 
   @override
   Future<List<Video>> getVideosByCategory(String categoryId) async {
     await Future.delayed(_delay);
+    if (shouldThrowGetVideos && (videoToThrowOn.isEmpty || videoToThrowOn == categoryId)) {
+      throw Exception('Mock API: Failed to fetch videos for $categoryId');
+    }
     return _videosByCategory[categoryId] ?? [];
   }
 

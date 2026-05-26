@@ -75,6 +75,44 @@ void main() {
       expect(store.state.error, isNull);
     });
 
+    group('loadHome error handling', () {
+      test('API failure sets error state and clears loading', () async {
+        mockClient.shouldThrowGetCategories = true;
+
+        await store.loadHome();
+
+        expect(store.state.isLoading, false);
+        expect(store.state.error, isNotNull);
+        expect(store.state.error, contains('Mock API'));
+        expect(store.state.categories, isEmpty);
+        expect(store.state.videosByCategory, isEmpty);
+      });
+
+      test('partial failure - categories load but videos fail', () async {
+        mockClient.shouldThrowGetVideos = true;
+
+        await store.loadHome();
+
+        expect(store.state.isLoading, false);
+        expect(store.state.error, isNotNull);
+        expect(store.state.error, contains('Mock API'));
+        // Categories may or may not be populated depending on when error occurs
+        expect(store.state.videosByCategory, isEmpty);
+      });
+
+      test('concurrent video loading failure', () async {
+        // Test that when one video category fails, error is set
+        mockClient.shouldThrowGetVideos = true;
+        mockClient.videoToThrowOn = 'movie';
+
+        await store.loadHome();
+
+        expect(store.state.isLoading, false);
+        expect(store.state.error, isNotNull);
+        expect(store.state.videosByCategory, isEmpty);
+      });
+    });
+
     group('setHistoryService', () {
       test('setHistoryService updates internal reference', () async {
         final fakeService = FakeHistoryService(
