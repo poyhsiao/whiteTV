@@ -30,6 +30,13 @@ class SearchStore extends StateNotifier<SearchState> {
     await loadHistory();
   }
 
+  /// 清除所有搜尋歷史
+  Future<void> clearAllHistory() async {
+    if (_historyService == null) return;
+    await _historyService.clearAll();
+    await loadHistory();
+  }
+
   /// 搜尋影片
   Future<void> search(String query) async {
     if (query.isEmpty) {
@@ -83,6 +90,29 @@ class SearchStore extends StateNotifier<SearchState> {
       error: null,
       clearError: true,
     );
+  }
+
+  /// 開啟歷史記錄浮層
+  void openHistoryOverlay() {
+    state = state.copyWith(isHistoryOverlayOpen: true);
+  }
+
+  /// 關閉歷史記錄浮層
+  void closeHistoryOverlay() {
+    state = state.copyWith(isHistoryOverlayOpen: false);
+  }
+
+  /// 從歷史記錄執行搜尋
+  Future<void> searchFromHistory(String query) async {
+    closeHistoryOverlay();
+    await search(query);
+  }
+
+  /// 刪除單條歷史記錄
+  Future<void> deleteHistoryItem(String query) async {
+    if (_historyService == null) return;
+    await _historyService.deleteItem(query);
+    await loadHistory();
   }
 }
 

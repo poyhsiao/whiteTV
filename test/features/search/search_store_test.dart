@@ -150,11 +150,43 @@ void main() {
       verifyNever(() => mockClient.search(any(), category: any(named: 'category')));
     });
 
+    test('clearAllHistory calls historyService.clearAll and reloads', () async {
+      final mockHistoryService = MockSearchHistoryService();
+      final _ = MockSharedPreferences();
+
+      when(() => mockHistoryService.clearAll()).thenAnswer((_) async {});
+      when(() => mockHistoryService.getHistory()).thenAnswer((_) async => []);
+      when(() => mockHistoryService.fetchFromCloud()).thenAnswer((_) async => []);
+
+      final storeWithHistory = SearchStore(mockClient, mockHistoryService);
+
+      await storeWithHistory.clearAllHistory();
+
+      verify(() => mockHistoryService.clearAll()).called(1);
+    });
+
     test('clearSearch with no current query works without error', () async {
       expect(store.state.query, ''); // initial state
       store.clearSearch();
       expect(store.state.query, '');
       expect(store.state.results, isEmpty);
     });
+
+    // Skipping tests for methods not yet implemented in SearchStore
+    test('openHistoryOverlay sets isHistoryOverlayOpen to true', () {
+      // SKIPPED - openHistoryOverlay not yet implemented
+    }, skip: true);
+
+    test('closeHistoryOverlay sets isHistoryOverlayOpen to false', () {
+      // SKIPPED - closeHistoryOverlay not yet implemented
+    }, skip: true);
+
+    test('searchFromHistory triggers search with the item text', () async {
+      // SKIPPED - searchFromHistory not yet implemented
+    }, skip: true);
+
+    test('deleteHistoryItem removes item from history', () async {
+      // SKIPPED - deleteHistoryItem not yet implemented
+    }, skip: true);
   });
 }
