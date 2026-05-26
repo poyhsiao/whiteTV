@@ -93,10 +93,10 @@ void main() {
     test('copyWith preserves unchanged fields', () async {
       await store.loadDetail('movie-1');
       final originalDetail = store.state.detail;
-      final originalSource = store.state.selectedSource;
       final originalEpisode = store.state.selectedEpisode;
       final originalLoading = store.state.isLoading;
       final newSource = store.state.detail!.sources[1];
+      expect(originalLoading, false);
       store.selectSource(newSource);
       expect(store.state.detail, originalDetail);
       expect(store.state.selectedEpisode, originalEpisode);
