@@ -123,7 +123,7 @@ void main() {
       expect(store.state.isLoading, true);
 
       // Start second search immediately - should be ignored
-      final secondSearch = store.search('second');
+      store.search('second');
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Query should still be 'first' not 'second'
