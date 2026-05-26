@@ -17,6 +17,7 @@ class SearchState {
   final String? error;
   final SearchCategory activeCategory;
   final bool isKeyboardMode;
+  final bool isHistoryOverlayOpen;
 
   const SearchState({
     this.query = '',
@@ -26,6 +27,7 @@ class SearchState {
     this.error,
     this.activeCategory = SearchCategory.all,
     this.isKeyboardMode = false,
+    this.isHistoryOverlayOpen = false,
   });
 
   SearchState copyWith({
@@ -36,6 +38,7 @@ class SearchState {
     String? error,
     SearchCategory? activeCategory,
     bool? isKeyboardMode,
+    bool? isHistoryOverlayOpen,
     bool clearError = false,
   }) {
     return SearchState(
@@ -46,6 +49,7 @@ class SearchState {
       error: clearError ? null : (error ?? this.error),
       activeCategory: activeCategory ?? this.activeCategory,
       isKeyboardMode: isKeyboardMode ?? this.isKeyboardMode,
+      isHistoryOverlayOpen: isHistoryOverlayOpen ?? this.isHistoryOverlayOpen,
     );
   }
 }
