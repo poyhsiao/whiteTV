@@ -102,5 +102,59 @@ void main() {
 
       verify(() => mockHistoryService.saveSearch('test1')).called(1);
     });
+
+    test('empty query search resets state without API call', () async {
+      await store.search('');
+      expect(store.state.query, '');
+      expect(store.state.results, isEmpty);
+      expect(store.state.isLoading, false);
+      verifyNever(() => mockClient.search(any(), category: any(named: 'category')));
+    });
+
+    test('concurrent search prevention - second search ignored while first in progress', () async {
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenAnswer((_) async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            return [];
+          });
+
+      // Start first search
+      final firstSearch = store.search('first');
+      expect(store.state.isLoading, true);
+
+      // Start second search immediately - should be ignored
+      final secondSearch = store.search('second');
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Query should still be 'first' not 'second'
+      expect(store.state.query, 'first');
+
+      await firstSearch;
+      expect(store.state.isLoading, false);
+    });
+
+    test('search preserves current query even if results fail', () async {
+      when(() => mockClient.search(any(), category: any(named: 'category')))
+          .thenThrow(Exception('API error'));
+
+      await store.search('persistent query');
+      expect(store.state.query, 'persistent query');
+      expect(store.state.error, isNotNull);
+    });
+
+    test('setCategory with empty query does not trigger search', () async {
+      // Set query to empty first
+      await store.search('');
+
+      store.setCategory(SearchCategory.movie);
+      verifyNever(() => mockClient.search(any(), category: any(named: 'category')));
+    });
+
+    test('clearSearch with no current query works without error', () async {
+      expect(store.state.query, ''); // initial state
+      store.clearSearch();
+      expect(store.state.query, '');
+      expect(store.state.results, isEmpty);
+    });
   });
 }
