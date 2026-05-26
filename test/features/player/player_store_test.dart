@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/source/source_selector.dart';
@@ -196,6 +195,45 @@ void main() {
       expect(storeWithDownload.state.source, isNotNull);
 
       storeWithDownload.dispose();
+    });
+
+    test('setPlaybackSpeed updates playbackSpeed state', () async {
+      await store.setVideo('movie-1', 'episode-1');
+      store.setPlaybackSpeed(1.5);
+      expect(store.state.playbackSpeed, 1.5);
+    });
+
+    test('setPlaybackSpeed accepts valid speeds 0.5 through 2.0', () async {
+      await store.setVideo('movie-1', 'episode-1');
+
+      store.setPlaybackSpeed(0.5);
+      expect(store.state.playbackSpeed, 0.5);
+
+      store.setPlaybackSpeed(1.0);
+      expect(store.state.playbackSpeed, 1.0);
+
+      store.setPlaybackSpeed(1.5);
+      expect(store.state.playbackSpeed, 1.5);
+
+      store.setPlaybackSpeed(2.0);
+      expect(store.state.playbackSpeed, 2.0);
+    });
+
+    test('initial autoSwitchCount is 0', () {
+      expect(store.state.autoSwitchCount, 0);
+    });
+
+    test('autoSwitchCount can be updated via copyWith', () {
+      final newState = store.state.copyWith(autoSwitchCount: 3);
+      expect(newState.autoSwitchCount, 3);
+    });
+
+    test('copyWith preserves autoSwitchCount', () async {
+      await store.setVideo('movie-1', 'episode-1');
+      store.seek(const Duration(minutes: 5));
+      // copyWith returns new state with updated isPlaying, preserving autoSwitchCount
+      final newState = store.state.copyWith(isPlaying: true);
+      expect(newState.autoSwitchCount, 0);
     });
   });
 }
