@@ -113,7 +113,9 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           cd build/macos/Build/Products/Release
+          ls -la
           zip -r ../whitetv-${VERSION}-macos.zip white_tv.app
+          ls -la ../*.zip || ls -la *.zip || echo "zip not found"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -161,6 +163,7 @@ jobs:
           cd build/ios/iphoneos
           ls -la
           zip -r ../whitetv-${VERSION}-ios.zip Runner.app
+          ls -la ../*.zip || ls -la *.zip || echo "zip not found"
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
