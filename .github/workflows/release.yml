@@ -120,7 +120,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           cd build/macos/Build/Products/Release
-          zip -r ../whitetv-${VERSION}-macos.zip whiteTV.app
+          zip -r ../whitetv-${VERSION}-macos.zip white_tv.app
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -173,7 +173,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           cd build/ios/iphonesimulator
-          zip -r ../whitetv-${VERSION}-ios.zip whiteTV.app
+          zip -r ../whitetv-${VERSION}-ios.zip Runner.app
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
