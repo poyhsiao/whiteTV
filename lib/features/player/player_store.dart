@@ -12,6 +12,8 @@ import 'package:white_tv/features/player/services/download_service.dart';
 
 /// 播放器 Store
 
+enum FailureReason { timeout, error }
+
 class PlayerState {
   final String? videoId;
   final String? episodeId;
@@ -70,6 +72,10 @@ class PlayerStore extends StateNotifier<PlayerState> {
   final DownloadService? _downloadService;
   final SourceSelector _sourceSelector;
   Timer? _autoSaveTimer;
+  Timer? _bufferingTimer;
+  List<VideoSource> _lastKnownSources = [];
+
+  static const Duration bufferingTimeout = Duration(seconds: 10);
 
   PlayerStore(
     this._apiClient,
@@ -114,6 +120,7 @@ class PlayerStore extends StateNotifier<PlayerState> {
       // Fall back to online sources - 使用 SourceSelector 選擇來源
       final sources = await _apiClient.getSources(videoId);
       final fastestSource = await _sourceSelector.selectSource(sources, videoId);
+      _lastKnownSources = sources;
 
       state = state.copyWith(
         videoId: videoId,
@@ -155,7 +162,29 @@ class PlayerStore extends StateNotifier<PlayerState> {
   }
 
   void setBuffering(bool buffering) {
+    _bufferingTimer?.cancel();
+
+    if (buffering) {
+      _bufferingTimer = Timer(bufferingTimeout, () {
+        _onBufferingTimeout();
+      });
+    }
+
     state = state.copyWith(isBuffering: buffering);
+  }
+
+  void _onBufferingTimeout() {
+    if (!state.isPlaying || state.source == null) return;
+    _triggerAutoSwitch(FailureReason.timeout);
+  }
+
+  Future<void> _triggerAutoSwitch(FailureReason reason) async {
+    if (_lastKnownSources.isEmpty) return;
+
+    final nextSource = await switchToNextSource(_lastKnownSources);
+    if (nextSource != null) {
+      play();
+    }
   }
 
   /// 播放失敗時自動切換來源
