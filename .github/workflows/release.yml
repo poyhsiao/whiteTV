@@ -105,12 +105,15 @@ jobs:
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-          ls /Applications/Xcode.app/Contents/Developer/ 2>/dev/null || echo "Xcode path not found"
+          xcode-select -p || echo "Xcode path not set"
+          xcodebuild -version || echo "xcodebuild not found"
 
       - name: Build macOS App
         run: |
           export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-          flutter build macos --release
+          export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
+          which xcodebuild || echo "xcodebuild not in PATH"
+          flutter build macos --release --verbose 2>&1 | tail -50
 
       - name: Package macOS App
         env:
@@ -155,11 +158,15 @@ jobs:
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
+          xcode-select -p || echo "Xcode path not set"
+          xcodebuild -version || echo "xcodebuild not found"
 
       - name: Build iOS Simulator App
         run: |
           export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-          flutter build ios --release --no-codesign
+          export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
+          which xcodebuild || echo "xcodebuild not in PATH"
+          flutter build ios --release --no-codesign 2>&1 | tail -50
 
       - name: Package iOS App
         env:
