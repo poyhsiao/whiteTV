@@ -100,14 +100,12 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build macOS App
         run: |
           flutter config --enable-macos-desktop
-          flutter config --enable-ios
-          flutter doctor
-          flutter build macos --release --verbose 2>&1 | tail -80
+          flutter pub get
+
+      - name: Build macOS App
+        run: flutter build macos --release --verbose 2>&1 | tail -80
 
       - name: Package macOS App
         env:
@@ -147,13 +145,12 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build iOS Simulator App
         run: |
           flutter config --enable-ios
-          flutter doctor
-          flutter build ios --release --no-codesign --verbose 2>&1 | tail -80
+          flutter pub get
+
+      - name: Build iOS Simulator App
+        run: flutter build ios --release --no-codesign --verbose 2>&1 | tail -80
 
       - name: Package iOS App
         env:
