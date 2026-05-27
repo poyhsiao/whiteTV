@@ -102,6 +102,7 @@ jobs:
       - name: Install dependencies
         run: |
           flutter config --enable-macos-desktop
+          flutter create --platforms=macos .
           flutter pub get
 
       - name: Build macOS App
@@ -147,16 +148,17 @@ jobs:
       - name: Install dependencies
         run: |
           flutter config --enable-ios
+          flutter create --platforms=ios .
           flutter pub get
 
       - name: Build iOS Simulator App
-        run: flutter build ios --release --no-codesign --verbose 2>&1 | tail -80
+        run: flutter build ios --release --no-codesign --simulator --verbose 2>&1 | tail -80
 
       - name: Package iOS App
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          cd build/ios/iphoneos
+          cd build/ios/iphonesimulator
           ls -la
           zip -r ../whitetv-${VERSION}-ios.zip Runner.app
 
@@ -164,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
-          path: build/ios/iphoneos/whitetv-v*.zip
+          path: build/ios/iphonesimulator/whitetv-v*.zip
 
   release:
     name: Create Release
