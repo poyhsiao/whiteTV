@@ -121,7 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifact
-          path: build/macos/Build/Products/Release/whitetv-v*.zip
+          path: build/macos/Build/Products/whitetv-v*.zip
 
   ios:
     name: Build iOS
