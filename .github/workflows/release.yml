@@ -105,11 +105,12 @@ jobs:
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
+          ls /Applications/Xcode.app/Contents/Developer/ 2>/dev/null || echo "Xcode path not found"
 
       - name: Build macOS App
-        env:
-          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-        run: flutter build macos --release
+        run: |
+          export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+          flutter build macos --release
 
       - name: Package macOS App
         env:
@@ -156,9 +157,9 @@ jobs:
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
 
       - name: Build iOS Simulator App
-        env:
-          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-        run: flutter build ios --release --no-codesign
+        run: |
+          export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+          flutter build ios --release --no-codesign
 
       - name: Package iOS App
         env:
