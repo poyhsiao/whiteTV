@@ -103,16 +103,9 @@ jobs:
         run: flutter pub get
 
       - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-          sudo xcodebuild -version || true
-          echo "DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer" >> $GITHUB_ENV
-          echo "PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH" >> $GITHUB_ENV
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
 
       - name: Build macOS App
-        env:
-          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-          PATH: /Applications/Xcode.app/Contents/Developer/usr/bin:/usr/local/bin:/usr/bin:/bin
         run: flutter build macos --release
 
       - name: Package macOS App
@@ -156,16 +149,9 @@ jobs:
         run: flutter pub get
 
       - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-          sudo xcodebuild -version || true
-          echo "DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer" >> $GITHUB_ENV
-          echo "PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH" >> $GITHUB_ENV
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
 
       - name: Build iOS Simulator App
-        env:
-          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-          PATH: /Applications/Xcode.app/Contents/Developer/usr/bin:/usr/local/bin:/usr/bin:/bin
         run: flutter build ios --release --no-codesign
 
       - name: Package iOS App
