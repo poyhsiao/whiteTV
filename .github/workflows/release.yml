@@ -169,7 +169,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
-          path: build/ios/iphoneos/whitetv-v*.zip
+          path: build/ios/whitetv-v*.zip
 
   release:
     name: Create Release
