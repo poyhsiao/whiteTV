@@ -102,6 +102,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
@@ -172,7 +175,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          cd build/ios/iphonesimulator
+          cd build/ios/iphoneos
           ls -la
           zip -r ../whitetv-${VERSION}-ios.zip Runner.app
 
@@ -180,7 +183,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
-          path: build/ios/iphonesimulator/whitetv-v*.zip
+          path: build/ios/iphoneos/whitetv-v*.zip
 
   release:
     name: Create Release
