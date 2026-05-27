@@ -103,7 +103,9 @@ jobs:
         run: flutter pub get
 
       - name: Enable macOS desktop
-        run: flutter config --enable-macos-desktop
+        run: |
+          flutter config --enable-macos-desktop
+          flutter doctor -v 2>&1 | tail -20
 
       - name: Select Xcode
         run: |
