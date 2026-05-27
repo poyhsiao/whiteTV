@@ -94,7 +94,7 @@ jobs:
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
-          path: ~/flutter_deps
+          path: ~/.pub-cache
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
@@ -105,10 +105,7 @@ jobs:
       - name: Build macOS App
         run: |
           flutter config --enable-macos-desktop
-          export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-          export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
-          which xcodebuild || echo "xcodebuild not in PATH"
-          flutter build macos --release --verbose 2>&1 | tail -50
+          flutter build macos --release --verbose 2>&1 | tail -80
 
       - name: Package macOS App
         env:
@@ -142,7 +139,7 @@ jobs:
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
-          path: ~/flutter_deps
+          path: ~/.pub-cache
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
@@ -150,18 +147,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-          xcode-select -p || echo "Xcode path not set"
-          xcodebuild -version || echo "xcodebuild not found"
-
       - name: Build iOS Simulator App
         run: |
-          export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-          export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
-          which xcodebuild || echo "xcodebuild not in PATH"
-          flutter build ios --release --no-codesign 2>&1 | tail -50
+          flutter config --enable-ios
+          flutter build ios --release --no-codesign --verbose 2>&1 | tail -80
 
       - name: Package iOS App
         env:
