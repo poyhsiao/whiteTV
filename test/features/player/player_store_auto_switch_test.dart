@@ -19,11 +19,6 @@ void main() {
     tearDown(() => store.dispose());
 
     test('setBuffering 超時後觸發自動切換', () async {
-      final sources = [
-        const VideoSource(id: 'src1', name: '量子資源', url: 'http://a.com', latency: 80, isAvailable: true),
-        const VideoSource(id: 'src2', name: '非凡資源', url: 'http://b.com', latency: 120, isAvailable: true),
-      ];
-
       await store.setVideo('video1', 'ep1');
       store.play();
       store.setBuffering(true);
@@ -45,6 +40,17 @@ void main() {
 
       // 驗證 autoSwitchCount 仍為 0
       expect(store.state.autoSwitchCount, 0);
+    });
+
+    test('播放錯誤時自動切換來源', () async {
+      await store.setVideo('video1', 'ep1');
+      store.play();
+
+      // 模擬播放錯誤
+      store.onPlaybackError(const PlaybackError(message: '解析失敗', isTimeout: false));
+
+      // 驗證切換到其他來源
+      expect(store.state.autoSwitchCount, 1);
     });
   });
 }

@@ -137,3 +137,10 @@ class VideoSource {
     );
   }
 }
+
+class PlaybackError {
+  final String message;
+  final bool isTimeout;
+
+  const PlaybackError({required this.message, this.isTimeout = false});
+}

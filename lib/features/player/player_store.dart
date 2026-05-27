@@ -187,6 +187,17 @@ class PlayerStore extends StateNotifier<PlayerState> {
     }
   }
 
+  /// 播放錯誤回調
+  void onPlaybackError(PlaybackError error) {
+    if (state.autoSwitchCount >= SourceSelector.maxAutoSwitch) {
+      state = state.copyWith(error: '播放失敗，已嘗試所有來源');
+      return;
+    }
+
+    recordSourceResult(isSuccess: false);
+    _triggerAutoSwitch(error.isTimeout ? FailureReason.timeout : FailureReason.error);
+  }
+
   /// 播放失敗時自動切換來源
   /// 返回是否成功切換，null 表示無需切換或無法切換
   Future<VideoSource?> switchToNextSource(List<VideoSource> allSources) async {
