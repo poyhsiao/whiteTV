@@ -102,19 +102,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Enable macOS desktop
-        run: |
-          flutter config --enable-macos-desktop
-          flutter doctor -v 2>&1 | tail -20
-
-      - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-          xcode-select -p || echo "Xcode path not set"
-          xcodebuild -version || echo "xcodebuild not found"
-
       - name: Build macOS App
         run: |
+          flutter config --enable-macos-desktop
           export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
           export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
           which xcodebuild || echo "xcodebuild not in PATH"
