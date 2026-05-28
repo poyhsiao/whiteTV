@@ -7,6 +7,7 @@ import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/widgets/voice_input_button.dart';
 import 'package:white_tv/features/search/search_history_overlay.dart';
 import 'package:white_tv/core/api/api_client.dart';
+import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 
 void main() {
   group('SearchScreen', () {
@@ -132,6 +133,15 @@ class FakeApiClient implements ApiClient {
   Future<List<int>> search(String query, {SearchCategory? category}) async {
     return [];
   }
+
+  @override
+  Future<List<IptvChannel>> getIptvChannels() async => [];
+
+  @override
+  Future<String?> getIptvM3U() async => null;
+
+  @override
+  Future<Map<String, dynamic>> getIptvEpg() async => {};
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
