@@ -9,6 +9,7 @@ import 'package:white_tv/features/live/domain/services/live_service.dart';
 import 'package:white_tv/features/live/domain/repositories/m3u_parser.dart';
 import 'package:white_tv/features/live/domain/repositories/epg_manager.dart';
 import 'package:white_tv/features/live/domain/repositories/timeshift_manager.dart';
+import 'package:white_tv/core/api/api_client.dart';
 
 void main() {
   group('LiveScreen', () {
@@ -192,4 +193,10 @@ class _MockService implements LiveService {
 
   @override
   TimeshiftManager get timeshiftManager => throw UnimplementedError();
+
+  @override
+  ApiClient? get apiClient => null;
+
+  @override
+  Future<LiveState> loadFromApi() async => LiveState.initial();
 }

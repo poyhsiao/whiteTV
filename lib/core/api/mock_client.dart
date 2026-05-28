@@ -2,6 +2,7 @@ import 'api_client.dart';
 import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
+import '../../features/live/data/models/ipvt_channel.dart';
 
 /// Mock API Client - 用於開發/測試/離線驗證
 /// 回傳模擬資料，不依賴網路
@@ -216,5 +217,47 @@ class MockClient implements ApiClient {
   Future<bool> savePlayHistory(PlayHistory record) async {
     await Future.delayed(_delay);
     return true;
+  }
+
+  // IPTV Mock Data
+  final List<IptvChannel> _mockChannels = const [
+    IptvChannel(
+      id: 'ch1',
+      name: 'Channel 1',
+      logo: 'https://example.com/ch1.png',
+      url: 'https://example.com/ch1.m3u8',
+      group: 'Sports',
+    ),
+    IptvChannel(
+      id: 'ch2',
+      name: 'Channel 2',
+      logo: 'https://example.com/ch2.png',
+      url: 'https://example.com/ch2.m3u8',
+      group: 'News',
+    ),
+  ];
+
+  @override
+  Future<List<IptvChannel>> getIptvChannels() async {
+    await Future.delayed(_delay);
+    return _mockChannels;
+  }
+
+  @override
+  Future<String?> getIptvM3U() async {
+    await Future.delayed(_delay);
+    return '''
+#EXTM3U
+#EXTINF:-1 tvg-name="Channel 1" tvg-logo="https://example.com/ch1.png" group-title="Sports",Channel 1
+https://example.com/ch1.m3u8
+#EXTINF:-1 tvg-name="Channel 2" tvg-logo="https://example.com/ch2.png" group-title="News",Channel 2
+https://example.com/ch2.m3u8
+''';
+  }
+
+  @override
+  Future<Map<String, dynamic>> getIptvEpg() async {
+    await Future.delayed(_delay);
+    return {};
   }
 }
