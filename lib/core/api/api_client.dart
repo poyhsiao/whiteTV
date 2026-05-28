@@ -38,4 +38,13 @@ abstract class ApiClient {
 
   /// 保存播放歷史記錄到雲端
   Future<bool> savePlayHistory(PlayHistory record);
+
+  /// 取得 IPTV 頻道列表 (JSON 格式)
+  Future<List<dynamic>> getIptvChannels();
+
+  /// 取得 IPTV M3U playlist
+  Future<String?> getIptvM3U();
+
+  /// 取得 EPG 節目表
+  Future<Map<String, dynamic>> getIptvEpg();
 }
