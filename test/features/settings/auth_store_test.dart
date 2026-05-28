@@ -5,6 +5,7 @@ import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/features/settings/services/settings_storage_service.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 
@@ -120,6 +121,15 @@ class FakeApiClient implements ApiClient {
 
   @override
   Future<bool> savePlayHistory(PlayHistory record) async => true;
+
+  @override
+  Future<List<IptvChannel>> getIptvChannels() async => [];
+
+  @override
+  Future<String?> getIptvM3U() async => null;
+
+  @override
+  Future<Map<String, dynamic>> getIptvEpg() async => {};
 }
 
 void main() {
