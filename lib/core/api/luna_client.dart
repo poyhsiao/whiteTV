@@ -4,6 +4,7 @@ import 'api_client.dart';
 import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
+import '../../features/live/data/models/ipvt_channel.dart';
 
 /// LunaTV API Client - 真實 API 串接
 /// Base URL: https://moon2.kimhsiao.com
@@ -142,6 +143,40 @@ class LunaClient implements ApiClient {
       return true;
     } on DioException {
       return false;
+    }
+  }
+
+  @override
+  Future<List<IptvChannel>> getIptvChannels() async {
+    try {
+      final response = await _dio.get('/api/iptv/channels');
+      final List<dynamic> data = response.data['channels'] ?? [];
+      return data.map((json) => IptvChannel.fromJson(json)).toList();
+    } on DioException {
+      return [];
+    }
+  }
+
+  @override
+  Future<String?> getIptvM3U() async {
+    try {
+      final response = await _dio.get(
+        '/api/iptv/list',
+        options: Options(responseType: ResponseType.plain),
+      );
+      return response.data as String?;
+    } on DioException {
+      return null;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getIptvEpg() async {
+    try {
+      final response = await _dio.get('/api/iptv/epg');
+      return response.data as Map<String, dynamic>;
+    } on DioException {
+      return {};
     }
   }
 }
