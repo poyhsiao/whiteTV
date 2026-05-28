@@ -1,6 +1,7 @@
 import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
+import '../../features/live/data/models/ipvt_channel.dart';
 
 /// API Client 抽象介面
 /// 實現: LunaClient (真實) / MockClient (Mock)
@@ -40,7 +41,7 @@ abstract class ApiClient {
   Future<bool> savePlayHistory(PlayHistory record);
 
   /// 取得 IPTV 頻道列表 (JSON 格式)
-  Future<List<dynamic>> getIptvChannels();
+  Future<List<IptvChannel>> getIptvChannels();
 
   /// 取得 IPTV M3U playlist
   Future<String?> getIptvM3U();
