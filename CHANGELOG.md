@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-05-28
+
+### Added
+- **IPTV Live API Integration**: JSON 優先 + M3U 備援策略
+  - ApiClient 新增 getIptvChannels/getIptvM3U/getIptvEpg 方法
+  - IptvChannel model 處理 JSON 格式
+  - LiveService.loadFromApi() 实现 fallback 逻辑
+  - LiveStore 新增 loadFromApi 方法
+  - LiveScreen 移除 demo data，改用真實 API
+  - MockClient IPTV 方法完整实现
+  - 123 个测试通过（TDD + BDD）
+
 ## [0.7.0] - 2026-05-27
 
 ### Added
