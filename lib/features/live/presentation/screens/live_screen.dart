@@ -25,16 +25,8 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
   }
 
   void _loadChannels() {
-    // Demo M3U content - in production this would come from API or local storage
-    const demoM3uContent = '''#EXTM3U
-#EXTINF:-1 tvg-name="Channel 1" group-title="Sports",Channel 1
-https://example.com/ch1.m3u8
-#EXTINF:-1 tvg-name="Channel 2" group-title="News",Channel 2
-https://example.com/ch2.m3u8
-#EXTINF:-1 tvg-name="Channel 3" group-title="Entertainment",Channel 3
-https://example.com/ch3.m3u8
-''';
-    ref.read(liveStoreProvider.notifier).loadChannels(demoM3uContent);
+    // Use real API (JSON primary, M3U fallback)
+    ref.read(liveStoreProvider.notifier).loadFromApi();
   }
 
   @override
@@ -139,7 +131,10 @@ https://example.com/ch3.m3u8
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('Search Channels', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Search Channels',
+          style: TextStyle(color: Colors.white),
+        ),
         content: TextField(
           controller: _searchController,
           style: const TextStyle(color: Colors.white),

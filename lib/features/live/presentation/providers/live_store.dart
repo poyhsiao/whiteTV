@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:white_tv/core/api/api_client.dart';
+import 'package:white_tv/core/api/client_factory.dart';
 import 'package:white_tv/features/live/data/models/m3u_channel.dart';
 import 'package:white_tv/features/live/domain/models/live_state.dart';
 import 'package:white_tv/features/live/domain/repositories/epg_manager.dart';
@@ -19,11 +21,17 @@ final timeshiftManagerProvider = Provider<TimeshiftManager>((ref) {
   return TimeshiftManagerImpl();
 });
 
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return createApiClient();
+});
+
 final liveServiceProvider = Provider<LiveService>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
   return LiveService(
     m3uParser: ref.watch(m3uParserProvider),
     epgManager: ref.watch(epgManagerProvider),
     timeshiftManager: ref.watch(timeshiftManagerProvider),
+    apiClient: apiClient,
   );
 });
 
@@ -39,6 +47,12 @@ class LiveStore extends StateNotifier<LiveState> {
   Future<void> loadChannels(String m3uContent) async {
     state = state.copyWith(status: LiveStatus.loading);
     state = await _service.loadChannels(m3uContent);
+  }
+
+  /// 從 API 載入頻道（JSON 優先，M3U 備援）
+  Future<void> loadFromApi() async {
+    final newState = await _service.loadFromApi();
+    state = newState;
   }
 
   Future<void> selectChannel(M3uChannel channel) async {
@@ -81,7 +95,9 @@ class LiveStore extends StateNotifier<LiveState> {
     final currentIndex = state.currentChannel != null
         ? state.channels.indexWhere((c) => c.url == state.currentChannel!.url)
         : -1;
-    final prevIndex = currentIndex <= 0 ? state.channels.length - 1 : currentIndex - 1;
+    final prevIndex = currentIndex <= 0
+        ? state.channels.length - 1
+        : currentIndex - 1;
     await selectChannel(state.channels[prevIndex]);
   }
 
