@@ -1,68 +1,52 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
-import 'package:white_tv/features/favorites/domain/repositories/favorites_repository.dart';
 
-class FavoritesLocalService implements FavoritesRepository {
+class FavoritesLocalService {
   static const _key = 'favorites_items';
-  final SharedPreferences _prefs;
 
-  FavoritesLocalService(this._prefs);
+  FavoritesLocalService();
 
-  @override
   Future<List<FavoriteItem>> getAll() async {
-    final json = _prefs.getString(_key);
-    if (json == null) return [];
-
-    final List<dynamic> list = jsonDecode(json);
-    return list.map((e) => FavoriteItem(
-      id: e['id'],
-      title: e['title'],
-      posterUrl: e['posterUrl'],
-      type: e['type'],
-      isAvailable: e['isAvailable'] ?? true,
-      addedAt: DateTime.parse(e['addedAt']),
-    )).toList();
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = prefs.getStringList(_key) ?? [];
+    return jsonList.map((json) => _fromJson(jsonDecode(json))).toList();
   }
 
-  @override
-  Future<void> add(FavoriteItem item) async {
+  Future<void> save(FavoriteItem item) async {
     final items = await getAll();
+    items.removeWhere((i) => i.id == item.id);
     items.add(item);
     await _saveAll(items);
   }
 
-  @override
   Future<void> remove(String id) async {
     final items = await getAll();
-    items.removeWhere((item) => item.id == id);
+    items.removeWhere((i) => i.id == id);
     await _saveAll(items);
   }
 
-  @override
-  Future<bool> isFavorite(String id) async {
-    final items = await getAll();
-    return items.any((item) => item.id == id);
-  }
-
-  @override
-  Future<void> sync() async {
-    // Local service doesn't sync - that's the remote service's job
-  }
-
-  Future<void> clear() async {
-    await _prefs.remove(_key);
-  }
-
   Future<void> _saveAll(List<FavoriteItem> items) async {
-    final json = jsonEncode(items.map((e) => {
-      'id': e.id,
-      'title': e.title,
-      'posterUrl': e.posterUrl,
-      'type': e.type,
-      'isAvailable': e.isAvailable,
-      'addedAt': e.addedAt.toIso8601String(),
-    }).toList());
-    await _prefs.setString(_key, json);
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = items.map((i) => jsonEncode(_toJson(i))).toList();
+    await prefs.setStringList(_key, jsonList);
   }
+
+  Map<String, dynamic> _toJson(FavoriteItem item) => {
+    'id': item.id,
+    'title': item.title,
+    'posterUrl': item.posterUrl,
+    'type': item.type,
+    'isAvailable': item.isAvailable,
+    'addedAt': item.addedAt.toIso8601String(),
+  };
+
+  FavoriteItem _fromJson(Map<String, dynamic> json) => FavoriteItem(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    posterUrl: json['posterUrl'] as String,
+    type: json['type'] as String,
+    isAvailable: json['isAvailable'] as bool? ?? true,
+    addedAt: DateTime.parse(json['addedAt'] as String),
+  );
 }
