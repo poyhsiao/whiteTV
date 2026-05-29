@@ -7,7 +7,7 @@ void main() {
     late FavoritesRemoteService service;
 
     setUp(() {
-      service = FavoritesRemoteService('http://lunatv.example.com/api');
+      service = FavoritesRemoteService(baseUrl: 'http://lunatv.example.com/api');
     });
 
     test('fetchFavorites returns list of favorites', () async {
