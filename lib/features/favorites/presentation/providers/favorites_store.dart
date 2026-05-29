@@ -25,6 +25,13 @@ class FavoritesStore extends Notifier<FavoritesState> {
     );
   }
 
+  void addFavorite(FavoriteItem item) {
+    if (state.items.any((i) => i.id == item.id)) return;
+    state = state.copyWith(
+      items: [...state.items, item],
+    );
+  }
+
   void setItems(List<FavoriteItem> items) {
     state = state.copyWith(items: items, isLoading: false, clearError: true);
   }
