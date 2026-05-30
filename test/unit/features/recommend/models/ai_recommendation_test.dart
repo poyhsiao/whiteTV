@@ -61,6 +61,11 @@ void main() {
         sourceName: '量子資源',
         reason: '測試理由',
         sourceType: RecommendationSource.ai,
+        description: '測試描述',
+        year: '2014',
+        type: 'movie',
+        doubanId: 'tt0816692',
+        episodeTotal: 1,
       );
 
       final json = recommendation.toJson();
@@ -72,6 +77,11 @@ void main() {
       expect(json['source_name'], equals('量子資源'));
       expect(json['reason'], equals('測試理由'));
       expect(json['source_type'], equals('ai'));
+      expect(json['description'], equals('測試描述'));
+      expect(json['year'], equals('2014'));
+      expect(json['type'], equals('movie'));
+      expect(json['douban_id'], equals('tt0816692'));
+      expect(json['total_episodes'], equals(1));
     });
   });
 }
