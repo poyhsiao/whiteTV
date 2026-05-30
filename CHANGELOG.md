@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-05-30
+
+### Added
+- **AI 推薦功能**: 雙軌策略智能推薦系統
+  - AIRecommendation 模型與 RecommendationSource enum
+  - ApiClient 新增 getAIRecommendations/getLocalRecommendations 方法
+  - LunaClient AI API 整合
+  - AIRecommendRepository 雙軌策略實現
+  - AIRecommendService 本地推薦邏輯
+  - AIRecommendStore Riverpod 狀態管理
+  - RecommendationCard/RecommendationCarousel/RecommendationReasonSheet UI 組件
+  - 首頁「為你推薦」區塊整合
+  - AIRecommendPage 獨立推薦頁面
+  - BDD 測試案例
+
 ## [0.8.1] - 2026-05-28
 
 ### Added
