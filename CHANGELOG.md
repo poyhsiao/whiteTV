@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - AIRecommendPage 獨立推薦頁面
   - BDD 測試案例
 
+### Fixed
+- **History 右鍵/鍵盤刪除**: 添加 CallbackShortcuts 支持 Delete/Backspace 鍵刪除
+- **Favorites 跨設備同步**: 實現 loadFavorites() 連接 FavoritesRemoteService，添加 syncToServer() 方法
+- **Live/IPTV 靜音過渡**: 添加 isMuted 狀態，nextChannel()/previousChannel() 自動靜音切換，添加靜音指示器 UI
+
 ## [0.8.1] - 2026-05-28
 
 ### Added
