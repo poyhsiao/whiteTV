@@ -21,7 +21,7 @@ class RecommendationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -54,7 +54,7 @@ class RecommendationCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withValues(alpha: 0.8),
                       ],
                     ),
                   ),
@@ -79,7 +79,7 @@ class RecommendationCard extends StatelessWidget {
                         Text(
                           recommendation.year!,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 12,
                           ),
                         ),
@@ -111,7 +111,7 @@ class RecommendationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: _getTagColor().withOpacity(0.9),
+        color: _getTagColor().withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
