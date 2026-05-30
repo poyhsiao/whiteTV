@@ -35,6 +35,7 @@ class Video {
   final String? description;
   final String categoryId;
   final String type;
+  final String? year;
 
   const Video({
     required this.id,
@@ -43,6 +44,7 @@ class Video {
     this.description,
     required this.categoryId,
     required this.type,
+    this.year,
   });
 
   factory Video.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class Video {
       description: json['description'] as String?,
       categoryId: json['category_id'] as String,
       type: json['type'] as String,
+      year: json['year'] as String?,
     );
   }
 }
