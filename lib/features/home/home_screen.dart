@@ -6,6 +6,7 @@ import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/history/widgets/recent_watch_section.dart';
 import 'package:white_tv/features/home/home_store.dart';
+import 'package:white_tv/features/recommend/presentation/widgets/recommendation_carousel.dart';
 import 'package:white_tv/shared/widgets/poster_card.dart';
 import 'package:white_tv/shared/widgets/skeleton_loader.dart';
 
@@ -23,7 +24,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(homeStoreProvider.notifier).loadHome());
+    Future.microtask(() {
+      ref.read(homeStoreProvider.notifier).loadHome();
+      ref.read(homeStoreProvider.notifier).loadAIRecommendations();
+    });
   }
 
   @override
@@ -76,6 +80,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             records: state.recentHistory,
             onTap: (record) => _navigateToDetail(record.videoId),
           ),
+          if (state.aiRecommendations.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: RecommendationCarousel(
+                title: '為你推薦',
+                recommendations: state.aiRecommendations,
+                onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
+                onRecommendationTap: (recommendation) {
+                  _navigateToDetail(recommendation.id);
+                },
+              ),
+            ),
+          ],
           ...state.categories.map((category) {
             final videos = state.videosByCategory[category.id] ?? [];
             return _buildCategoryRow(category.name, videos, isTV: true);
@@ -96,6 +114,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           records: state.recentHistory,
           onTap: (record) => _navigateToDetail(record.videoId),
         ),
+        if (state.aiRecommendations.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: RecommendationCarousel(
+              title: '為你推薦',
+              recommendations: state.aiRecommendations,
+              onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
+              onRecommendationTap: (recommendation) {
+                _navigateToDetail(recommendation.id);
+              },
+            ),
+          ),
+        ],
         ...state.categories.map((category) {
           final videos = state.videosByCategory[category.id] ?? [];
           return _buildCategoryGrid(category.name, videos);
