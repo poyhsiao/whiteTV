@@ -1,5 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
+
+final favoritesRemoteServiceProvider = Provider<FavoritesRemoteService>((ref) {
+  throw UnimplementedError('favoritesRemoteServiceProvider must be overridden');
+});
 
 class FavoritesRemoteService {
   FavoritesRemoteService({required String baseUrl})

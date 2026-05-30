@@ -1,10 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/favorites/domain/models/favorites_state.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
+import 'package:white_tv/features/favorites/services/favorites_remote_service.dart';
 
 class FavoritesStore extends Notifier<FavoritesState> {
   @override
   FavoritesState build() => const FavoritesState();
+
+  FavoritesRemoteService? get _remoteService {
+    try {
+      return ref.read(favoritesRemoteServiceProvider);
+    } catch (_) {
+      return null;
+    }
+  }
 
   void toggleView() {
     state = state.copyWith(isGridView: !state.isGridView);
@@ -14,9 +23,21 @@ class FavoritesStore extends Notifier<FavoritesState> {
     state = state.copyWith(filterType: type);
   }
 
-  void loadFavorites() {
-    // Placeholder - will be implemented with actual data loading
-    state = state.copyWith(isLoading: false, error: null);
+  Future<void> loadFavorites() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final remoteService = _remoteService;
+    if (remoteService == null) {
+      state = state.copyWith(isLoading: false, error: 'Remote service not configured');
+      return;
+    }
+
+    try {
+      final items = await remoteService.fetchFavorites();
+      state = state.copyWith(items: items, isLoading: false);
+    } on Exception catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   void removeFavorite(String id) {
