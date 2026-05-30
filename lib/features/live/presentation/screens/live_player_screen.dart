@@ -81,6 +81,19 @@ class LivePlayerScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Mute indicator
+          if (state.isMuted)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.volume_off, color: Colors.orange, size: 16),
+                  SizedBox(width: 4),
+                  Text('Muted', style: TextStyle(color: Colors.orange, fontSize: 12)),
+                ],
+              ),
+            ),
           // Timeshift control bar (if in timeshift mode)
           if (state.status == LiveStatus.timeshift)
             Padding(
