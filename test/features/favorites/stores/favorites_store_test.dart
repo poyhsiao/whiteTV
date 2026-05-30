@@ -171,13 +171,13 @@ void main() {
     });
 
     // loadFavorites test
-    test('loadFavorites sets loading to false without loading from remote', () {
+    test('loadFavorites without remote service sets error', () async {
       final notifier = container.read(favoritesStoreProvider.notifier);
       notifier.setLoading(true);
-      notifier.loadFavorites();
+      await notifier.loadFavorites();
       final state = container.read(favoritesStoreProvider);
       expect(state.isLoading, false);
-      expect(state.error, isNull);
+      expect(state.error, 'Remote service not configured');
     });
   });
 
