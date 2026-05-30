@@ -7,87 +7,102 @@ import 'package:white_tv/features/recommend/data/repositories/ai_recommend_repos
 class MockApiClient extends Mock implements ApiClient {}
 
 void main() {
-  late MockApiClient mockClient;
   late AIRecommendRepository repository;
+  late MockApiClient mockApiClient;
 
   setUp(() {
-    mockClient = MockApiClient();
-    repository = AIRecommendRepository(mockClient);
+    mockApiClient = MockApiClient();
+    repository = AIRecommendRepository(mockApiClient);
   });
 
   group('AIRecommendRepository', () {
-    test('getRecommendations returns AI recommendations when available', () async {
-      // Arrange
-      final aiRecommendations = [
-        const AIRecommendation(
-          id: '12345',
-          title: '星際穿越',
-          source: 'lovedan',
-          sourceName: '量子資源',
-          sourceType: RecommendationSource.ai,
-        ),
-      ];
-      when(() => mockClient.getAIRecommendations())
-          .thenAnswer((_) async => aiRecommendations);
+    group('getRecommendations', () {
+      test('returns AI recommendations when AI API returns results', () async {
+        // Arrange
+        final aiRecommendations = <AIRecommendation>[
+          const AIRecommendation(
+            id: '1',
+            title: 'AI Rec 1',
+            source: 'lunatv',
+            sourceName: 'LunaTV',
+            sourceType: RecommendationSource.ai,
+          ),
+          const AIRecommendation(
+            id: '2',
+            title: 'AI Rec 2',
+            source: 'lunatv',
+            sourceName: 'LunaTV',
+            sourceType: RecommendationSource.ai,
+          ),
+        ];
+        when(() => mockApiClient.getAIRecommendations())
+            .thenAnswer((_) async => aiRecommendations);
 
-      // Act
-      final result = await repository.getRecommendations();
+        // Act
+        final result = await repository.getRecommendations();
 
-      // Assert
-      expect(result.first.sourceType, equals(RecommendationSource.ai));
-      expect(result.length, equals(1));
-      verify(() => mockClient.getAIRecommendations()).called(1);
-      verifyNever(() => mockClient.getLocalRecommendations());
-    });
+        // Assert
+        expect(result, equals(aiRecommendations));
+        verify(() => mockApiClient.getAIRecommendations()).called(1);
+        verifyNever(() => mockApiClient.getLocalRecommendations(
+            watchHistory: any(named: 'watchHistory'),
+            searchHistory: any(named: 'searchHistory'),
+            limit: any(named: 'limit')));
+      });
 
-    test('getRecommendations falls back to local when AI returns empty', () async {
-      // Arrange
-      final localRecommendations = [
-        const AIRecommendation(
-          id: 'local-1',
-          title: '盜夢空間',
-          source: 'mtzy.me',
-          sourceName: '茅台资源',
-          sourceType: RecommendationSource.history,
-        ),
-      ];
-      when(() => mockClient.getAIRecommendations())
-          .thenAnswer((_) async => []);
-      when(() => mockClient.getLocalRecommendations(
-        watchHistory: any(named: 'watchHistory'),
-        searchHistory: any(named: 'searchHistory'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => localRecommendations);
+      test('falls back to local recommendations when AI returns empty',
+          () async {
+        // Arrange
+        final localRecommendations = <AIRecommendation>[
+          const AIRecommendation(
+            id: '3',
+            title: 'Local Rec 1',
+            source: 'local',
+            sourceName: 'Local',
+            sourceType: RecommendationSource.history,
+          ),
+        ];
+        when(() => mockApiClient.getAIRecommendations())
+            .thenAnswer((_) async => []);
+        when(() => mockApiClient.getLocalRecommendations(
+                watchHistory: any(named: 'watchHistory'),
+                searchHistory: any(named: 'searchHistory'),
+                limit: any(named: 'limit')))
+            .thenAnswer((_) async => localRecommendations);
 
-      // Act
-      final result = await repository.getRecommendations();
+        // Act
+        final result = await repository.getRecommendations(
+          watchHistory: ['show1'],
+          searchHistory: ['drama'],
+          limit: 10,
+        );
 
-      // Assert
-      expect(result.first.sourceType, equals(RecommendationSource.history));
-      expect(result.length, equals(1));
-      verify(() => mockClient.getAIRecommendations()).called(1);
-      verify(() => mockClient.getLocalRecommendations(
-        watchHistory: any(named: 'watchHistory'),
-        searchHistory: any(named: 'searchHistory'),
-        limit: any(named: 'limit'),
-      )).called(1);
-    });
+        // Assert
+        expect(result, equals(localRecommendations));
+        verify(() => mockApiClient.getAIRecommendations()).called(1);
+        verify(() => mockApiClient.getLocalRecommendations(
+              watchHistory: ['show1'],
+              searchHistory: ['drama'],
+              limit: 10,
+            )).called(1);
+      });
 
-    test('getRecommendations returns empty list when both fail', () async {
-      // Arrange
-      when(() => mockClient.getAIRecommendations())
-          .thenAnswer((_) async => []);
-      when(() => mockClient.getLocalRecommendations(
-        watchHistory: any(named: 'watchHistory'),
-        searchHistory: any(named: 'searchHistory'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => []);
+      test('returns empty list when both AI and local return empty', () async {
+        // Arrange
+        when(() => mockApiClient.getAIRecommendations())
+            .thenAnswer((_) async => <AIRecommendation>[]);
+        when(() => mockApiClient.getLocalRecommendations(
+                watchHistory: any(named: 'watchHistory'),
+                searchHistory: any(named: 'searchHistory'),
+                limit: any(named: 'limit')))
+            .thenAnswer((_) async => <AIRecommendation>[]);
 
-      // Act
-      final result = await repository.getRecommendations();
+        // Act
+        final result = await repository.getRecommendations();
 
-      // Assert
-      expect(result, isEmpty);
+        // Assert
+        expect(result, isEmpty);
+      });
     });
   });
 }

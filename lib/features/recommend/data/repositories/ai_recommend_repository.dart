@@ -6,38 +6,22 @@ class AIRecommendRepository {
 
   AIRecommendRepository(this._apiClient);
 
-  /// 獲取推薦（雙軌策略）
+  /// Get recommendations using dual-track strategy
+  /// - First tries AI API
+  /// - Falls back to local recommendations if AI returns empty
   Future<List<AIRecommendation>> getRecommendations({
     List<String>? watchHistory,
     List<String>? searchHistory,
     int limit = 20,
   }) async {
-    // 先嘗試 AI API
+    // Try AI API first
     final aiRecommendations = await _apiClient.getAIRecommendations();
 
     if (aiRecommendations.isNotEmpty) {
       return aiRecommendations;
     }
 
-    // Fallback: 使用本地推薦
-    return _apiClient.getLocalRecommendations(
-      watchHistory: watchHistory,
-      searchHistory: searchHistory,
-      limit: limit,
-    );
-  }
-
-  /// 直接獲取 AI 推薦
-  Future<List<AIRecommendation>> getAIRecommendations() {
-    return _apiClient.getAIRecommendations();
-  }
-
-  /// 直接獲取本地推薦
-  Future<List<AIRecommendation>> getLocalRecommendations({
-    List<String>? watchHistory,
-    List<String>? searchHistory,
-    int limit = 20,
-  }) {
+    // Fallback: use local recommendations
     return _apiClient.getLocalRecommendations(
       watchHistory: watchHistory,
       searchHistory: searchHistory,
