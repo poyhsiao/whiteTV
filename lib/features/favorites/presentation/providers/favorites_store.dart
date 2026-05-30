@@ -72,6 +72,18 @@ class FavoritesStore extends Notifier<FavoritesState> {
   void clearError() {
     state = state.copyWith(clearError: true);
   }
+
+  Future<void> syncToServer() async {
+    final remoteService = _remoteService;
+    if (remoteService == null) return;
+    state = state.copyWith(isSyncing: true);
+    try {
+      await remoteService.syncToServer(state.items);
+      state = state.copyWith(isSyncing: false);
+    } on Exception catch (e) {
+      state = state.copyWith(isSyncing: false, error: e.toString());
+    }
+  }
 }
 
 final favoritesStoreProvider = NotifierProvider<FavoritesStore, FavoritesState>(

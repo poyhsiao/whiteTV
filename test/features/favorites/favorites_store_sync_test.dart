@@ -53,5 +53,17 @@ void main() {
       expect(state.items, isEmpty);
       expect(state.error, isNotNull);
     });
+
+    test('syncToServer pushes local changes to remote', () async {
+      final testItem = FavoriteItem(id: '1', title: 'Movie 1', type: 'movie', posterUrl: '', addedAt: DateTime.now());
+
+      when(() => mockRemoteService.syncToServer(any())).thenAnswer((_) async => true);
+
+      final store = container.read(favoritesStoreProvider.notifier);
+      store.addFavorite(testItem);
+      await store.syncToServer();
+
+      verify(() => mockRemoteService.syncToServer(any())).called(1);
+    });
   });
 }
