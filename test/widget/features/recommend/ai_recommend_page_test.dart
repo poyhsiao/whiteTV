@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/client_factory.dart';
-import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/recommend/presentation/pages/ai_recommend_page.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
