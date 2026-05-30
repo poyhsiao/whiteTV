@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/features/live/presentation/providers/live_store.dart';
 import 'package:white_tv/features/live/domain/models/live_state.dart';

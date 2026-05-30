@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/features/favorites/presentation/providers/favorites_store.dart';
-import 'package:white_tv/features/favorites/domain/models/favorites_state.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
 import 'package:white_tv/features/favorites/services/favorites_remote_service.dart';
 
