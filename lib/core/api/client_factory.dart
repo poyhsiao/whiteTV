@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'api_client.dart';
 import 'luna_client.dart';
 import 'mock_client.dart';
@@ -24,3 +26,6 @@ ApiClient createApiClientWithEnvOverride(bool useMock) {
 
   return LunaClient();
 }
+
+/// Riverpod provider for ApiClient
+final apiClientProvider = Provider<ApiClient>((ref) => createApiClient());
