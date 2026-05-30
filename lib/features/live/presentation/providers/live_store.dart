@@ -81,17 +81,33 @@ class LiveStore extends StateNotifier<LiveState> {
     return _service.searchChannels(query);
   }
 
+  void mute() {
+    state = state.copyWith(isMuted: true);
+  }
+
+  void unmute() {
+    state = state.copyWith(isMuted: false);
+  }
+
   Future<void> nextChannel() async {
     if (state.channels.isEmpty) return;
+    // Mute before switching
+    mute();
     final currentIndex = state.currentChannel != null
         ? state.channels.indexWhere((c) => c.url == state.currentChannel!.url)
         : -1;
     final nextIndex = (currentIndex + 1) % state.channels.length;
     await selectChannel(state.channels[nextIndex]);
+    // Auto-unmute after short delay (transition complete)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (state.isMuted) unmute();
+    });
   }
 
   Future<void> previousChannel() async {
     if (state.channels.isEmpty) return;
+    // Mute before switching
+    mute();
     final currentIndex = state.currentChannel != null
         ? state.channels.indexWhere((c) => c.url == state.currentChannel!.url)
         : -1;
@@ -99,6 +115,10 @@ class LiveStore extends StateNotifier<LiveState> {
         ? state.channels.length - 1
         : currentIndex - 1;
     await selectChannel(state.channels[prevIndex]);
+    // Auto-unmute after short delay (transition complete)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (state.isMuted) unmute();
+    });
   }
 
   Future<void> togglePlayPause() async {

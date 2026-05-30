@@ -17,6 +17,7 @@ class LiveState {
   final String? errorMessage;
   final bool isSignalError;
   final Duration? timeshiftPosition;
+  final bool isMuted;
 
   const LiveState({
     required this.status,
@@ -26,6 +27,7 @@ class LiveState {
     this.errorMessage,
     this.isSignalError = false,
     this.timeshiftPosition,
+    this.isMuted = false,
   });
 
   factory LiveState.initial() {
@@ -44,6 +46,7 @@ class LiveState {
     String? errorMessage,
     bool? isSignalError,
     Duration? timeshiftPosition,
+    bool? isMuted,
     bool clearErrorMessage = false,
     bool clearTimeshiftPosition = false,
   }) {
@@ -55,6 +58,7 @@ class LiveState {
       errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       isSignalError: isSignalError ?? this.isSignalError,
       timeshiftPosition: clearTimeshiftPosition ? null : (timeshiftPosition ?? this.timeshiftPosition),
+      isMuted: isMuted ?? this.isMuted,
     );
   }
 }
