@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
+import 'package:white_tv/features/recommend/data/repositories/ai_recommend_repository.dart';
 import 'package:white_tv/features/recommend/presentation/providers/ai_recommend_store.dart';
 
 void main() {
@@ -35,8 +36,16 @@ void main() {
   });
 
   group('AIRecommendStore', () {
+    late MockClient mockClient;
+    late AIRecommendRepository repository;
+
+    setUp(() {
+      mockClient = MockClient();
+      repository = AIRecommendRepository(mockClient);
+    });
+
     test('loadRecommendations updates state with results', () async {
-      final store = AIRecommendStore(MockClient());
+      final store = AIRecommendStore(repository);
 
       await store.loadRecommendations();
 
@@ -45,7 +54,7 @@ void main() {
     });
 
     test('refreshRecommendations reloads content', () async {
-      final store = AIRecommendStore(MockClient());
+      final store = AIRecommendStore(repository);
 
       await store.loadRecommendations();
       await store.refreshRecommendations();

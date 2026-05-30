@@ -8,6 +8,7 @@ import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 
 class FakeSettingsStorageService implements SettingsStorageService {
   String? _authCookie;
@@ -130,6 +131,16 @@ class FakeApiClient implements ApiClient {
 
   @override
   Future<Map<String, dynamic>> getIptvEpg() async => {};
+
+  @override
+  Future<List<AIRecommendation>> getAIRecommendations() async => [];
+
+  @override
+  Future<List<AIRecommendation>> getLocalRecommendations({
+    List<String>? watchHistory,
+    List<String>? searchHistory,
+    int limit = 20,
+  }) async => [];
 }
 
 void main() {

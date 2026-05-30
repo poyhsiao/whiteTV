@@ -12,6 +12,7 @@ import 'package:white_tv/features/live/data/models/epg_channel.dart';
 import 'package:white_tv/features/live/data/models/epg_program.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
+import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 
 // Minimal ApiClient implementation for testing
 class FakeApiClient implements ApiClient {
@@ -75,6 +76,16 @@ class FakeApiClient implements ApiClient {
     if (shouldFail) throw Exception('API Error');
     return {};
   }
+
+  @override
+  Future<List<AIRecommendation>> getAIRecommendations() async => [];
+
+  @override
+  Future<List<AIRecommendation>> getLocalRecommendations({
+    List<String>? watchHistory,
+    List<String>? searchHistory,
+    int limit = 20,
+  }) async => [];
 }
 
 class MockM3uParser implements M3uParser {

@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/client_factory.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/recommend/data/repositories/ai_recommend_repository.dart';
@@ -37,12 +36,9 @@ class AIRecommendState {
 }
 
 class AIRecommendStore extends StateNotifier<AIRecommendState> {
-  final ApiClient _apiClient;
   final AIRecommendRepository _repository;
 
-  AIRecommendStore(this._apiClient)
-      : _repository = AIRecommendRepository(_apiClient),
-        super(const AIRecommendState());
+  AIRecommendStore(this._repository) : super(const AIRecommendState());
 
   Future<void> loadRecommendations() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -79,5 +75,5 @@ class AIRecommendStore extends StateNotifier<AIRecommendState> {
 final aiRecommendStoreProvider =
     StateNotifierProvider<AIRecommendStore, AIRecommendState>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  return AIRecommendStore(apiClient);
+  return AIRecommendStore(AIRecommendRepository(apiClient));
 });
