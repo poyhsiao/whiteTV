@@ -2,6 +2,7 @@ import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
 import '../../features/live/data/models/ipvt_channel.dart';
+import '../../features/recommend/data/models/ai_recommendation.dart';
 
 /// API Client 抽象介面
 /// 實現: LunaClient (真實) / MockClient (Mock)
@@ -48,4 +49,14 @@ abstract class ApiClient {
 
   /// 取得 EPG 節目表
   Future<Map<String, dynamic>> getIptvEpg();
+
+  /// AI 推薦
+  Future<List<AIRecommendation>> getAIRecommendations();
+
+  /// 本地推薦（Fallback）
+  Future<List<AIRecommendation>> getLocalRecommendations({
+    List<String>? watchHistory,
+    List<String>? searchHistory,
+    int limit = 20,
+  });
 }

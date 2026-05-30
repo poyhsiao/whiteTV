@@ -5,6 +5,7 @@ import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
 import '../../features/live/data/models/ipvt_channel.dart';
+import '../../features/recommend/data/models/ai_recommendation.dart';
 
 /// LunaTV API Client - 真實 API 串接
 /// Base URL: https://moon2.kimhsiao.com
@@ -177,6 +178,78 @@ class LunaClient implements ApiClient {
       return response.data as Map<String, dynamic>;
     } on DioException {
       return {};
+    }
+  }
+
+  @override
+  Future<List<AIRecommendation>> getAIRecommendations() async {
+    try {
+      final response = await _dio.get('/api/ai-recommend');
+      final data = response.data;
+
+      // 處理預期格式
+      if (data['recommendations'] != null && (data['recommendations'] as List).isNotEmpty) {
+        return (data['recommendations'] as List)
+            .map((e) {
+              final json = Map<String, dynamic>.from(e as Map);
+              json['source_type'] = 'ai';
+              return AIRecommendation.fromJson(json);
+            })
+            .toList();
+      }
+
+      // 處理空值情況
+      if (data['total'] == 0 || (data['recommendations'] as List?)?.isEmpty == true) {
+        return [];
+      }
+
+      return [];
+    } on DioException {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<AIRecommendation>> getLocalRecommendations({
+    List<String>? watchHistory,
+    List<String>? searchHistory,
+    int limit = 20,
+  }) async {
+    // 獲取用戶統計和搜尋歷史
+    final stats = await getUserStats();
+    final history = searchHistory ?? await getSearchHistory();
+
+    // 從統計中提取觀看記錄
+    final watchRecords = (stats['stats']?['recentRecords'] as List?) ?? [];
+    final watchTypes = <String>{};
+    final watchTitles = <String>[];
+
+    for (final record in watchRecords) {
+      if (record['type'] != null) watchTypes.add(record['type'] as String);
+      if (record['title'] != null) watchTitles.add(record['title'] as String);
+    }
+
+    // 搜尋相關內容
+    final query = history.isNotEmpty
+        ? history.first
+        : (watchTypes.isNotEmpty ? watchTypes.first : '電影');
+
+    // Use search to get recommendations based on user preferences
+    try {
+      final searchResults = await search(query);
+
+      // 轉換為 AIRecommendation
+      return searchResults.take(limit).map((id) {
+        return AIRecommendation(
+          id: id.toString(),
+          title: '推薦內容 ($query)',
+          source: 'local',
+          sourceName: '本地推薦',
+          sourceType: RecommendationSource.history,
+        );
+      }).toList();
+    } catch (e) {
+      return [];
     }
   }
 }

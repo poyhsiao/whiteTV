@@ -3,6 +3,7 @@ import 'models.dart';
 import '../../features/search/search_state.dart';
 import '../../features/history/models/play_history.dart';
 import '../../features/live/data/models/ipvt_channel.dart';
+import '../../features/recommend/data/models/ai_recommendation.dart';
 
 /// Mock API Client - 用於開發/測試/離線驗證
 /// 回傳模擬資料，不依賴網路
@@ -259,5 +260,44 @@ https://example.com/ch2.m3u8
   Future<Map<String, dynamic>> getIptvEpg() async {
     await Future.delayed(_delay);
     return {};
+  }
+
+  @override
+  Future<List<AIRecommendation>> getAIRecommendations() async {
+    await Future.delayed(_delay);
+    return [];
+  }
+
+  @override
+  Future<List<AIRecommendation>> getLocalRecommendations({
+    List<String>? watchHistory,
+    List<String>? searchHistory,
+    int limit = 20,
+  }) async {
+    await Future.delayed(_delay);
+    return [
+      AIRecommendation(
+        id: 'mock-1',
+        title: '星際穿越 (本地推薦)',
+        posterUrl: 'https://picsum.photos/seed/mock1/300/450',
+        source: 'mtzy.me',
+        sourceName: '🎬茅台资源',
+        reason: '根據您的觀看偏好推薦',
+        sourceType: RecommendationSource.history,
+        year: '2014',
+        type: 'movie',
+      ),
+      AIRecommendation(
+        id: 'mock-2',
+        title: '盜夢空間 (本地推薦)',
+        posterUrl: 'https://picsum.photos/seed/mock2/300/450',
+        source: 'mtzy.me',
+        sourceName: '🎬茅台资源',
+        reason: '同類型推薦',
+        sourceType: RecommendationSource.history,
+        year: '2010',
+        type: 'movie',
+      ),
+    ];
   }
 }
