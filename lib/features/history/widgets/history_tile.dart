@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/utils/time_formatter.dart';
 
@@ -22,9 +23,14 @@ class HistoryTile extends StatelessWidget {
         ? '第 ${history.currentEpisode} 集/共 ${history.totalEpisodes} 集'
         : null;
 
-    return ListTile(
-      onTap: onTap,
-      onLongPress: onDelete,
+    return CallbackShortcuts(
+      bindings: {
+        LogicalKeySet(LogicalKeyboardKey.delete): onDelete,
+        LogicalKeySet(LogicalKeyboardKey.backspace): onDelete,
+      },
+      child: ListTile(
+        onTap: onTap,
+        onLongPress: onDelete,
       leading: history.posterUrl != null
           ? Image.network(
               history.posterUrl!,
@@ -56,6 +62,7 @@ class HistoryTile extends StatelessWidget {
         ],
       ),
       trailing: _buildProgressBar(),
+      ),
     );
   }
 
