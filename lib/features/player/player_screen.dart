@@ -104,17 +104,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _resetControlsTimer();
   }
 
-  void _toggleControlsLock() {
-    setState(() {
-      _controlsLocked = !_controlsLocked;
-    });
-    if (_controlsLocked) {
-      _controlsHideTimer?.cancel();
-    } else {
-      _resetControlsTimer();
-    }
-  }
-
   Future<void> _initializePlayer() async {
     final controller = ref.read(videoPlayerControllerProvider);
 
@@ -220,43 +209,49 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       child: Row(
         children: [
           // Play/Pause
-          IconButton(
-            icon: Icon(
-              state.isPlaying ? Icons.pause : Icons.play_arrow,
-              color: AppColors.textPrimary,
+          Flexible(
+            child: IconButton(
+              icon: Icon(
+                state.isPlaying ? Icons.pause : Icons.play_arrow,
+                color: AppColors.textPrimary,
+              ),
+              onPressed: () {
+                if (state.isPlaying) {
+                  controller?.pause();
+                  ref.read(player.playerStoreProvider.notifier).pause();
+                } else {
+                  controller?.play();
+                  ref.read(player.playerStoreProvider.notifier).play();
+                }
+              },
             ),
-            onPressed: () {
-              if (state.isPlaying) {
-                controller?.pause();
-                ref.read(player.playerStoreProvider.notifier).pause();
-              } else {
-                controller?.play();
-                ref.read(player.playerStoreProvider.notifier).play();
-              }
-            },
           ),
           const SizedBox(width: 16),
           // Episode navigation
-          EpisodeNavigation(
-            currentEpisode: state.currentEpisode,
-            totalEpisodes: state.totalEpisodes,
-            onPrevious: () {
-              ref.read(player.playerStoreProvider.notifier).previousEpisode();
-            },
-            onNext: () {
-              ref.read(player.playerStoreProvider.notifier).nextEpisode();
-            },
+          Flexible(
+            child: EpisodeNavigation(
+              currentEpisode: state.currentEpisode,
+              totalEpisodes: state.totalEpisodes,
+              onPrevious: () {
+                ref.read(player.playerStoreProvider.notifier).previousEpisode();
+              },
+              onNext: () {
+                ref.read(player.playerStoreProvider.notifier).nextEpisode();
+              },
+            ),
           ),
           const SizedBox(width: 16),
           // Episode selector
-          EpisodeSelector(
-            currentEpisode: state.currentEpisode,
-            totalEpisodes: state.totalEpisodes,
-            onEpisodeSelected: (episode) {
-              ref
-                  .read(player.playerStoreProvider.notifier)
-                  .setCurrentEpisode(episode);
-            },
+          Flexible(
+            child: EpisodeSelector(
+              currentEpisode: state.currentEpisode,
+              totalEpisodes: state.totalEpisodes,
+              onEpisodeSelected: (episode) {
+                ref
+                    .read(player.playerStoreProvider.notifier)
+                    .setCurrentEpisode(episode);
+              },
+            ),
           ),
           const SizedBox(width: 16),
           // Seek bar placeholder
@@ -282,67 +277,77 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           ),
           const SizedBox(width: 16),
           // Playback speed
-          PopupMenuButton<double>(
-            initialValue: state.playbackSpeed,
-            onSelected: (speed) {
-              controller?.setRate(speed);
-              ref
-                  .read(player.playerStoreProvider.notifier)
-                  .setPlaybackSpeed(speed);
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 0.5, child: Text('0.5x')),
-              const PopupMenuItem(value: 1.0, child: Text('1.0x')),
-              const PopupMenuItem(value: 1.5, child: Text('1.5x')),
-              const PopupMenuItem(value: 2.0, child: Text('2.0x')),
-            ],
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${state.playbackSpeed}x',
-                style: const TextStyle(color: AppColors.textPrimary),
+          Flexible(
+            child: PopupMenuButton<double>(
+              initialValue: state.playbackSpeed,
+              onSelected: (speed) {
+                controller?.setRate(speed);
+                ref
+                    .read(player.playerStoreProvider.notifier)
+                    .setPlaybackSpeed(speed);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 0.5, child: Text('0.5x')),
+                const PopupMenuItem(value: 1.0, child: Text('1.0x')),
+                const PopupMenuItem(value: 1.5, child: Text('1.5x')),
+                const PopupMenuItem(value: 2.0, child: Text('2.0x')),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${state.playbackSpeed}x',
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
               ),
             ),
           ),
           const SizedBox(width: 16),
           // Volume control
-          VolumeControl(
-            volume: state.volume,
-            isMuted: state.isMuted,
-            onVolumeChanged: (v) {
-              ref.read(player.playerStoreProvider.notifier).setVolume(v);
-            },
-            onMuteToggled: () {
-              ref.read(player.playerStoreProvider.notifier).toggleMute();
-            },
+          Flexible(
+            child: VolumeControl(
+              volume: state.volume,
+              isMuted: state.isMuted,
+              onVolumeChanged: (v) {
+                ref.read(player.playerStoreProvider.notifier).setVolume(v);
+              },
+              onMuteToggled: () {
+                ref.read(player.playerStoreProvider.notifier).toggleMute();
+              },
+            ),
           ),
           const SizedBox(width: 16),
           // Source switcher
-          SourceSwitcher(
-            sources: state.availableSources,
-            selectedSourceId: state.source?.id,
-            isAutoSelected: state.autoSwitchCount > 0,
-            onSourceSelected: (source) {
-              ref
-                  .read(player.playerStoreProvider.notifier)
-                  .setCurrentSource(source);
-            },
+          Flexible(
+            child: SourceSwitcher(
+              sources: state.availableSources,
+              selectedSourceId: state.source?.id,
+              isAutoSelected: state.autoSwitchCount > 0,
+              onSourceSelected: (source) {
+                ref
+                    .read(player.playerStoreProvider.notifier)
+                    .setCurrentSource(source);
+              },
+            ),
           ),
           const SizedBox(width: 16),
           // Fullscreen toggle
-          FullscreenToggle(
-            isFullscreen: state.isFullscreen,
-            onToggle: () {
-              ref.read(player.playerStoreProvider.notifier).toggleFullscreen();
-            },
+          Flexible(
+            child: FullscreenToggle(
+              isFullscreen: state.isFullscreen,
+              onToggle: () {
+                ref.read(player.playerStoreProvider.notifier).toggleFullscreen();
+              },
+            ),
           ),
           const SizedBox(width: 16),
           // Settings panel
-          const SettingsPanel(),
+          const Flexible(
+            child: SettingsPanel(),
+          ),
         ],
       ),
     );

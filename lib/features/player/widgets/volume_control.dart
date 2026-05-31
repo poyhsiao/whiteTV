@@ -31,33 +31,36 @@ class VolumeControl extends StatelessWidget {
     // Display volume: 0.0 when muted, actual volume otherwise
     final displayVolume = isMuted ? 0.0 : volume;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Mute toggle button
-        IconButton(
-          icon: Icon(volumeIcon, color: AppColors.textPrimary),
-          onPressed: onMuteToggled,
-        ),
-        // Volume slider
-        SizedBox(
-          width: 100,
-          child: Slider(
-            value: displayVolume,
-            onChanged: isMuted ? null : onVolumeChanged,
-            activeColor: AppColors.accent,
-            inactiveColor: AppColors.glassBorder,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Mute toggle button
+          IconButton(
+            icon: Icon(volumeIcon, color: AppColors.textPrimary),
+            onPressed: onMuteToggled,
           ),
-        ),
-        // Volume percentage display
-        SizedBox(
-          width: 40,
-          child: Text(
-            '${(displayVolume * 100).round()}%',
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+          // Volume slider
+          SizedBox(
+            width: 100,
+            child: Slider(
+              value: displayVolume,
+              onChanged: isMuted ? null : onVolumeChanged,
+              activeColor: AppColors.accent,
+              inactiveColor: AppColors.glassBorder,
+            ),
           ),
-        ),
-      ],
+          // Volume percentage display
+          SizedBox(
+            width: 40,
+            child: Text(
+              '${(displayVolume * 100).round()}%',
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
