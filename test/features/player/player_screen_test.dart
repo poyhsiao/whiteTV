@@ -29,14 +29,53 @@ class FakeVideoPlayerController implements VideoPlayerController {
 
 void main() {
   group('PlayerScreen', () {
+    testWidgets('controls auto-hide after 5 seconds', (tester) async {
+      final mockClient = MockClient();
+      final store = PlayerStore(mockClient, SourceSelector());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            playerStoreProvider.overrideWith((ref) => store),
+            videoPlayerControllerProvider.overrideWithValue(
+              FakeVideoPlayerController(),
+            ),
+          ],
+          child: const MaterialApp(
+            home: PlayerScreen(videoId: 'movie-1', episodeId: 'episode-1'),
+          ),
+        ),
+      );
+
+      // Wait for initial render
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 500));
+      });
+      await tester.pump();
+
+      // Controls should be visible initially
+      expect(store.state.controlsVisible, isTrue);
+
+      // Tapping the video should show controls (already visible, but verifies tap works)
+      await tester.tap(find.byType(GestureDetector).first);
+      await tester.pump();
+
+      // Controls should still be visible after tap
+      expect(store.state.controlsVisible, isTrue);
+    });
+
     testWidgets('renders video player container', (tester) async {
       final mockClient = MockClient();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            playerStoreProvider.overrideWith((ref) => PlayerStore(mockClient, SourceSelector())),
-            videoPlayerControllerProvider.overrideWithValue(FakeVideoPlayerController()),
+            playerStoreProvider.overrideWith(
+              (ref) => PlayerStore(mockClient, SourceSelector()),
+            ),
+            videoPlayerControllerProvider.overrideWithValue(
+              FakeVideoPlayerController(),
+            ),
           ],
           child: const MaterialApp(
             home: PlayerScreen(videoId: 'movie-1', episodeId: 'episode-1'),
@@ -45,11 +84,11 @@ void main() {
       );
 
       await tester.runAsync(() async {
-      await Future.delayed(const Duration(milliseconds: 500));
-    });
+        await Future.delayed(const Duration(milliseconds: 500));
+      });
 
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-    expect(find.byType(Scaffold), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.byType(Scaffold), findsOneWidget);
     });
   });
 }

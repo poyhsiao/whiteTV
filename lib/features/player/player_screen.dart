@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
@@ -81,6 +83,38 @@ class PlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
+  Timer? _controlsHideTimer;
+  bool _controlsLocked = false;
+
+  void _resetControlsTimer() {
+    _controlsHideTimer?.cancel();
+    if (!_controlsLocked) {
+      _controlsHideTimer = Timer(const Duration(seconds: 5), () {
+        if (mounted) {
+          ref
+              .read(player.playerStoreProvider.notifier)
+              .setControlsVisible(false);
+        }
+      });
+    }
+  }
+
+  void _showControls() {
+    ref.read(player.playerStoreProvider.notifier).setControlsVisible(true);
+    _resetControlsTimer();
+  }
+
+  void _toggleControlsLock() {
+    setState(() {
+      _controlsLocked = !_controlsLocked;
+    });
+    if (_controlsLocked) {
+      _controlsHideTimer?.cancel();
+    } else {
+      _resetControlsTimer();
+    }
+  }
+
   Future<void> _initializePlayer() async {
     final controller = ref.read(videoPlayerControllerProvider);
 
@@ -98,6 +132,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   void initState() {
     super.initState();
     _initializePlayer();
+  }
+
+  @override
+  void dispose() {
+    _controlsHideTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -126,11 +166,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           children: [
             // Video Player
             Expanded(
-              child: mkv.Video(
-                controller: controller.videoController,
-                controls: isTV
-                    ? mkv.MaterialVideoControls
-                    : mkv.AdaptiveVideoControls,
+              child: GestureDetector(
+                onTap: _showControls,
+                child: mkv.Video(
+                  controller: controller.videoController,
+                  controls: isTV
+                      ? mkv.MaterialVideoControls
+                      : mkv.AdaptiveVideoControls,
+                ),
               ),
             ),
             // Playback controls overlay
@@ -168,6 +211,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     player.PlayerState state,
     VideoPlayerController? controller,
   ) {
+    if (!state.controlsVisible && !_controlsLocked) {
+      return const SizedBox.shrink();
+    }
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.cardBackground.withValues(alpha: 0.8),
