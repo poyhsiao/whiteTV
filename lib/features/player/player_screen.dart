@@ -5,6 +5,7 @@ import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/features/player/player_store.dart' as player;
+import 'package:white_tv/features/player/widgets/episode_navigation.dart';
 
 /// Abstract interface for video playback control
 abstract class VideoPlayerController {
@@ -52,10 +53,10 @@ class MediaKitPlayerController implements VideoPlayerController {
 /// Provider for video player controller
 final videoPlayerControllerProvider =
     Provider.autoDispose<VideoPlayerController>((ref) {
-  final controller = MediaKitPlayerController();
-  ref.onDispose(() => controller.dispose());
-  return controller;
-});
+      final controller = MediaKitPlayerController();
+      ref.onDispose(() => controller.dispose());
+      return controller;
+    });
 
 /// 播放器頁面
 /// 參照: docs/spec/UI_UX.md Section 11
@@ -78,10 +79,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Future<void> _initializePlayer() async {
     final controller = ref.read(videoPlayerControllerProvider);
 
-    await ref.read(player.playerStoreProvider.notifier).setVideo(
-          widget.videoId,
-          widget.episodeId,
-        );
+    await ref
+        .read(player.playerStoreProvider.notifier)
+        .setVideo(widget.videoId, widget.episodeId);
 
     final state = ref.read(player.playerStoreProvider);
     if (state.source != null) {
@@ -110,7 +110,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   }
 
   Widget _buildWithMediaKit(
-      player.PlayerState state, bool isTV, MediaKitPlayerController controller) {
+    player.PlayerState state,
+    bool isTV,
+    MediaKitPlayerController controller,
+  ) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -120,8 +123,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             Expanded(
               child: mkv.Video(
                 controller: controller.videoController,
-                controls:
-                    isTV ? mkv.MaterialVideoControls : mkv.AdaptiveVideoControls,
+                controls: isTV
+                    ? mkv.MaterialVideoControls
+                    : mkv.AdaptiveVideoControls,
               ),
             ),
             // Playback controls overlay
@@ -155,7 +159,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     );
   }
 
-  Widget _buildTVControls(player.PlayerState state, VideoPlayerController? controller) {
+  Widget _buildTVControls(
+    player.PlayerState state,
+    VideoPlayerController? controller,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.cardBackground.withValues(alpha: 0.8),
@@ -178,6 +185,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             },
           ),
           const SizedBox(width: 16),
+          // Episode navigation
+          EpisodeNavigation(
+            currentEpisode: state.currentEpisode,
+            totalEpisodes: state.totalEpisodes,
+            onPrevious: () {
+              ref.read(player.playerStoreProvider.notifier).previousEpisode();
+            },
+            onNext: () {
+              ref.read(player.playerStoreProvider.notifier).nextEpisode();
+            },
+          ),
+          const SizedBox(width: 16),
           // Seek bar placeholder
           Expanded(
             child: Column(
@@ -191,7 +210,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 LinearProgressIndicator(
                   value: state.duration.inMilliseconds > 0
                       ? state.currentPosition.inMilliseconds /
-                          state.duration.inMilliseconds
+                            state.duration.inMilliseconds
                       : 0,
                   backgroundColor: AppColors.glassBorder,
                   valueColor: const AlwaysStoppedAnimation(AppColors.accent),
@@ -205,7 +224,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             initialValue: state.playbackSpeed,
             onSelected: (speed) {
               controller?.setRate(speed);
-              ref.read(player.playerStoreProvider.notifier).setPlaybackSpeed(speed);
+              ref
+                  .read(player.playerStoreProvider.notifier)
+                  .setPlaybackSpeed(speed);
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 0.5, child: Text('0.5x')),
