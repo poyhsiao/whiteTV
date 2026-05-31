@@ -6,6 +6,7 @@ import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/features/player/player_store.dart' as player;
 import 'package:white_tv/features/player/widgets/episode_navigation.dart';
+import 'package:white_tv/features/player/widgets/volume_control.dart';
 
 /// Abstract interface for video playback control
 abstract class VideoPlayerController {
@@ -245,6 +246,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 style: const TextStyle(color: AppColors.textPrimary),
               ),
             ),
+          ),
+          const SizedBox(width: 16),
+          // Volume control
+          VolumeControl(
+            volume: state.volume,
+            isMuted: state.isMuted,
+            onVolumeChanged: (v) {
+              ref.read(player.playerStoreProvider.notifier).setVolume(v);
+            },
+            onMuteToggled: () {
+              ref.read(player.playerStoreProvider.notifier).toggleMute();
+            },
           ),
         ],
       ),
