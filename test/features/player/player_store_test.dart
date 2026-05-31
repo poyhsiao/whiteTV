@@ -128,21 +128,28 @@ void main() {
       expect(state.currentPosition, const Duration(minutes: 10));
     });
 
-    test('saveProgress calls HistoryService.addRecord with PlayHistory', () async {
-      final fakeHistory = FakeHistoryService();
-      final storeWithHistory = PlayerStore(mockClient, sourceSelector, fakeHistory);
+    test(
+      'saveProgress calls HistoryService.addRecord with PlayHistory',
+      () async {
+        final fakeHistory = FakeHistoryService();
+        final storeWithHistory = PlayerStore(
+          mockClient,
+          sourceSelector,
+          fakeHistory,
+        );
 
-      await storeWithHistory.setVideo('movie-1', 'episode-1');
-      storeWithHistory.seek(const Duration(minutes: 5));
-      storeWithHistory.saveProgress();
+        await storeWithHistory.setVideo('movie-1', 'episode-1');
+        storeWithHistory.seek(const Duration(minutes: 5));
+        storeWithHistory.saveProgress();
 
-      expect(fakeHistory.addRecordCalled, true);
-      expect(fakeHistory.records.length, 1);
-      expect(fakeHistory.records.first.videoId, 'movie-1');
-      expect(fakeHistory.records.first.playTime, 300); // 5 minutes in seconds
+        expect(fakeHistory.addRecordCalled, true);
+        expect(fakeHistory.records.length, 1);
+        expect(fakeHistory.records.first.videoId, 'movie-1');
+        expect(fakeHistory.records.first.playTime, 300); // 5 minutes in seconds
 
-      storeWithHistory.dispose();
-    });
+        storeWithHistory.dispose();
+      },
+    );
 
     test(
       'auto-save timer triggers saveProgress every 30 seconds when playing',
@@ -171,13 +178,24 @@ void main() {
 
     test('setVideo plays from local cache when downloaded', () async {
       final fakeDownloadService = FakeDownloadService();
-      fakeDownloadService.addDownloadedVideo('movie-1', '/data/downloads/movie-1.mp4');
-      final storeWithDownload = PlayerStore(mockClient, sourceSelector, null, fakeDownloadService);
+      fakeDownloadService.addDownloadedVideo(
+        'movie-1',
+        '/data/downloads/movie-1.mp4',
+      );
+      final storeWithDownload = PlayerStore(
+        mockClient,
+        sourceSelector,
+        null,
+        fakeDownloadService,
+      );
 
       await storeWithDownload.setVideo('movie-1', 'episode-1');
 
       expect(storeWithDownload.state.videoId, 'movie-1');
-      expect(storeWithDownload.state.source?.url, 'file:///data/downloads/movie-1.mp4');
+      expect(
+        storeWithDownload.state.source?.url,
+        'file:///data/downloads/movie-1.mp4',
+      );
       expect(storeWithDownload.state.source?.name, 'local');
 
       storeWithDownload.dispose();
@@ -185,7 +203,12 @@ void main() {
 
     test('setVideo falls back to online when not downloaded', () async {
       final fakeDownloadService = FakeDownloadService();
-      final storeWithDownload = PlayerStore(mockClient, sourceSelector, null, fakeDownloadService);
+      final storeWithDownload = PlayerStore(
+        mockClient,
+        sourceSelector,
+        null,
+        fakeDownloadService,
+      );
 
       await storeWithDownload.setVideo('movie-1', 'episode-1');
 
@@ -234,6 +257,32 @@ void main() {
       // copyWith returns new state with updated isPlaying, preserving autoSwitchCount
       final newState = store.state.copyWith(isPlaying: true);
       expect(newState.autoSwitchCount, 0);
+    });
+
+    group('Player Controls State', () {
+      test('initial controls visibility is true', () {
+        expect(store.state.controlsVisible, true);
+      });
+
+      test('initial volume is 1.0', () {
+        expect(store.state.volume, 1.0);
+      });
+
+      test('initial muted is false', () {
+        expect(store.state.isMuted, false);
+      });
+
+      test('initial fullscreen is false', () {
+        expect(store.state.isFullscreen, false);
+      });
+
+      test('initial current episode is 1', () {
+        expect(store.state.currentEpisode, 1);
+      });
+
+      test('initial sources is empty', () {
+        expect(store.state.availableSources, isEmpty);
+      });
     });
   });
 }

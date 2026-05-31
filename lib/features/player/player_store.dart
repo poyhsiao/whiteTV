@@ -25,6 +25,14 @@ class PlayerState {
   final double playbackSpeed;
   final String? error;
   final int autoSwitchCount; // 記錄自動切換次數
+  final bool controlsVisible;
+  final double volume;
+  final bool isMuted;
+  final bool isFullscreen;
+  final int currentEpisode;
+  final int totalEpisodes;
+  final List<VideoSource> availableSources;
+  final VideoSource? currentSource;
 
   const PlayerState({
     this.videoId,
@@ -37,6 +45,14 @@ class PlayerState {
     this.playbackSpeed = 1.0,
     this.error,
     this.autoSwitchCount = 0,
+    this.controlsVisible = true,
+    this.volume = 1.0,
+    this.isMuted = false,
+    this.isFullscreen = false,
+    this.currentEpisode = 1,
+    this.totalEpisodes = 1,
+    this.availableSources = const [],
+    this.currentSource,
   });
 
   PlayerState copyWith({
@@ -50,6 +66,14 @@ class PlayerState {
     double? playbackSpeed,
     String? error,
     int? autoSwitchCount,
+    bool? controlsVisible,
+    double? volume,
+    bool? isMuted,
+    bool? isFullscreen,
+    int? currentEpisode,
+    int? totalEpisodes,
+    List<VideoSource>? availableSources,
+    VideoSource? currentSource,
   }) {
     return PlayerState(
       videoId: videoId ?? this.videoId,
@@ -62,6 +86,14 @@ class PlayerState {
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       error: error,
       autoSwitchCount: autoSwitchCount ?? this.autoSwitchCount,
+      controlsVisible: controlsVisible ?? this.controlsVisible,
+      volume: volume ?? this.volume,
+      isMuted: isMuted ?? this.isMuted,
+      isFullscreen: isFullscreen ?? this.isFullscreen,
+      currentEpisode: currentEpisode ?? this.currentEpisode,
+      totalEpisodes: totalEpisodes ?? this.totalEpisodes,
+      availableSources: availableSources ?? this.availableSources,
+      currentSource: currentSource ?? this.currentSource,
     );
   }
 }
@@ -107,7 +139,11 @@ class PlayerStore extends StateNotifier<PlayerState> {
             state = state.copyWith(
               videoId: videoId,
               episodeId: episodeId,
-              source: VideoSource(id: 'local_$videoId', url: 'file://$localPath', name: 'local'),
+              source: VideoSource(
+                id: 'local_$videoId',
+                url: 'file://$localPath',
+                name: 'local',
+              ),
               currentPosition: Duration.zero,
               error: null,
               autoSwitchCount: 0,
@@ -119,7 +155,10 @@ class PlayerStore extends StateNotifier<PlayerState> {
 
       // Fall back to online sources - 使用 SourceSelector 選擇來源
       final sources = await _apiClient.getSources(videoId);
-      final fastestSource = await _sourceSelector.selectSource(sources, videoId);
+      final fastestSource = await _sourceSelector.selectSource(
+        sources,
+        videoId,
+      );
       _lastKnownSources = sources;
 
       state = state.copyWith(
@@ -195,7 +234,9 @@ class PlayerStore extends StateNotifier<PlayerState> {
     }
 
     recordSourceResult(isSuccess: false);
-    _triggerAutoSwitch(error.isTimeout ? FailureReason.timeout : FailureReason.error);
+    _triggerAutoSwitch(
+      error.isTimeout ? FailureReason.timeout : FailureReason.error,
+    );
   }
 
   /// 播放失敗時自動切換來源
@@ -210,7 +251,9 @@ class PlayerStore extends StateNotifier<PlayerState> {
     }
 
     // 過濾當前來源
-    final otherSources = allSources.where((s) => s.id != currentSource.id).toList();
+    final otherSources = allSources
+        .where((s) => s.id != currentSource.id)
+        .toList();
     if (otherSources.isEmpty) return null;
 
     // 選擇下一個最快來源
@@ -221,7 +264,11 @@ class PlayerStore extends StateNotifier<PlayerState> {
     );
 
     // 記錄當前來源失敗
-    _sourceSelector.recordResult(currentSource.id, isSuccess: false, latency: 0);
+    _sourceSelector.recordResult(
+      currentSource.id,
+      isSuccess: false,
+      latency: 0,
+    );
 
     // 更新狀態
     state = state.copyWith(
@@ -242,6 +289,52 @@ class PlayerStore extends StateNotifier<PlayerState> {
         isSuccess: isSuccess,
         latency: latency,
       );
+    }
+  }
+
+  // === Player Controls State Methods ===
+
+  void setControlsVisible(bool visible) {
+    state = state.copyWith(controlsVisible: visible);
+  }
+
+  void setVolume(double volume) {
+    state = state.copyWith(volume: volume.clamp(0.0, 1.0));
+  }
+
+  void toggleMute() {
+    state = state.copyWith(isMuted: !state.isMuted);
+  }
+
+  void toggleFullscreen() {
+    state = state.copyWith(isFullscreen: !state.isFullscreen);
+  }
+
+  void setCurrentEpisode(int episode) {
+    state = state.copyWith(currentEpisode: episode);
+  }
+
+  void setTotalEpisodes(int total) {
+    state = state.copyWith(totalEpisodes: total);
+  }
+
+  void setAvailableSources(List<VideoSource> sources) {
+    state = state.copyWith(availableSources: sources);
+  }
+
+  void setCurrentSource(VideoSource source) {
+    state = state.copyWith(currentSource: source);
+  }
+
+  void nextEpisode() {
+    if (state.currentEpisode < state.totalEpisodes) {
+      state = state.copyWith(currentEpisode: state.currentEpisode + 1);
+    }
+  }
+
+  void previousEpisode() {
+    if (state.currentEpisode > 1) {
+      state = state.copyWith(currentEpisode: state.currentEpisode - 1);
     }
   }
 
