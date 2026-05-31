@@ -6,6 +6,7 @@ import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/features/player/player_store.dart' as player;
 import 'package:white_tv/features/player/widgets/episode_navigation.dart';
+import 'package:white_tv/features/player/widgets/episode_selector.dart';
 import 'package:white_tv/features/player/widgets/volume_control.dart';
 
 /// Abstract interface for video playback control
@@ -195,6 +196,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             },
             onNext: () {
               ref.read(player.playerStoreProvider.notifier).nextEpisode();
+            },
+          ),
+          const SizedBox(width: 16),
+          // Episode selector
+          EpisodeSelector(
+            currentEpisode: state.currentEpisode,
+            totalEpisodes: state.totalEpisodes,
+            onEpisodeSelected: (episode) {
+              ref.read(player.playerStoreProvider.notifier).setCurrentEpisode(episode);
             },
           ),
           const SizedBox(width: 16),
