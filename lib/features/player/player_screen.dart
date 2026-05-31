@@ -8,6 +8,7 @@ import 'package:white_tv/features/player/player_store.dart' as player;
 import 'package:white_tv/features/player/widgets/episode_navigation.dart';
 import 'package:white_tv/features/player/widgets/episode_selector.dart';
 import 'package:white_tv/features/player/widgets/fullscreen_toggle.dart';
+import 'package:white_tv/features/player/widgets/settings_panel.dart';
 import 'package:white_tv/features/player/widgets/source_switcher.dart';
 import 'package:white_tv/features/player/widgets/volume_control.dart';
 
@@ -293,6 +294,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
               ref.read(player.playerStoreProvider.notifier).toggleFullscreen();
             },
           ),
+          const SizedBox(width: 16),
+          // Settings panel
+          const SettingsPanel(),
         ],
       ),
     );
