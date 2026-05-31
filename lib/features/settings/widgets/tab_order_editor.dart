@@ -25,7 +25,6 @@ class TabOrderEditor extends ConsumerWidget {
       shrinkWrap: true,
       buildDefaultDragHandles: false,
       onReorderItem: (oldIndex, newIndex) {
-        
         final newOrder = List<String>.from(tabOrder);
         final item = newOrder.removeAt(oldIndex);
         newOrder.insert(newIndex, item);
