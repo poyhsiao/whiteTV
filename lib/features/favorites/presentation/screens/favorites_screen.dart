@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/favorites/presentation/providers/favorites_store.dart';
 import 'package:white_tv/features/favorites/presentation/widgets/favorite_tile.dart';
 import 'package:white_tv/features/favorites/presentation/widgets/favorite_grid.dart';
 import 'package:white_tv/features/favorites/presentation/widgets/favorites_filter_bar.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 class FavoritesScreen extends ConsumerWidget {
   const FavoritesScreen({super.key});
@@ -51,7 +53,13 @@ class FavoritesScreen extends ConsumerWidget {
                         ),
                       )
                     : state.filteredItems.isEmpty
-                        ? const _EmptyState()
+                        ? EmptyStateWidget(
+                            icon: Icons.favorite_border,
+                            title: '還沒有收藏任何內容',
+                            subtitle: '開始探索你喜歡的電影和節目',
+                            actionLabel: '開始探索',
+                            onAction: () => context.go('/'),
+                          )
                         : state.isGridView
                             ? FavoriteGrid(
                                 items: state.filteredItems,
@@ -96,37 +104,6 @@ class FavoritesScreen extends ConsumerWidget {
               Navigator.pop(context);
             },
             child: const Text('確定'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.favorite_border, size: 64, color: Colors.grey[600]),
-          const SizedBox(height: 16),
-          Text(
-            '還沒有收藏任何內容',
-            style: TextStyle(fontSize: 18, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '開始探索你喜歡的電影和節目',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('開始探索'),
           ),
         ],
       ),

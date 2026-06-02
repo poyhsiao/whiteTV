@@ -119,7 +119,7 @@ void main() {
         ),
       );
 
-      expect(find.text('No programs available'), findsOneWidget);
+      expect(find.text('暫無節目資訊'), findsOneWidget);
     });
 
     testWidgets('is scrollable for many programs', (tester) async {

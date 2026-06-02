@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/history/utils/time_grouper.dart';
 import 'package:white_tv/features/history/widgets/history_tile.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 class HistoryList extends StatelessWidget {
   const HistoryList({
@@ -18,15 +19,9 @@ class HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (records.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.history, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('還沒有觀看記錄', style: TextStyle(fontSize: 16, color: Colors.grey)),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.history,
+        title: '還沒有觀看記錄',
       );
     }
 

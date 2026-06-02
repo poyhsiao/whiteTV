@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/recommend/presentation/providers/ai_recommend_store.dart';
 import 'package:white_tv/features/recommend/presentation/widgets/recommendation_carousel.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 class AIRecommendPage extends ConsumerWidget {
   const AIRecommendPage({super.key});
@@ -30,11 +31,9 @@ class AIRecommendPage extends ConsumerWidget {
 
   Widget _buildContent(AIRecommendState state, AIRecommendStore store) {
     if (state.recommendations.isEmpty) {
-      return const Center(
-        child: Text(
-          '暫無推薦內容',
-          style: TextStyle(color: Colors.white54),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.recommend,
+        title: '暫無推薦內容',
       );
     }
 

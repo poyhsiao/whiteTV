@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:white_tv/features/live/data/models/epg_program.dart';
 import 'package:white_tv/features/live/presentation/widgets/epg_program_tile.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 class EpgProgramList extends StatelessWidget {
   final List<EpgProgram> programs;
@@ -15,11 +16,9 @@ class EpgProgramList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (programs.isEmpty) {
-      return const Center(
-        child: Text(
-          'No programs available',
-          style: TextStyle(color: Colors.grey, fontSize: 16),
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.tv,
+        title: '暫無節目資訊',
       );
     }
 
