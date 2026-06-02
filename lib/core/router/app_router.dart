@@ -7,6 +7,7 @@ import 'package:white_tv/features/live/presentation/screens/live_screen.dart';
 import 'package:white_tv/features/login/presentation/screens/login_screen.dart';
 import 'package:white_tv/features/player/player_screen.dart';
 import 'package:white_tv/features/search/search_screen.dart';
+import 'package:white_tv/features/settings/presentation/screens/remote_guide_screen.dart';
 import 'package:white_tv/features/settings/settings_screen.dart';
 
 /// GoRouter configuration
@@ -47,6 +48,11 @@ final appRouter = GoRouter(
           }
         },
       ),
+    ),
+    GoRoute(
+      path: '/remote-guide',
+      name: 'remote-guide',
+      builder: (context, state) => const RemoteGuideScreen(),
     ),
     GoRoute(
       path: '/settings',

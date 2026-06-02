@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/features/settings/widgets/tab_order_editor.dart';
 import 'package:white_tv/features/settings/presentation/screens/input_screen.dart';
@@ -21,6 +22,8 @@ class GeneralSettingsCard extends ConsumerWidget {
           _buildThemeModeSection(context, ref, settings),
           const SizedBox(height: 24),
           _buildTabOrderSection(),
+          const SizedBox(height: 24),
+          _buildNavigationSection(context),
         ],
       ),
     );
@@ -146,6 +149,25 @@ class GeneralSettingsCard extends ConsumerWidget {
             ref.read(settingsStoreProvider.notifier).updateLunaTVUrl(url);
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationSection(BuildContext context) {
+    return Card(
+      color: Colors.white.withValues(alpha: 0.1),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.gamepad_outlined, color: Colors.white70),
+            title: const Text(
+              '遙控器操作說明',
+              style: TextStyle(color: Colors.white),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+            onTap: () => context.go('/remote-guide'),
+          ),
+        ],
       ),
     );
   }
