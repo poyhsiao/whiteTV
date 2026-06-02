@@ -167,6 +167,15 @@ class GeneralSettingsCard extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right, color: Colors.white54),
             onTap: () => context.go('/remote-guide'),
           ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Colors.white70),
+            title: const Text(
+              '查看新手導引',
+              style: TextStyle(color: Colors.white),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+            onTap: () => context.go('/onboarding'),
+          ),
         ],
       ),
     );
