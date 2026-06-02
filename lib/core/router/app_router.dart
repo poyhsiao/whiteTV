@@ -4,6 +4,7 @@ import 'package:white_tv/features/history/history_screen.dart';
 import 'package:white_tv/features/home/home_screen.dart';
 import 'package:white_tv/features/live/presentation/screens/live_player_screen.dart';
 import 'package:white_tv/features/live/presentation/screens/live_screen.dart';
+import 'package:white_tv/features/login/presentation/screens/login_screen.dart';
 import 'package:white_tv/features/player/player_screen.dart';
 import 'package:white_tv/features/search/search_screen.dart';
 import 'package:white_tv/features/settings/settings_screen.dart';
@@ -35,6 +36,17 @@ final appRouter = GoRouter(
         final episodeId = state.pathParameters['episodeId']!;
         return PlayerScreen(videoId: videoId, episodeId: episodeId);
       },
+    ),
+    GoRoute(
+      path: '/login',
+      name: 'login',
+      builder: (context, state) => LoginScreen(
+        onLoginComplete: (success) {
+          if (success && context.mounted) {
+            context.go('/');
+          }
+        },
+      ),
     ),
     GoRoute(
       path: '/settings',
