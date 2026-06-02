@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/history/history_screen.dart';
@@ -53,6 +54,13 @@ final appRouter = GoRouter(
       path: '/remote-guide',
       name: 'remote-guide',
       builder: (context, state) => const RemoteGuideScreen(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (context, state) => const Scaffold(
+        body: Center(child: Text('Onboarding')),
+      ),
     ),
     GoRoute(
       path: '/settings',

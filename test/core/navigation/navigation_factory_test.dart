@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/core/device/device_type.dart';
 import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/core/navigation/navigation_factory.dart';
+import 'package:white_tv/features/settings/services/settings_storage_service.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
 
 // Mock navigation widgets for testing
 class MockSidebarNavigation extends StatelessWidget {
@@ -293,6 +297,31 @@ void main() {
 
         expect(find.byKey(const Key('sidebar')), findsOneWidget);
       });
+    });
+
+    testWidgets('TVNavigation renders tabs from default tabOrder', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final storage = SettingsStorageService(prefs);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsStorageServiceProvider.overrideWithValue(storage),
+          ],
+          child: const MaterialApp(
+            home: TVNavigation(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('首頁'), findsOneWidget);
+      expect(find.text('分類'), findsOneWidget);
+      expect(find.text('直播'), findsOneWidget);
+      expect(find.text('搜尋'), findsOneWidget);
+      expect(find.text('收藏'), findsOneWidget);
+      expect(find.text('設定'), findsOneWidget);
     });
 
     group('DeviceType detection integration', () {

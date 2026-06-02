@@ -11,6 +11,7 @@ class SettingsStorageService {
   static const _tabOrderKey = 'tab_order';
   static const _usernameKey = 'username';
   static const _authCookieKey = 'auth_cookie';
+  static const _onboardingCompleteKey = 'onboarding_complete';
 
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
@@ -123,5 +124,14 @@ class SettingsStorageService {
 
   Future<void> clearAuthCookie() async {
     await _secureStorage.delete(key: _authCookieKey);
+  }
+
+  // Onboarding Complete
+  Future<void> saveOnboardingComplete(bool complete) async {
+    await _prefs.setBool(_onboardingCompleteKey, complete);
+  }
+
+  Future<bool> getOnboardingComplete() async {
+    return _prefs.getBool(_onboardingCompleteKey) ?? false;
   }
 }

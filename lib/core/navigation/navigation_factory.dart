@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:white_tv/core/device/device_type.dart';
 import 'package:white_tv/core/device/device_utils.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
 
 /// 導航工廠
 /// 根據設備類型返回對應的導航組件
@@ -115,13 +117,53 @@ class MobileNavigation extends StatelessWidget {
 }
 
 /// TV 導航 (用於 TV)
-class TVNavigation extends StatelessWidget {
+class TVNavigation extends ConsumerWidget {
   const TVNavigation({super.key});
 
+  static const tabLabelMap = <String, String>{
+    'home': '首頁',
+    'categories': '分類',
+    'live': '直播',
+    'search': '搜尋',
+    'favorites': '收藏',
+    'settings': '設定',
+    'history': '歷史',
+  };
+
+  static const tabIconMap = <String, IconData>{
+    'home': Icons.home,
+    'categories': Icons.category,
+    'live': Icons.live_tv,
+    'search': Icons.search,
+    'favorites': Icons.favorite,
+    'settings': Icons.settings,
+    'history': Icons.history,
+  };
+
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Placeholder(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsState = ref.watch(settingsStoreProvider);
+    final tabOrder = settingsState.tabOrder.isNotEmpty
+        ? settingsState.tabOrder
+        : const ['home', 'categories', 'live', 'search', 'favorites', 'settings'];
+
+    return DefaultTabController(
+      length: tabOrder.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('whiteTV'),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: tabOrder.map((key) {
+              return Tab(
+                icon: Icon(tabIconMap[key] ?? Icons.circle),
+                text: tabLabelMap[key] ?? key,
+              );
+            }).toList(),
+          ),
+        ),
+        body: const Placeholder(),
+      ),
     );
   }
 }
