@@ -4,6 +4,7 @@ import 'package:white_tv/features/search/search_history_overlay.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/widgets/voice_input_button.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 /// SearchScreen - 搜尋頁面
 class SearchScreen extends ConsumerWidget {
@@ -74,9 +75,15 @@ class SearchScreen extends ConsumerWidget {
                 child: searchState.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : searchState.query.isEmpty
-                    ? const Center(child: Text('輸入關鍵字搜尋'))
+                    ? const EmptyStateWidget(
+                        icon: Icons.search,
+                        title: '輸入關鍵字搜尋',
+                      )
                     : searchState.results.isEmpty
-                    ? const Center(child: Text('無搜尋結果'))
+                    ? const EmptyStateWidget(
+                        icon: Icons.search_off,
+                        title: '無搜尋結果',
+                      )
                     : const Center(child: Text('搜尋結果')),
               ),
             ],

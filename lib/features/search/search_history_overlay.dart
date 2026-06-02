@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/widgets/history_card.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 /// SearchHistoryOverlay - 毛玻璃搜尋歷史覆蓋層
 class SearchHistoryOverlay extends ConsumerWidget {
@@ -67,11 +68,9 @@ class SearchHistoryOverlay extends ConsumerWidget {
                 // History list or empty state
                 Expanded(
                   child: state.searchHistory.isEmpty
-                      ? const Center(
-                          child: Text(
-                            '尚無搜尋記錄',
-                            style: TextStyle(color: Colors.white54),
-                          ),
+                      ? const EmptyStateWidget(
+                          icon: Icons.history,
+                          title: '尚無搜尋記錄',
                         )
                       : ListView.builder(
                           itemCount: state.searchHistory.length,

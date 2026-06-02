@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
 
 class AccountSettingsCard extends ConsumerWidget {
@@ -118,6 +119,7 @@ class AccountSettingsCard extends ConsumerWidget {
             onPressed: () {
               ref.read(authStoreProvider.notifier).logout();
               Navigator.of(context).pop();
+              context.go('/login');
             },
             child: const Text('確認', style: TextStyle(color: Colors.red)),
           ),

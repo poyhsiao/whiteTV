@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/shared/widgets/poster_card.dart';
+import 'package:white_tv/shared/widgets/empty_state.dart';
 
 /// Search results grid widget
 class SearchResults extends StatelessWidget {
@@ -22,7 +23,10 @@ class SearchResults extends StatelessWidget {
     }
 
     if (results.isEmpty) {
-      return const Center(child: Text('No results found'));
+      return const EmptyStateWidget(
+        icon: Icons.search_off,
+        title: 'No results found',
+      );
     }
 
     return GridView.builder(
