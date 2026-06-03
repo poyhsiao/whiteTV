@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-06-03
+
+### Added
+- **EmptyStateWidget**: Reusable empty state component with icon, title, subtitle, and action button
+  - Applied to search, favorites, history, EPG, and AI recommend screens
+- **Logout redirect**: Navigates to /login after logout
+- **Login route**: Added /login route to GoRouter
+- **Remote button guide**: TV remote button mapping guide screen accessible from settings
+- **TV tab navigation**: Dynamic tab order with drag-to-reorder support
+- **Onboarding wizard**: 3-step first-launch flow (welcome → API URL → done)
+  - Persists completion state via SharedPreferences
+  - Auto-redirects on first launch
+- **Parental controls**: PIN-based content gate for adult content
+  - ParentalControlService with hashed PIN storage, verification, and lockout
+  - PIN dialog widget with numeric keypad
+  - Settings UI for PIN setup and toggle
+  - Parental gate on detail screen for adult content
+
+### Fixed
+- **FakeSettingsStorageService**: Added missing onboarding methods to test fakes
+
 ## [0.8.3] - 2026-05-30
 
 ### Added

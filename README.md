@@ -6,18 +6,23 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.7.1** - Search History Overlay
+**v0.9.0** - Onboarding, Parental Controls, Empty States
 
 ## Features
 
 - **Home Screen**: Category-based video browsing with responsive layout
 - **Detail Screen**: TV/Mobile adaptive layout with episode selection
-- **Player Screen**: Video playback with media_kit
+- **Player Screen**: Video playback with media_kit, speed control, fullscreen
 - **Settings**: Tab-based settings with persistent storage
 - **Search**: Full-text search with TV remote D-pad navigation, QR code input support, search history overlay
 - **Play History**: Local-first playback history with LunaTV sync, time grouping
 - **IPTV Live**: Live TV streaming with M3U playlist, EPG, and timeshift replay
 - **Favorites**: Local-first favorites with grid/list view, type filtering, LunaTV sync
+- **Empty States**: Reusable empty state component across all screens
+- **Onboarding**: 3-step first-launch wizard with API URL setup
+- **Parental Controls**: PIN-based content gate for adult content
+- **Remote Guide**: TV remote button mapping reference screen
+- **TV Tab Navigation**: Dynamic tab order with drag-to-reorder
 - **Unified Input**: QR code + phone browser input for TV (full-screen) and mobile (modal)
 - **Search History**: Frosted glass overlay with tap-to-search, individual delete, clear all
 
