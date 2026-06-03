@@ -30,6 +30,12 @@ class FakeSettingsStorageService implements SettingsStorageService {
   Future<String?> getUsername() async => _username;
 
   @override
+  Future<void> saveOnboardingComplete(bool complete) async {}
+
+  @override
+  Future<bool> getOnboardingComplete() async => false;
+
+  @override
   Future<void> saveLunaTVUrl(String url) async {}
 
   @override

@@ -67,6 +67,12 @@ class FakeSettingsStorageService implements SettingsStorageService {
   Future<List<String>> getTabOrder() async => _tabOrder;
 
   @override
+  Future<void> saveOnboardingComplete(bool complete) async {}
+
+  @override
+  Future<bool> getOnboardingComplete() async => false;
+
+  @override
   Future<void> saveUsername(String? username) async {}
 
   @override
