@@ -65,6 +65,7 @@ class VideoDetail {
   final String title;
   final String? posterUrl;
   final String? description;
+  final String? category;
   final List<Episode> episodes;
   final List<VideoSource> sources;
 
@@ -73,6 +74,7 @@ class VideoDetail {
     required this.title,
     this.posterUrl,
     this.description,
+    this.category,
     this.episodes = const [],
     this.sources = const [],
   });
@@ -83,6 +85,7 @@ class VideoDetail {
       title: json['title'] as String,
       posterUrl: json['poster_url'] as String?,
       description: json['description'] as String?,
+      category: json['category'] as String?,
       episodes: (json['episodes'] as List<dynamic>?)
               ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
               .toList() ??

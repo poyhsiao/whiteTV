@@ -3,10 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/services/parental_control_service.dart';
 import 'package:white_tv/shared/widgets/pin_dialog.dart';
 
-final parentalControlServiceProvider = Provider<ParentalControlService>((ref) {
-  return ParentalControlService();
-});
-
 final parentalControlStateProvider = FutureProvider<ParentalControlState>((ref) async {
   final service = ref.watch(parentalControlServiceProvider);
   return service.getState();

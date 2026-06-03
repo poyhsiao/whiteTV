@@ -1,12 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/core/device/device_utils.dart';
+import 'package:white_tv/core/services/parental_control_service.dart';
 import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/core/theme/glass_card.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
+import 'package:white_tv/shared/widgets/pin_dialog.dart';
+
+bool isAdultContent(VideoDetail? detail) {
+  if (detail?.category == null) return false;
+  const adultKeywords = ['成人', '18+', '限制級', 'R18', 'adult'];
+  return adultKeywords.any((kw) => detail!.category!.contains(kw));
+}
 
 /// 詳情頁
 /// 參照: docs/spec/UI_UX.md Section 10
@@ -59,6 +68,35 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           ? _buildTVLayout(context, detail, state)
           : _buildMobileLayout(context, detail, state),
     );
+  }
+
+  Future<void> _onEpisodeTap(VideoDetail detail, Episode episode) async {
+    ref.read(detailStoreProvider.notifier).selectEpisode(episode);
+
+    if (isAdultContent(detail) && mounted) {
+      final service = ref.read(parentalControlServiceProvider);
+      final state = await service.getState();
+      if (state.enabled && !state.isLocked) {
+        final pin = await showDialog<String>(
+          context: context,
+          builder: (_) => const PinDialog(title: '請輸入家長鎖PIN碼'),
+        );
+        if (pin == null || !mounted) return;
+        final valid = await service.verifyPin(pin);
+        if (!valid) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('PIN碼錯誤')),
+            );
+          }
+          return;
+        }
+      }
+    }
+
+    if (mounted) {
+      context.go('/player/${widget.videoId}/${episode.id}');
+    }
   }
 
   Widget _buildTVLayout(
@@ -189,9 +227,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             return GlassCard(
               padding: const EdgeInsets.all(8),
               child: GestureDetector(
-                onTap: () {
-                  ref.read(detailStoreProvider.notifier).selectEpisode(episode);
-                },
+                onTap: () => _onEpisodeTap(detail, episode),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
