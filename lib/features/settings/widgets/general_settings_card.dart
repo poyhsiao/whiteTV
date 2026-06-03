@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:white_tv/features/settings/presentation/screens/input_screen.dart';
+import 'package:white_tv/features/settings/presentation/widgets/parental_control_card.dart';
 import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/features/settings/widgets/tab_order_editor.dart';
-import 'package:white_tv/features/settings/presentation/screens/input_screen.dart';
 
 class GeneralSettingsCard extends ConsumerWidget {
   const GeneralSettingsCard({super.key});
@@ -22,6 +23,8 @@ class GeneralSettingsCard extends ConsumerWidget {
           _buildThemeModeSection(context, ref, settings),
           const SizedBox(height: 24),
           _buildTabOrderSection(),
+          const SizedBox(height: 24),
+          const ParentalControlCard(),
           const SizedBox(height: 24),
           _buildNavigationSection(context),
         ],
