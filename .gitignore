@@ -10,6 +10,10 @@ build/
 # Lock files (local dependency resolution - don't commit)
 pubspec.lock
 
+# AI-generated config directories
+.agents/
+.codex/
+
 # iOS / macOS
 **/*.gem
 **/*.pbxuser
