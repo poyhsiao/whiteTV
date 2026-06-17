@@ -35,8 +35,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run tests
-        run: flutter test --no-pub
+      - name: Run unit tests
+        run: flutter test test/unit/ test/core/ --no-pub
+
+      - name: Run BDD tests
+        run: flutter test test/bdd/ --no-pub
 
       - name: Run analyzer
         run: flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
