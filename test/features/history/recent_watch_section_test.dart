@@ -67,6 +67,69 @@ void main() {
       // Verify the title is passed correctly
       expect(find.text('Test Show'), findsOneWidget);
     });
+
+    testWidgets('displays progress bar when showProgress is true', (tester) async {
+      final records = [
+        _createPlayHistory(
+          videoId: '1',
+          title: 'Test Show',
+          playTime: 500,
+          totalTime: 1000,
+        ),
+      ];
+
+      await tester.pumpWidget(_buildWidget(
+        records: records,
+        showProgress: true,
+      ));
+      await tester.pump();
+
+      // Verify progress percentage text is displayed
+      expect(find.text('50%'), findsOneWidget);
+      // Verify LinearProgressIndicator exists
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('hides progress bar when showProgress is false', (tester) async {
+      final records = [
+        _createPlayHistory(
+          videoId: '1',
+          title: 'Test Show',
+          playTime: 500,
+          totalTime: 1000,
+        ),
+      ];
+
+      await tester.pumpWidget(_buildWidget(
+        records: records,
+        showProgress: false,
+      ));
+      await tester.pump();
+
+      // Progress bar should not be displayed
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('50%'), findsNothing);
+    });
+
+    testWidgets('displays 0% when totalTime is 0', (tester) async {
+      final records = [
+        _createPlayHistory(
+          videoId: '1',
+          title: 'Test Show',
+          playTime: 0,
+          totalTime: 0,
+        ),
+      ];
+
+      await tester.pumpWidget(_buildWidget(
+        records: records,
+        showProgress: true,
+      ));
+      await tester.pump();
+
+      // Should display 0% instead of crashing
+      expect(find.text('0%'), findsOneWidget);
+    });
   });
 }
 
@@ -92,10 +155,15 @@ PlayHistory _createPlayHistory({
 Widget _buildWidget({
   required List<PlayHistory> records,
   Function(PlayHistory)? onTap,
+  bool showProgress = false,
 }) {
   return MaterialApp(
     home: Scaffold(
-      body: RecentWatchSection(records: records, onTap: onTap ?? (_) {}),
+      body: RecentWatchSection(
+        records: records,
+        onTap: onTap ?? (_) {},
+        showProgress: showProgress,
+      ),
     ),
   );
 }

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/core/theme/glass_card.dart';
 import 'package:white_tv/core/theme/typography.dart';
 
@@ -13,6 +14,10 @@ class PosterCard extends StatelessWidget {
   final bool showFocus;
   final double width;
   final double height;
+  /// Show playback progress bar at bottom
+  final bool showProgress;
+  /// Playback progress percentage (0-100)
+  final double progressPercent;
 
   const PosterCard({
     super.key,
@@ -22,6 +27,8 @@ class PosterCard extends StatelessWidget {
     this.showFocus = false,
     this.width = 140,
     this.height = 200,
+    this.showProgress = false,
+    this.progressPercent = 0,
   });
 
   @override
@@ -90,6 +97,48 @@ class PosterCard extends StatelessWidget {
                       width: 3,
                     ),
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            if (showProgress)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.9),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: progressPercent / 100,
+                          backgroundColor: Colors.white24,
+                          valueColor: AlwaysStoppedAnimation(AppColors.accent),
+                          minHeight: 4,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${progressPercent.toStringAsFixed(0)}%',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

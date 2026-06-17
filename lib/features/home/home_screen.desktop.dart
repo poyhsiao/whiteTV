@@ -175,6 +175,7 @@ class _HomeScreenDesktopState extends ConsumerState<HomeScreenDesktop> {
                 RecentWatchSection(
                   records: state.recentHistory,
                   onTap: (record) => _navigateToDetail(record.videoId),
+                  showProgress: true,
                 ),
                 const SizedBox(height: 24),
               ],

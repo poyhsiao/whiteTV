@@ -79,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           RecentWatchSection(
             records: state.recentHistory,
             onTap: (record) => _navigateToDetail(record.videoId),
+            showProgress: true,
           ),
           if (state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),

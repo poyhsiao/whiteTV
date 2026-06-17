@@ -11,10 +11,13 @@ class RecentWatchSection extends StatelessWidget {
     super.key,
     required this.records,
     required this.onTap,
+    this.showProgress = false,
   });
 
   final List<PlayHistory> records;
   final Function(PlayHistory) onTap;
+  /// Show playback progress bar on each poster card
+  final bool showProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +48,8 @@ class RecentWatchSection extends StatelessWidget {
                   onTap: () => onTap(record),
                   width: 120,
                   height: 160,
+                  showProgress: showProgress,
+                  progressPercent: record.progressPercent,
                 ),
               );
             },
