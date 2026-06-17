@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:white_tv/features/category/category_screen.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/history/history_screen.dart';
 import 'package:white_tv/features/home/home_screen.dart';
@@ -84,6 +85,14 @@ final _routeList = <GoRoute>[
         builder: (context, state) => const LivePlayerScreen(),
       ),
     ],
+  ),
+  GoRoute(
+    path: '/category/:id',
+    name: 'category-content',
+    builder: (context, state) {
+      final id = state.pathParameters['id']!;
+      return CategoryScreen(categoryId: id);
+    },
   ),
 ];
 

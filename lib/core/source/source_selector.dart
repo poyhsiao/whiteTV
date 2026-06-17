@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/core/source/source_metrics.dart';
@@ -48,7 +49,7 @@ class SourceSelector {
     }
 
     // 快取過期或不存在，重新測速
-    final testedSources = await _speedTest(availableSources);
+    final testedSources = await speedTest(availableSources);
 
     // 更新快取
     if (testedSources.isNotEmpty) {
@@ -62,9 +63,10 @@ class SourceSelector {
   }
 
   /// 並行測速所有來源
-  Future<List<VideoSource>> _speedTest(List<VideoSource> sources) async {
+  /// 返回按延遲排序的來源列表（最快在前）
+  Future<List<VideoSource>> speedTest(List<VideoSource> sources) async {
     final results = await Future.wait(
-      sources.map((source) => _testSingleSource(source)),
+      sources.map((source) => testSingleSource(source)),
     );
 
     // 按延遲排序
@@ -73,12 +75,40 @@ class SourceSelector {
     return results;
   }
 
-  /// 測試單個來源（這裡用延遲作為測速結果，實際會調用 HTTP 測試）
-  Future<VideoSource> _testSingleSource(VideoSource source) async {
-    // 模擬測速延遲（實際會調用 API 測試）
-    await Future.delayed(const Duration(milliseconds: 10));
+  /// 測試單個來源 URL 的延遲
+  /// 使用 HEAD 請求測量響應時間
+  Future<VideoSource> testSingleSource(VideoSource source) async {
+    final stopwatch = Stopwatch()..start();
 
-    return source;
+    try {
+      // ponytail: 使用 Dart HttpClient 進行真實延遲測量
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 5);
+
+      final request = await client.headUrl(Uri.parse(source.url));
+      await request.close().timeout(const Duration(seconds: 5));
+
+      stopwatch.stop();
+      final latency = stopwatch.elapsedMilliseconds;
+
+      return VideoSource(
+        id: source.id,
+        name: source.name,
+        url: source.url,
+        latency: latency,
+        isAvailable: true,
+      );
+    } catch (e) {
+      stopwatch.stop();
+      // 測試失敗返回高延遲
+      return VideoSource(
+        id: source.id,
+        name: source.name,
+        url: source.url,
+        latency: 9999, // 高延遲表示不可用
+        isAvailable: false,
+      );
+    }
   }
 
   /// 記錄播放結果
