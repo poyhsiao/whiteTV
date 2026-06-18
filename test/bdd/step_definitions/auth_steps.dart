@@ -1,24 +1,43 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
-import 'package:white_tv/features/settings/settings_store.dart';
-import 'package:white_tv/core/api/client_factory.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Authentication BDD', () {
-    test('login state persists', () async {
-      // Test auth state management
-      final authState = AuthState(isLoggedIn: true, username: 'test');
-      expect(authState.isLoggedIn, isTrue);
-      expect(authState.username, equals('test'));
+    test('AuthState defaults to logged out', () {
+      const state = AuthState();
+      expect(state.isLoggedIn, isFalse);
+      expect(state.username, isNull);
+      expect(state.error, isNull);
     });
 
-    test('auth state copy with', () {
-      final initial = AuthState(isLoggedIn: false);
-      final updated = initial.copyWith(isLoggedIn: true, username: 'user');
-      
-      expect(updated.isLoggedIn, isTrue);
-      expect(updated.username, equals('user'));
+    test('AuthState copyWith sets logged in', () {
+      const initial = AuthState();
+      final loggedIn = initial.copyWith(isLoggedIn: true, username: 'testuser');
+      expect(loggedIn.isLoggedIn, isTrue);
+      expect(loggedIn.username, equals('testuser'));
+    });
+
+    test('AuthState copyWith sets logged out', () {
+      const loggedIn = AuthState(isLoggedIn: true, username: 'testuser');
+      final loggedOut = loggedIn.copyWith(isLoggedIn: false);
+      expect(loggedOut.isLoggedIn, isFalse);
+      // username not cleared by copyWith(null) — only explicit values override
+      expect(loggedOut.username, equals('testuser'));
+    });
+
+    test('AuthState copyWith sets error', () {
+      const initial = AuthState();
+      final withError = initial.copyWith(error: 'Invalid credentials');
+      expect(withError.error, equals('Invalid credentials'));
+      expect(withError.isLoggedIn, isFalse);
+    });
+
+    test('AuthState copyWith with new error replaces old', () {
+      const state = AuthState(error: 'Old error');
+      final updated = state.copyWith(error: 'New error');
+      expect(updated.error, equals('New error'));
     });
   });
 }
