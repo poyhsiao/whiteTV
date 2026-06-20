@@ -144,6 +144,16 @@ class VideoSource {
   }
 }
 
+enum SourceStatus { available, testing, unavailable }
+
+extension SourceStatusX on VideoSource {
+  SourceStatus get status {
+    if (!isAvailable) return SourceStatus.unavailable;
+    if (latency == 0) return SourceStatus.testing;
+    return SourceStatus.available;
+  }
+}
+
 class PlaybackError {
   final String message;
   final bool isTimeout;
