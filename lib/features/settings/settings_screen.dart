@@ -4,6 +4,7 @@ import 'package:white_tv/features/settings/widgets/general_settings_card.dart';
 import 'package:white_tv/features/settings/widgets/account_settings_card.dart';
 import 'package:white_tv/features/settings/widgets/playback_settings_card.dart';
 import 'package:white_tv/features/settings/widgets/display_settings_card.dart';
+import 'package:white_tv/features/settings/widgets/home_block_settings.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -19,7 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -40,6 +41,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             Tab(text: '帳號'),
             Tab(text: '播放'),
             Tab(text: '顯示'),
+            Tab(text: '首頁區塊'),
           ],
         ),
       ),
@@ -50,6 +52,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           AccountSettingsCard(),
           PlaybackSettingsCard(),
           DisplaySettingsCard(),
+          HomeBlockSettings(),
         ],
       ),
     );
