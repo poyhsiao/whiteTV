@@ -185,12 +185,17 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       spacing: 8,
       children: sources.map<Widget>((source) {
         final isSelected = state.selectedSource == source;
+        final statusEmoji = switch (source.status) {
+          SourceStatus.available => '🟢',
+          SourceStatus.testing => '🟡',
+          SourceStatus.unavailable => '🔴',
+        };
         return GlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: GestureDetector(
-            onTap: () {
-              ref.read(detailStoreProvider.notifier).selectSource(source);
-            },
+            onTap: source.isAvailable
+                ? () => ref.read(detailStoreProvider.notifier).selectSource(source)
+                : null,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -198,7 +203,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '${source.name} (${source.latency}ms)',
+                '$statusEmoji ${source.name} (${source.latency}ms)',
                 style: AppTypography.caption.copyWith(
                   color:
                       isSelected ? Colors.black : AppColors.textPrimary,
