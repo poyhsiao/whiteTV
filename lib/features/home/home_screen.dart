@@ -8,6 +8,7 @@ import 'package:white_tv/features/history/widgets/recent_watch_section.dart';
 import 'package:white_tv/features/home/home_store.dart';
 import 'package:white_tv/features/recommend/presentation/widgets/recommendation_carousel.dart';
 import 'package:white_tv/shared/widgets/poster_card.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/shared/widgets/skeleton_loader.dart';
 
 /// 首頁
@@ -68,6 +69,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildTVLayout(HomeState state) {
+    final settings = ref.watch(settingsStoreProvider);
+    final showRecentWatch = settings.homeBlocks['showRecentWatch'] ?? true;
+    final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
+    final showCategories = settings.homeBlocks['showCategories'] ?? true;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,12 +82,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.all(16),
             child: Text('whiteTV', style: AppTypography.headline),
           ),
-          RecentWatchSection(
-            records: state.recentHistory,
-            onTap: (record) => _navigateToDetail(record.videoId),
-            showProgress: true,
-          ),
-          if (state.aiRecommendations.isNotEmpty) ...[
+          if (showRecentWatch)
+            RecentWatchSection(
+              records: state.recentHistory,
+              onTap: (record) => _navigateToDetail(record.videoId),
+              showProgress: true,
+            ),
+          if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -95,27 +102,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ],
-          ...state.categories.map((category) {
-            final videos = state.videosByCategory[category.id] ?? [];
-            return _buildCategoryRow(category.name, videos, isTV: true);
-          }),
+          if (showCategories)
+            ...state.categories.map((category) {
+              final videos = state.videosByCategory[category.id] ?? [];
+              return _buildCategoryRow(category.name, videos, isTV: true);
+            }),
         ],
       ),
     );
   }
 
   Widget _buildMobileLayout(HomeState state) {
+    final settings = ref.watch(settingsStoreProvider);
+    final showRecentWatch = settings.homeBlocks['showRecentWatch'] ?? true;
+    final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
+    final showCategories = settings.homeBlocks['showCategories'] ?? true;
+
     return ListView(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text('whiteTV', style: AppTypography.headline),
         ),
-        RecentWatchSection(
-          records: state.recentHistory,
-          onTap: (record) => _navigateToDetail(record.videoId),
-        ),
-        if (state.aiRecommendations.isNotEmpty) ...[
+        if (showRecentWatch)
+          RecentWatchSection(
+            records: state.recentHistory,
+            onTap: (record) => _navigateToDetail(record.videoId),
+          ),
+        if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -129,10 +143,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
-        ...state.categories.map((category) {
-          final videos = state.videosByCategory[category.id] ?? [];
-          return _buildCategoryGrid(category.name, videos);
-        }),
+        if (showCategories)
+          ...state.categories.map((category) {
+            final videos = state.videosByCategory[category.id] ?? [];
+            return _buildCategoryGrid(category.name, videos);
+          }),
       ],
     );
   }
