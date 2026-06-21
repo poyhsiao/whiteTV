@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.10.0** - Onboarding, Parental Controls, Empty States
+**v0.10.3** - Onboarding, Parental Controls, Empty States
 
 ## Features
 

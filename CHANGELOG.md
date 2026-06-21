@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3] - 2026-06-21
+
+### Added
+- **Timeshift playback**: Full timeshift support with `TimeshiftManager`
+  - `TimeshiftMode` enum: `none`, `serviceSide`, `clientBuffer`
+  - `TimeshiftServiceAdapter`: Service-side timeshift via LunaTV API
+  - `TimeshiftClientBuffer`: Client-side buffer fallback
+  - `TimeshiftControlBar`: TV player controls with rewind/forward seek
+- **Tab customization**: Dynamic tab order with drag-to-reorder
+  - `TabConfig` and `TabNavigationStore` for persistent tab config
+  - `ReorderableTabList` widget with visibility toggle
+
+### Changed
+- Progress ledger tracking for timeshift and tab customization
+
+## [0.10.2] - 2026-06-21
+
+### Added
+- **iOS Platform Channel**: Flutter MethodChannel for Handoff and PiP support
+  - IosPlatformChannel wrapper for native communication
+  - UnifiedIosPlatform service facade
+  - UnifiedIosPlatformPlugin Swift implementation
+
+### Fixed
+- Test mock handler cleanup in ios_platform_channel_test.dart
+- MethodChannel const issue affecting test mocking
+- Map.cast type coercion in receiveHandoff
+
 ## [0.10.1] - 2026-06-21
 
 ### Fixed
@@ -19,10 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TV source selector (vertical list)**: DetailScreen TV mode shows sources in vertical list with status emoji (🟢🟡🔴), latency, episode count, auto-select tag, and current indicator
 - **Mobile source selector**: DetailScreen mobile mode retains Wrap chip layout with status badges
 - **Player controls lock button**: 🔒 Lock/unlock button in TV player controls to prevent auto-hide
-- **iOS Platform Channel**: Flutter MethodChannel for Handoff and PiP support
-  - IosPlatformChannel wrapper for native communication
-  - UnifiedIosPlatform service facade
-  - UnifiedIosPlatformPlugin Swift implementation
 
 ## [0.9.0] - 2026-06-03
 
@@ -211,19 +235,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Device detection utilities (TV, tablet, mobile)
 - GitHub Actions CI workflow
 
+## [0.10.3]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.10.3
+## [0.10.2]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.10.2
 ## [0.10.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.10.1
 ## [0.10.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.10.0
 ## [0.9.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.9.0
 ## [0.8.3]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.8.3
+## [0.8.1]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.8.1
 ## [0.8.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.8.0
 ## [0.7.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.7.0
 ## [0.6.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.6.0
 ## [0.5.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.5.0
 ## [0.4.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.4.0
 ## [0.3.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.3.0
-
-## [0.10.0] - 2026-06-21
-
-### Added
-- Version bump
-
+## [0.2.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.2.0
