@@ -4,6 +4,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Interface for secure storage operations - enables test mocking
+abstract interface class SecureStorageInterface {
+  Future<String?> read(String key);
+  Future<void> write(String key, String value);
+  Future<void> delete(String key);
+  Future<void> deleteAll();
+}
+
+/// Default implementation using flutter_secure_storage
+class SecureStorageImpl implements SecureStorageInterface {
+  final FlutterSecureStorage _storage;
+
+  SecureStorageImpl({FlutterSecureStorage? storage})
+      : _storage = storage ?? const FlutterSecureStorage();
+
+  @override
+  Future<String?> read(String key) => _storage.read(key: key);
+
+  @override
+  Future<void> write(String key, String value) =>
+      _storage.write(key: key, value: value);
+
+  @override
+  Future<void> delete(String key) => _storage.delete(key: key);
+
+  @override
+  Future<void> deleteAll() => _storage.deleteAll();
+}
+
 final parentalControlServiceProvider = Provider<ParentalControlService>((ref) {
   return ParentalControlService();
 });
@@ -35,14 +64,22 @@ class ParentalControlService {
   static const _maxAttempts = 3;
   static const _lockoutDuration = Duration(seconds: 60);
 
-  final FlutterSecureStorage _secure;
+  final SecureStorageInterface _secure;
+  SharedPreferences? _prefs;
 
   ParentalControlService({
-    FlutterSecureStorage? secure,
-  }) : _secure = secure ?? const FlutterSecureStorage();
+    SecureStorageInterface? secure,
+    SharedPreferences? prefs,
+  })  : _secure = secure ?? SecureStorageImpl(),
+        _prefs = prefs;
+
+  Future<SharedPreferences> _getPrefs() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
 
   Future<ParentalControlState> getState() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     final enabled = prefs.getBool(_enabledKey) ?? false;
     final failedAttempts = prefs.getInt(_failedAttemptsKey) ?? 0;
     final lockoutMillis = prefs.getInt(_lockoutUntilKey);
@@ -60,17 +97,17 @@ class ParentalControlService {
   }
 
   Future<bool> _hasPin() async {
-    final hash = await _secure.read(key: _pinHashKey);
+    final hash = await _secure.read(_pinHashKey);
     return hash != null && hash.isNotEmpty;
   }
 
   Future<void> setPin(String pin) async {
     final hash = _hashPin(pin);
-    await _secure.write(key: _pinHashKey, value: hash);
+    await _secure.write(_pinHashKey, hash);
   }
 
   Future<bool> verifyPin(String pin) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
 
     // Check lockout
     final lockoutMillis = prefs.getInt(_lockoutUntilKey);
@@ -85,7 +122,7 @@ class ParentalControlService {
       await prefs.setInt(_failedAttemptsKey, 0);
     }
 
-    final hash = await _secure.read(key: _pinHashKey);
+    final hash = await _secure.read(_pinHashKey);
     if (hash == null) return false;
 
     if (hash == _hashPin(pin)) {
@@ -107,7 +144,7 @@ class ParentalControlService {
   }
 
   Future<void> toggleEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _getPrefs();
     await prefs.setBool(_enabledKey, enabled);
   }
 
