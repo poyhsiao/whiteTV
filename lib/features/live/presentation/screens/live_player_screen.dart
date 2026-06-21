@@ -100,7 +100,10 @@ class LivePlayerScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: TimeshiftControlBar(
                 position: state.timeshiftPosition ?? Duration.zero,
-                isLive: state.timeshiftPosition == null || state.timeshiftPosition!.inSeconds >= 0,
+                mode: (state.timeshiftPosition == null ||
+                        state.timeshiftPosition!.inSeconds >= 0)
+                    ? TimeshiftMode.live
+                    : TimeshiftMode.service,
                 onSeek: (pos) => notifier.seekTimeshift(pos),
                 onPlayPause: () => notifier.togglePlayPause(),
                 onGoLive: () => notifier.stopTimeshift(),
