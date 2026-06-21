@@ -1,16 +1,14 @@
-import 'package:flutter/services.dart';
 import 'package:white_tv/core/device/device_type.dart';
+import 'package:white_tv/core/ios/unified_ios_platform.dart';
+import 'package:white_tv/core/ios/ios_platform_channel.dart';
 
 /// Handoff 服務介面
 /// 支援 iOS/macOS Universal Clipboard 和 Handoff 功能
 ///
 /// 實現狀態：
-/// - [ ] iOS 平台通道需使用 MethodChannel 調用原生 API
+/// - [x] iOS 平台通道需使用 MethodChannel 調用原生 API
 /// - [ ] macOS 平台通道需使用 platform view 或 MethodChannel
 /// - [ ] 需處理 NSUserActivity 和 UISearchSuggestion 的平台特定實作
-///
-/// TODO: 實現 iOS platform channel (MethodChannel)
-/// TODO: 實現 macOS platform channel (MethodChannel)
 ///
 /// 參考：docs/superpowers/specs/2026-05-25-ios-macos-design.md
 abstract interface class IHandoffService {
@@ -73,6 +71,23 @@ class PlaybackHandoffInfo {
       return null;
     }
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlaybackHandoffInfo &&
+          runtimeType == other.runtimeType &&
+          contentId == other.contentId &&
+          title == other.title &&
+          position == other.position &&
+          episodeId == other.episodeId;
+
+  @override
+  int get hashCode =>
+      contentId.hashCode ^
+      title.hashCode ^
+      position.hashCode ^
+      episodeId.hashCode;
 }
 
 /// Handoff 服務實現
@@ -90,23 +105,48 @@ class PlaybackHandoffInfo {
 /// - 使用 FlutterMethodChannel 调用原生 NSUserActivity
 /// - 注册 App Delegate 中的 NSUserActivity 处理
 class HandoffService implements IHandoffService {
-  HandoffService({required this.deviceType});
+  /// Creates HandoffService with optional platform channel injection for testing.
+  ///
+  /// [deviceType] - Required device type for fallback support
+  /// [platformChannel] - Optional platform channel (defaults to IosPlatformChannel.instance)
+  /// [isIosOverride] - Optional override for iOS detection (for testing on non-iOS)
+  /// [isMacosOverride] - Optional override for macOS detection (for testing on non-macOS)
+  HandoffService({
+    required this.deviceType,
+    IosPlatformChannelInterface? platformChannel,
+    bool? isIosOverride,
+    bool? isMacosOverride,
+  })  : _platformChannel = platformChannel ?? IosPlatformChannel.instance,
+        _isIosOverride = isIosOverride,
+        _isMacosOverride = isMacosOverride;
+
+  /// Platform channel instance (allows test injection)
+  final IosPlatformChannelInterface _platformChannel;
+
+  /// iOS override for testing (null means use platform detection)
+  final bool? _isIosOverride;
+
+  /// macOS override for testing (null means use platform detection)
+  final bool? _isMacosOverride;
+
+  /// 當前活動的用戶信息緩存
+  Map<String, dynamic>? _currentActivityUserInfo;
 
   final DeviceType deviceType;
 
-  // TODO: 實現 iOS/macOS platform channel
-  // 使用 MethodChannel 與原生代碼通信
-  // ignore: unused_field (platform channel for future native implementation)
-  static const MethodChannel _channel = MethodChannel('com.white_tv/handoff');
+  /// Whether running on iOS (with optional override for testing)
+  bool get _isIos => _isIosOverride ?? UnifiedIosPlatform.isIos;
 
-  // 當前活動的用戶信息緩存
-  // ignore: unused_field (user info cache for future handoff implementation)
-  Map<String, dynamic>? _currentActivityUserInfo;
+  /// Whether running on macOS (with optional override for testing)
+  bool get _isMacos => _isMacosOverride ?? UnifiedIosPlatform.isMacos;
 
   @override
   bool get isSupported {
-    // TODO: 平台通道實現後需調用原生方法確認
-    // 目前僅根據設備類型初步判斷
+    // iOS/macOS 原生效能檢測
+    if (_isIos || _isMacos) {
+      return true;
+    }
+    // 行動裝置平台
     return deviceType == DeviceType.mobile;
   }
 
@@ -115,11 +155,10 @@ class HandoffService implements IHandoffService {
     required String activityType,
     required Map<String, dynamic> userInfo,
   }) async {
-    // TODO: 調用原生 API 開始 Handoff 活動
-    // await _channel.invokeMethod('startActivity', {
-    //   'activityType': activityType,
-    //   'userInfo': userInfo,
-    // });
+    // 如果是 iOS 平台，調用原生實現
+    if (_isIos) {
+      await _platformChannel.startHandoff(activityType, userInfo);
+    }
     _currentActivityUserInfo = userInfo;
   }
 
@@ -127,25 +166,25 @@ class HandoffService implements IHandoffService {
   Future<void> updateActivity({
     required Map<String, dynamic> userInfo,
   }) async {
-    // TODO: 調用原生 API 更新活動狀態
-    // await _channel.invokeMethod('updateActivity', {
-    //   'userInfo': userInfo,
-    // });
+    if (_isIos) {
+      await _platformChannel.updateHandoff(userInfo);
+    }
     _currentActivityUserInfo = userInfo;
   }
 
   @override
   Future<void> endActivity() async {
-    // TODO: 調用原生 API 結束活動
-    // await _channel.invokeMethod('endActivity');
+    if (_isIos) {
+      await _platformChannel.endHandoff();
+    }
     _currentActivityUserInfo = null;
   }
 
   @override
   Future<Map<String, dynamic>?> receiveActivity() async {
-    // TODO: 調用原生 API 接收來自其他設備的活動
-    // final result = await _channel.invokeMethod<Map>('receiveActivity');
-    // return result?.cast<String, dynamic>();
+    if (_isIos) {
+      return await _platformChannel.receiveHandoff();
+    }
     return null;
   }
 
