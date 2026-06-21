@@ -7,6 +7,7 @@ import 'package:white_tv/core/api/api_client.dart';
 class TimeshiftServiceAdapter {
   TimeshiftServiceAdapter(this._apiClient);
 
+  // TODO: Use _apiClient when LunaTV API integration is implemented
   final ApiClient _apiClient;
 
   /// Check if the server supports timeshift for [channelId].

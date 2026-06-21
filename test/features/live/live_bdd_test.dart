@@ -190,6 +190,22 @@ class MockTimeshiftManager implements TimeshiftManager {
       isLive: true,
     );
   }
+
+  @override
+  Future<bool> isServiceSideSupported(String channelId) async => false;
+
+  @override
+  Future<String?> getServiceSideStream(
+    String channelId,
+    Duration startOffset,
+    Duration endOffset,
+  ) async => null;
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
 }
 
 // ============================================================================

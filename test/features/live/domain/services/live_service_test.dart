@@ -162,7 +162,7 @@ class MockTimeshiftManager implements TimeshiftManager {
   Future<Duration> fastForward(Duration duration) async => duration;
 
   @override
-  Future<Duration> rewind(Duration duration) async => -duration;
+  Future<Duration> rewind(Duration duration) async => Duration.zero - duration;
 
   @override
   Future<void> stopTimeshift() async {}
@@ -180,4 +180,20 @@ class MockTimeshiftManager implements TimeshiftManager {
     isPaused: false,
     isLive: true,
   );
+
+  @override
+  Future<bool> isServiceSideSupported(String channelId) async => false;
+
+  @override
+  Future<String?> getServiceSideStream(
+    String channelId,
+    Duration startOffset,
+    Duration endOffset,
+  ) async => null;
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
 }
