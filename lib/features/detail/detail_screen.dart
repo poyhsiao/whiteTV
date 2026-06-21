@@ -179,9 +179,65 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   Widget _buildSourceSelector(DetailState state) {
     if (state.detail == null) return const SizedBox();
-    final sources = state.detail!.sources;
+    final isTV = DeviceUtils.isTV(context);
+    return isTV
+        ? _buildTVSourceSelector(state)
+        : _buildMobileSourceSelector(state);
+  }
 
+  Widget _buildTVSourceSelector(DetailState state) {
+    final sources = state.detail!.sources;
+    return SizedBox(
+      key: const Key('tv_source_list'),
+      height: 200,
+      child: ListView.separated(
+        itemCount: sources.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final source = sources[index];
+          final isSelected = state.selectedSource == source;
+          final statusEmoji = switch (source.status) {
+            SourceStatus.available => '🟢',
+            SourceStatus.testing => '🟡',
+            SourceStatus.unavailable => '🔴',
+          };
+          final episodeCount = state.detail!.episodes.length;
+          return GlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: GestureDetector(
+              onTap: source.isAvailable
+                  ? () => ref.read(detailStoreProvider.notifier).selectSource(source)
+                  : null,
+              child: Row(
+                children: [
+                  Text(statusEmoji, style: const TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text(source.name, style: AppTypography.body),
+                  const SizedBox(width: 8),
+                  Text('${source.latency}ms', style: AppTypography.caption),
+                  const SizedBox(width: 8),
+                  Text('${episodeCount}集', style: AppTypography.caption),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    Text('[自動]', style: AppTypography.caption.copyWith(
+                        color: AppColors.accent)),
+                    const Spacer(),
+                    const Text('← 當前',
+                        style: TextStyle(color: AppColors.accent, fontSize: 12)),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileSourceSelector(DetailState state) {
+    final sources = state.detail!.sources;
     return Wrap(
+      key: const Key('mobile_source_selector'),
       spacing: 8,
       children: sources.map<Widget>((source) {
         final isSelected = state.selectedSource == source;
@@ -205,8 +261,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               child: Text(
                 '$statusEmoji ${source.name} (${source.latency}ms)',
                 style: AppTypography.caption.copyWith(
-                  color:
-                      isSelected ? Colors.black : AppColors.textPrimary,
+                  color: isSelected ? Colors.black : AppColors.textPrimary,
                 ),
               ),
             ),

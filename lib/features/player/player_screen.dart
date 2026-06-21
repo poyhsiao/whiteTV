@@ -348,6 +348,27 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           const Flexible(
             child: SettingsPanel(),
           ),
+          const SizedBox(width: 16),
+          // Lock controls toggle
+          Flexible(
+            child: IconButton(
+              key: const Key('controls_lock_button'),
+              icon: Icon(
+                _controlsLocked ? Icons.lock_open : Icons.lock,
+                color: _controlsLocked ? AppColors.accent : AppColors.textPrimary,
+              ),
+              onPressed: () {
+                setState(() {
+                  _controlsLocked = !_controlsLocked;
+                });
+                if (_controlsLocked) {
+                  _controlsHideTimer?.cancel();
+                } else {
+                  _resetControlsTimer();
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

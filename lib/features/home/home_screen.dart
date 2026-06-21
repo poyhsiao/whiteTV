@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/device/device_type.dart';
 import 'package:white_tv/core/device/device_utils.dart';
+import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/history/widgets/recent_watch_section.dart';
 import 'package:white_tv/features/home/home_store.dart';
@@ -73,6 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showRecentWatch = settings.homeBlocks['showRecentWatch'] ?? true;
     final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
     final showCategories = settings.homeBlocks['showCategories'] ?? true;
+    final showLive = settings.homeBlocks['showLive'] ?? false;
 
     return SingleChildScrollView(
       child: Column(
@@ -88,6 +90,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTap: (record) => _navigateToDetail(record.videoId),
               showProgress: true,
             ),
+          if (showLive)
+            _buildLiveEntrySection(isTV: true),
           if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),
             Padding(
@@ -117,6 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showRecentWatch = settings.homeBlocks['showRecentWatch'] ?? true;
     final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
     final showCategories = settings.homeBlocks['showCategories'] ?? true;
+    final showLive = settings.homeBlocks['showLive'] ?? false;
 
     return ListView(
       children: [
@@ -129,6 +134,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             records: state.recentHistory,
             onTap: (record) => _navigateToDetail(record.videoId),
           ),
+        if (showLive)
+          _buildLiveEntrySection(isTV: false),
         if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
           const SizedBox(height: 24),
           Padding(
@@ -214,6 +221,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  Widget _buildLiveEntrySection({required bool isTV}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GestureDetector(
+        key: const Key('live_entry_section'),
+        onTap: () => context.push('/live'),
+        child: Container(
+          height: isTV ? 100 : 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.live.withValues(alpha: 0.8),
+                AppColors.accent.withValues(alpha: 0.6),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              const Text(
+                '📺 直播',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Text(
+                  '進入直播',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
