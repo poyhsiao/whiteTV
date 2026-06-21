@@ -221,3 +221,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.5.0
 ## [0.4.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.4.0
 ## [0.3.0]: https://github.com/poyhsiao/whiteTV/releases/tag/v0.3.0
+
+## [0.10.0] - 2026-06-21
+
+### Added
+- Version bump
+
