@@ -5,7 +5,7 @@ import 'package:white_tv/features/settings/settings_screen.dart';
 
 void main() {
   group('SettingsScreen', () {
-    testWidgets('renders TabBar with 4 tabs', skip: true, (tester) async {
+    testWidgets('renders TabBar with 6 tabs', skip: true, (tester) async {
       await tester.pumpWidget(
         ProviderScope(child: MaterialApp(home: const SettingsScreen())),
       );
@@ -15,9 +15,11 @@ void main() {
       expect(find.text('帳號'), findsOneWidget);
       expect(find.text('播放'), findsOneWidget);
       expect(find.text('顯示'), findsOneWidget);
+      expect(find.text('首頁區塊'), findsOneWidget);
+      expect(find.text('Tab 設定'), findsOneWidget);
     });
 
-    testWidgets('renders TabBarView with 4 tab content areas', skip: true, (tester) async {
+    testWidgets('renders TabBarView with 6 tab content areas', skip: true, (tester) async {
       await tester.pumpWidget(
         ProviderScope(child: MaterialApp(home: const SettingsScreen())),
       );
@@ -31,7 +33,7 @@ void main() {
       expect(tabBarView, findsOneWidget);
     });
 
-    testWidgets('TabController is initialized with length 4', skip: true, (tester) async {
+    testWidgets('TabController is initialized with length 6', skip: true, (tester) async {
       await tester.pumpWidget(
         ProviderScope(child: MaterialApp(home: const SettingsScreen())),
       );
@@ -41,7 +43,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       final tabBar = tester.widget<TabBar>(find.byType(TabBar));
-      expect(tabBar.tabs.length, 4);
+      expect(tabBar.tabs.length, 6);
     });
   });
 }
