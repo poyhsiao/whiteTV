@@ -8,6 +8,7 @@ class TimeshiftServiceAdapter {
   TimeshiftServiceAdapter(this._apiClient);
 
   // TODO: Use _apiClient when LunaTV API integration is implemented
+  // ignore: unused_field (temporary until LunaTV API is integrated)
   final ApiClient _apiClient;
 
   /// Check if the server supports timeshift for [channelId].
