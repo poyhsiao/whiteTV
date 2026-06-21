@@ -92,5 +92,30 @@ void main() {
     test('returns correct max timeshift duration (7 days)', () {
       expect(timeshiftManager.maxTimeshiftDuration, const Duration(days: 7));
     });
+
+    test('isServiceSideSupported returns false by default', () async {
+      final result = await timeshiftManager.isServiceSideSupported('ch1');
+      expect(result, isFalse);
+    });
+
+    test('getServiceSideStream returns null by default', () async {
+      final result = await timeshiftManager.getServiceSideStream(
+        'ch1',
+        const Duration(minutes: 5),
+        const Duration(minutes: 10),
+      );
+      expect(result, isNull);
+    });
+
+    test('startClientBuffer completes without error', () async {
+      await timeshiftManager.startClientBuffer(
+        'ch1',
+        const Duration(minutes: 10),
+      );
+    });
+
+    test('stopClientBuffer completes without error', () async {
+      await timeshiftManager.stopClientBuffer();
+    });
   });
 }

@@ -17,6 +17,18 @@ abstract interface class TimeshiftManager {
   Duration get maxTimeshiftDuration;
 
   Future<TimeshiftState> getState();
+
+  Future<bool> isServiceSideSupported(String channelId);
+
+  Future<String?> getServiceSideStream(
+    String channelId,
+    Duration startOffset,
+    Duration endOffset,
+  );
+
+  Future<void> startClientBuffer(String channelId, Duration duration);
+
+  Future<void> stopClientBuffer();
 }
 
 class TimeshiftController {
@@ -126,6 +138,26 @@ class TimeshiftManagerImpl implements TimeshiftManager {
       isLive: true,
     );
   }
+
+  @override
+  Future<bool> isServiceSideSupported(String channelId) async {
+    return false;
+  }
+
+  @override
+  Future<String?> getServiceSideStream(
+    String channelId,
+    Duration startOffset,
+    Duration endOffset,
+  ) async {
+    return null;
+  }
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
 }
 
 extension on TimeshiftState {
