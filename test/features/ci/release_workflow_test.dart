@@ -17,11 +17,11 @@ void main() {
       expect(yaml['permissions']['contents'], equals('write'));
     });
 
-    test('release workflow has android, macos, ios, and release jobs', () {
+    test('release workflow has android, macos, and release jobs', () {
       final jobs = yaml['jobs'] as YamlMap;
       expect(jobs.containsKey('android'), isTrue);
       expect(jobs.containsKey('macos'), isTrue);
-      expect(jobs.containsKey('ios'), isTrue);
+      // iOS job is disabled - requires Apple certificates not available in standard CI
       expect(jobs.containsKey('release'), isTrue);
     });
 
@@ -73,17 +73,20 @@ void main() {
       expect(macosJob['runs-on'], equals('macos-latest'));
     });
 
-    test('release workflow has ios job', () {
-      final jobs = yaml['jobs'] as YamlMap;
-      final iosJob = jobs['ios'] as YamlMap;
-      expect(iosJob['runs-on'], equals('macos-latest'));
-    });
+    // iOS job is disabled - requires Apple certificates not available in standard CI
+    // Uncomment and configure when iOS signing certificates are available
+    // test('release workflow has ios job', () {
+    //   final jobs = yaml['jobs'] as YamlMap;
+    //   final iosJob = jobs['ios'] as YamlMap;
+    //   expect(iosJob['runs-on'], equals('macos-latest'));
+    // });
 
-    test('release workflow has release job that depends on all build jobs', () {
+    test('release workflow has release job that depends on build jobs', () {
       final jobs = yaml['jobs'] as YamlMap;
       final releaseJob = jobs['release'] as YamlMap;
       final needs = releaseJob['needs'] as YamlList;
-      expect(needs.map((e) => e.toString()), containsAll(['android', 'macos', 'ios']));
+      // iOS is commented out, so release only depends on android and macos
+      expect(needs.map((e) => e.toString()), containsAll(['android', 'macos']));
     });
 
     test('release workflow release job uses softprops/action-gh-release@v2', () {
