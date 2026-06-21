@@ -1,22 +1,20 @@
-# iOS Platform Channel Implementation Progress
+# whiteTV Timeshift + Tab Customization Progress
 
-## Tasks
-- Task 1: ios_platform_channel.dart - PENDING
-- Task 2: unified_ios_platform.dart - PENDING
-- Task 3: UnifiedIosPlatformPlugin.swift - PENDING
-- Task 4: Update HandoffService - PENDING
-- Task 5: BDD Integration Tests - PENDING
+## Tasks - ALL COMPLETE ✓
+- Task 1: TimeshiftManager - COMPLETE (8e83ca1)
+- Task 2: ServiceAdapter - COMPLETE (51f3208)
+- Task 3: ClientBuffer - COMPLETE (a954363)
+- Task 4: TimeshiftControlBar UI - COMPLETE (4fcb6b1)
+- Task 5: 時移播放 BDD - COMPLETE (a8583d4)
+- Task 6: TabNavigationStore - COMPLETE (fa61a74)
+- Task 7: ReorderableTabList - COMPLETE (48223da)
+- Task 8: SettingsScreen - COMPLETE (886c75d)
+- Task 9: Tab 自訂 BDD - COMPLETE (07d95ec)
 
-## Status: IN PROGRESS
+## Code Review
+- Initial review: NEEDS_CHANGES (3 HIGH issues)
+- Fixes applied: 1 fix commit
+- Final status: APPROVED
+- All tests: 1087 passing
 
-Task 1: complete (commits b4cf6d8..2a52d27, review clean)
-Task 2: complete (commits 2a52d27..d651e86, review clean)
-Task 2: complete (commits d651e86..d31fb57, review approved after fixes)
-Task 3: complete (commits d31fb57..6bf1fd6, review approved)
-Task 4: complete (commits d31fb57..6f6f9c4, review approved)
-Task 5: needs fix (path naming)
-Task 5: complete (commits 1cbe1d0..8b2189e, review approved after fixes)
-## Status: COMPLETED
-
-All tasks completed and pushed to main.
-Final commit: 344a56e
+## Status: COMPLETE ✓
