@@ -6,6 +6,15 @@ import 'package:white_tv/core/ios/ios_platform_channel.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  tearDown(() {
+    // Clean up mock handler after each test to prevent cross-test pollution
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.white_tv/ios'),
+      null,
+    );
+  });
+
   group('IosPlatformChannel', () {
     test('startHandoff calls platform channel', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

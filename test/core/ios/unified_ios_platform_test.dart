@@ -1,7 +1,6 @@
 // test/core/ios/unified_ios_platform_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/ios/unified_ios_platform.dart';
-import 'package:white_tv/core/ios/ios_platform_channel.dart';
 import 'package:white_tv/core/handoff/handoff_service.dart';
 import 'mock_ios_platform_channel.dart';
 

@@ -15,15 +15,14 @@ abstract interface class IosPlatformChannelInterface {
 /// iOS Platform Channel 封裝
 /// 處理 Flutter 與 iOS 原生層的溝通
 class IosPlatformChannel implements IosPlatformChannelInterface {
-  const IosPlatformChannel._internal();
+  const IosPlatformChannel._();
 
-  static const _channel = MethodChannel('com.white_tv/ios');
+  // Non-const to support test mocking via setMockMethodCallHandler
+  // ignore: prefer_const_constructors (intentional for testability)
+  static final _channel = MethodChannel('com.white_tv/ios');
 
   static IosPlatformChannelInterface get instance => _instance;
-  static final IosPlatformChannel _instance = const IosPlatformChannel._internal();
-
-  // ignore: unused_element
-  factory IosPlatformChannel() => _instance;
+  static final IosPlatformChannel _instance = const IosPlatformChannel._();
 
   @override
   Future<bool> startHandoff(
@@ -68,8 +67,9 @@ class IosPlatformChannel implements IosPlatformChannelInterface {
   @override
   Future<Map<String, dynamic>?> receiveHandoff() async {
     try {
-      final result = await _channel.invokeMethod<Map>('handoff.receiveActivity');
-      return result?.cast<String, dynamic>();
+      final result = await _channel.invokeMethod<Map<Object?, Object?>>('handoff.receiveActivity');
+      if (result == null) return null;
+      return result.map((k, v) => MapEntry(k.toString(), v));
     } on PlatformException {
       return null;
     }
