@@ -1,47 +1,30 @@
-# Task 1 Report: TimeshiftManager Interface Extension
+# Task 1 Report: Add integration_test dependency
 
 ## Status: DONE
 
 ## Summary
 
-Extended the `TimeshiftManager` abstract interface and `TimeshiftManagerImpl` with 4 new methods for dual-layer timeshift support (service-side + client buffer).
+Added `integration_test` package to dev_dependencies in pubspec.yaml for E2E testing support.
 
 ## Changes
 
 ### Modified Files
 
-1. **`lib/features/live/domain/repositories/timeshift_manager.dart`**
-   - Added 4 new methods to `TimeshiftManager` abstract interface:
-     - `Future<bool> isServiceSideSupported(String channelId)` - Checks if service-side timeshift is supported for a channel
-     - `Future<String?> getServiceSideStream(String channelId, Duration startOffset, Duration endOffset)` - Gets a service-side timeshift stream URL
-     - `Future<void> startClientBuffer(String channelId, Duration duration)` - Starts client-side buffering
-     - `Future<void> stopClientBuffer()` - Stops client-side buffering
-   - Added default implementations in `TimeshiftManagerImpl`:
-     - `isServiceSideSupported` returns `false` (not yet supported)
-     - `getServiceSideStream` returns `null` (no stream available)
-     - `startClientBuffer` is a no-op (placeholder)
-     - `stopClientBuffer` is a no-op (placeholder)
+1. **`pubspec.yaml`**
+   - Added `integration_test` SDK dependency under `dev_dependencies`
 
-2. **`test/features/live/domain/repositories/timeshift_manager_test.dart`**
-   - Added 4 new test cases for the new methods:
-     - `isServiceSideSupported returns false by default`
-     - `getServiceSideStream returns null by default`
-     - `startClientBuffer completes without error`
-     - `stopClientBuffer completes without error`
-
-## Test Results
+## Verification
 
 ```
-00:00 +12: All tests passed!
++ integration_test 0.0.0 from sdk flutter
+Changed 6 dependencies!
 ```
 
-- Total tests: 12 (8 existing + 4 new)
-- All tests passing
-- No regressions
+`flutter pub get` resolved successfully. `integration_test` is listed in dependencies.
 
 ## Commit
 
-- **SHA**: 8e83ca1
-- **Message**: `feat: extend TimeshiftManager with service-side and client buffer methods`
-- **Files changed**: 2
-- **Insertions**: +57 lines
+- **SHA**: f1c2f5d
+- **Message**: `chore: add integration_test dependency for E2E`
+- **Files changed**: 1
+- **Insertions**: +2 lines
