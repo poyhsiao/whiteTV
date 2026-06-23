@@ -77,6 +77,10 @@ class FakeSettingsStorageService implements SettingsStorageService {
   Future<void> saveTabOrder(List<String> order) async {}
   @override
   Future<List<String>> getTabOrder() async => [];
+  @override
+  Future<void> saveTimeshiftBufferDuration(int minutes) async {}
+  @override
+  Future<int> getTimeshiftBufferDuration() async => 30;
 }
 
 /// FakeApiClient for E2E tests with configurable login.
@@ -127,4 +131,13 @@ class FakeApiClient implements ApiClient {
     List<String>? searchHistory,
     int limit = 20,
   }) async => [];
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeRecommend() async => [];
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page}) async => [];
+
+  @override
+  Future<List<YoutubeCategory>> getYoutubeCategories() async => [];
 }
