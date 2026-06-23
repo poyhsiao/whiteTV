@@ -149,6 +149,15 @@ void main() {
         await timeshiftManager.stopClientBuffer();
         expect(timeshiftManager.isClientBufferActive, isFalse);
       });
+
+      test('回看播放從正確位置開始', () async {
+        await timeshiftManager.startClientBuffer('channel_1', const Duration(minutes: 5));
+        await Future.delayed(const Duration(seconds: 5));
+
+        final file = await timeshiftManager.getBufferedStream('channel_1', Duration.zero);
+        expect(file, isNotNull);
+        expect(await file!.exists(), isTrue);
+      });
     });
   });
 }

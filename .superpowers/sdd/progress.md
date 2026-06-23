@@ -1,15 +1,20 @@
-# whiteTV E2E Testing Implementation Progress
+# Timeshift (Client Buffer) + YouTube Integration Progress
 
 ## Tasks
-- [x] Task 1: Add integration_test dependency - COMPLETE (f1c2f5d)
-- [x] Task 2: Create BasePage - COMPLETE (de73d06)
-- [x] Task 3: LoginPage+HomePage - COMPLETE (bc997c6)
-- [x] Task 4: SearchPage+DetailPage - COMPLETE (4b3f950)
-- [x] Task 5: PlayerPage - COMPLETE (4b3f950)
-- [x] Task 6: Login Flow E2E - COMPLETE (d4bd304)
-- [x] Task 7: Search Play Flow E2E - COMPLETE (d4bd304)
-- [x] Task 8: Live TV Flow E2E - COMPLETE (d4bd304)
-- [x] Task 9: Replace widget_test.dart - COMPLETE (d4bd304)
-- [x] Task 10: Update CI/CD - COMPLETE (301c7f9)
+- [x] Task 1: SettingsStore.timeshiftBufferDuration (51cb6c6, review clean)
+- [x] Task 2: Settings 頁時移 UI (287c304, review clean)
+- [x] Task 3: startClientBuffer() (242e57a, review clean)
+- [x] Task 4: stopClientBuffer() (fcbb5e8..242e57a, absorbed into Task 3)
+- [x] Task 5: 緩衝上限淘汰 (242e57a, review clean)
+- [ ] Task 6: getBufferedStream()
+- [ ] Task 7: LiveStore 整合
+- [ ] Task 8: Timeshift BDD E2E
+- [ ] Task 9: YouTube 模型
+- [ ] Task 10: ApiClient YouTube
+- [ ] Task 11: YoutubeStore
+- [ ] Task 12: 首頁 YouTube 專區
+- [ ] Task 13: 分類頁 YouTube
+- [ ] Task 14: YouTube 播放整合
+- [ ] Task 15: YouTube BDD E2E
 
-## Status: ALL COMPLETE
+## Status: IN PROGRESS

@@ -1,23 +1,65 @@
-### Task 2: Create BasePage (Page Object base class)
+# Task 2 Report: Settings Page Timeshift Buffer Duration UI
 
-**Status: DONE**
+## Objective
+Add RadioListTile UI for timeshift buffer duration selection (15/30/60 minutes) to the Settings page.
 
-**Commit**
+## Implementation
 
-- `de73d06` feat: add BasePage for E2E Page Objects
+### File Modified
+`lib/features/settings/widgets/playback_settings_card.dart`
 
-**Files Created**
+### Changes Made
+Added `_buildTimeshiftBufferSection` method and integrated it into `PlaybackSettingsCard.build()`:
 
-- `test/e2e/pages/base_page.dart` — BasePage abstract class with tap, enterText, waitFor, takeScreenshot
+```dart
+Widget _buildTimeshiftBufferSection(WidgetRef ref, SettingsState settings) {
+  return Card(
+    color: Colors.white.withValues(alpha: 0.1),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '時移緩衝',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          RadioListTile<int>(
+            title: const Text('15 分鐘', style: TextStyle(color: Colors.white)),
+            value: 15,
+            groupValue: settings.timeshiftBufferDuration,
+            onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+          ),
+          RadioListTile<int>(
+            title: const Text('30 分鐘', style: TextStyle(color: Colors.white)),
+            value: 30,
+            groupValue: settings.timeshiftBufferDuration,
+            onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+          ),
+          RadioListTile<int>(
+            title: const Text('60 分鐘', style: TextStyle(color: Colors.white)),
+            value: 60,
+            groupValue: settings.timeshiftBufferDuration,
+            onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+```
 
-**Verification**
+### Integration
+Section added as 5th item in `PlaybackSettingsCard`, after `_buildSourceBlocklistSection()`.
 
-- `dart analyze test/e2e/pages/base_page.dart` — No issues found
+### Analysis
+`flutter analyze` returned only info-level deprecation warnings for RadioListTile's `groupValue` and `onChanged` (deprecated in Flutter 3.32). No errors.
 
-**Implementation Notes**
-
-- `takeScreenshot` is a stub because `WidgetTester.takeScreenshot` is not available in `flutter_test` (requires `integration_test` package). Kept as no-op stub for future integration_test usage.
-- `tap` supports `#keyName` (by Key) and text-based locators
-- `enterText` supports `#keyName` (by Key) and TextField type fallback
-- `waitFor` pumps with configurable timeout then asserts widget existence
-- Follows project conventions: `final` fields, `Future<void>` return types
+## Commit
+- SHA: `287c30442c5cb013c20beba3f86354792ad7b5bf`
+- Message: `feat: add timeshift buffer duration RadioListTile to playback settings`

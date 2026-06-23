@@ -1,30 +1,62 @@
-# Task 3 Report: TimeshiftClientBuffer
+# Task 3 Report: startClientBuffer()
 
 ## Status: DONE
 
-## Files Created
-
-- `lib/features/live/domain/services/timeshift_client_buffer.dart` — implementation
-- `test/features/live/domain/services/timeshift_client_buffer_test.dart` — 16 tests
-
 ## Commits
+- `fcbb5e8` feat: implement startClientBuffer with isClientBufferActive
+- `242e57a` feat: implement startClientBuffer with TS file creation
 
-- `a954363` feat: add TimeshiftClientBuffer for client-side timeshift fallback
+## Test Summary
+All 12 tests pass including 2 new tests verifying actual `.ts` file creation.
 
-## Test Results
+## TDD Evidence
 
-16/16 tests passed, 0 failures.
+### RED (Before Implementation)
+```
+MissingPluginException(No implementation found for method getTemporaryDirectory on channel plugins.flutter.io/path_provider)
+```
 
-Coverage groups:
-- Initial state (5 tests): isActive, channelId, maxDuration, bufferedDuration, constant check
-- start (6 tests): activation, empty ID guard, duration clamping, under-max passthrough, channel switch, same-channel no-op
-- stop (3 tests): clears state, safe when not active, re-start after stop
-- Clamping edge cases (2 tests): exact max, very large duration
+### GREEN (After Implementation)
+```
+00:00 +12: All tests passed!
+```
 
-## Design Notes
+## Reviewer Fixes Applied
 
-- Pure Dart class, no external dependencies — fits cleanly in `domain/services/` layer
-- `start()` with same channel ID is idempotent (no-op) to prevent accidental state reset
-- Duration is clamped to `maxBufferDuration` (30 minutes) to enforce the buffer ceiling
-- `_stopInternal()` centralizes state cleanup to avoid duplication between `stop()` and internal transitions
-- `bufferedDuration` is initialized to zero on start; actual segment writing will be implemented by the buffer manager that owns this instance
+### Critical Issues Fixed
+
+1. **No actual file creation** - Fixed by implementing actual `.ts` file creation via `getTemporaryDirectory()` and `IOSink`
+
+2. **Parameters ignored** - Fixed:
+   - `channelId` now used to name segment files (`timeshift_${channelId}_$timestamp.ts`)
+   - `duration` now used for max buffer calculation in `_cleanupOldSegments()`
+
+3. **Missing imports** - Added:
+   - `dart:io` for `File`, `IOSink`, `Directory`
+   - `dart:async` for `Timer`
+   - `package:path_provider` for `getTemporaryDirectory()`
+
+4. **No segment lifecycle** - Implemented:
+   - `Timer.periodic` creating new segments every 30 seconds
+   - `_cleanupOldSegments()` called when creating new segments to enforce max duration
+
+## Changes Made
+
+### Implementation Fields Added
+- `File? _bufferFile` - Current segment file
+- `IOSink? _bufferSink` - Write sink for segment
+- `Timer? _segmentTimer` - 30-second segment rotation timer
+- `String? _currentChannelId` - Track current channel
+- `Duration? _maxDuration` - Track max buffer duration
+- `DateTime? _recordingStartTime` - Track recording start
+
+### Methods Implemented
+- `startClientBuffer()` - Creates initial `.ts` file, starts 30s periodic timer
+- `_createNewSegment()` - Closes current sink, creates new `.ts` file, triggers cleanup
+- `_cleanupOldSegments()` - Deletes segment files older than `maxDuration`
+- `stopClientBuffer()` - Cancels timer, closes sink, clears state
+
+### Tests Updated
+- Mocked `path_provider` plugin with `setMockMethodCallHandler`
+- `startClientBuffer creates TS segment file` - Verifies actual `.ts` file exists in temp directory
+- `stopClientBuffer closes file handles` - Verifies buffer deactivation

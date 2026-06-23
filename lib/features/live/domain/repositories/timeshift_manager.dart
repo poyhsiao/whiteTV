@@ -35,6 +35,8 @@ abstract interface class TimeshiftManager {
   Future<void> stopClientBuffer();
 
   bool get isClientBufferActive;
+
+  Future<File?> getBufferedStream(String channelId, Duration offset);
 }
 
 class TimeshiftController {
@@ -75,7 +77,10 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   Duration? _maxDuration;
   DateTime? _recordingStartTime;
 
+  final List<_SegmentMetadata> _segments = [];
+
   static const _maxTimeshiftDuration = Duration(days: 7);
+  static const _segmentDuration = Duration(seconds: 30);
 
   TimeshiftManagerImpl();
 
@@ -173,13 +178,19 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     _maxDuration = duration;
     _recordingStartTime = DateTime.now();
     _isClientBufferActive = true;
+    _segments.clear();
 
     final tempDir = await getTemporaryDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     _bufferFile = File('${tempDir.path}/timeshift_${channelId}_$timestamp.ts');
     _bufferSink = _bufferFile!.openWrite();
 
-    _segmentTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _segments.add(_SegmentMetadata(
+      file: _bufferFile!,
+      startTime: DateTime.now(),
+    ));
+
+    _segmentTimer = Timer.periodic(_segmentDuration, (_) {
       _createNewSegment(channelId, duration);
     });
   }
@@ -191,6 +202,11 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     _bufferFile = File('${tempDir.path}/timeshift_${channelId}_$timestamp.ts');
     _bufferSink = _bufferFile!.openWrite();
+
+    _segments.add(_SegmentMetadata(
+      file: _bufferFile!,
+      startTime: DateTime.now(),
+    ));
 
     await _cleanupOldSegments(channelId, maxDuration);
   }
@@ -221,10 +237,34 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     _maxDuration = null;
     _recordingStartTime = null;
     _isClientBufferActive = false;
+    _segments.clear();
   }
 
   @override
   bool get isClientBufferActive => _isClientBufferActive;
+
+  @override
+  Future<File?> getBufferedStream(String channelId, Duration offset) async {
+    if (!_isClientBufferActive || _currentChannelId != channelId) {
+      return null;
+    }
+
+    if (_segments.isEmpty && _bufferFile != null) {
+      return _bufferFile;
+    }
+
+    final now = DateTime.now();
+    final targetTime = now.subtract(offset);
+
+    for (final segment in _segments) {
+      final segmentEndTime = segment.startTime.add(_segmentDuration);
+      if (!targetTime.isBefore(segment.startTime) && targetTime.isBefore(segmentEndTime)) {
+        return segment.file;
+      }
+    }
+
+    return _segments.isNotEmpty ? _segments.last.file : _bufferFile;
+  }
 }
 
 extension on TimeshiftState {
@@ -241,4 +281,11 @@ extension on TimeshiftState {
       isLive: isLive ?? this.isLive,
     );
   }
+}
+
+class _SegmentMetadata {
+  final File file;
+  final DateTime startTime;
+
+  const _SegmentMetadata({required this.file, required this.startTime});
 }

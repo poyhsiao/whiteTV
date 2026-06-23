@@ -1,30 +1,60 @@
-# Task 5 Brief: 時移播放 BDD 測試
+### Task 5: 實作緩衝上限自動淘汰邏輯
 
-## 任務描述
+**Files:**
+- Modify: `lib/features/live/domain/repositories/timeshift_manager.dart`
 
-撰寫時移播放功能的 BDD 驗收測試。
+- [ ] **Step 1: 寫失敗測試**
 
-## 檔案
+```dart
+test('達到上限時淘汰舊段落', () async {
+  await manager.startClientBuffer('channel_1', const Duration(minutes: 1));
+  await Future.delayed(const Duration(minutes: 2));
+  
+  final tempDir = await Directory.systemTemp.list().toList();
+  final tsFiles = tempDir.where((f) => f.path.contains('timeshift_channel_1')).toList();
+  expect(tsFiles.length, lessThanOrEqualTo(3));
+});
+```
 
-Create: `test/features/live/live_timeshift_bdd_test.dart`
+- [ ] **Step 2: Run test to verify it fails**
 
-## BDD 測試情境
+Run: `flutter test test/features/live/domain/repositories/timeshift_manager_test.dart`
+Expected: FAIL
 
-1. 用戶觀看直播時想回看之前的內容
-   - GIVEN 用戶正在觀看直播
-   - WHEN 用戶拖曳時間軸
-   - THEN 播放器開始播放時移內容
+- [ ] **Step 3: 實作 _cleanupOldSegments**
 
-2. 服務端不支援時使用本地緩存
-   - GIVEN 服務端時移 API 回應 404
-   - WHEN 用戶嘗試時移
-   - THEN 系統使用本地緩存播放
+```dart
+Future<void> _cleanupOldSegments(String channelId, Duration maxDuration) async {
+  final tempDir = await getTemporaryDirectory();
+  final files = await tempDir.list().toList();
+  final tsFiles = files
+      .where((f) => f.path.contains('timeshift_$channelId') && f.path.endsWith('.ts'))
+      .toList();
+  
+  tsFiles.sort((a, b) => a.path.compareTo(b.path));
+  
+  final maxSegments = (maxDuration.inSeconds / 30).ceil();
+  
+  if (tsFiles.length > maxSegments) {
+    final toDelete = tsFiles.take(tsFiles.length - maxSegments);
+    for (final file in toDelete) {
+      await file.delete();
+    }
+  }
+}
+```
 
-3. 用戶想回到直播
-   - GIVEN 用戶正在觀看時移內容
-   - WHEN 用戶點擊 [直播中] 按鈕
-   - THEN 播放器回到直播串流
+- [ ] **Step 4: Run test to verify it passes**
 
-## 提交訊息
+Run: `flutter test test/features/live/domain/repositories/timeshift_manager_test.dart`
+Expected: PASS
 
-feat(live): add BDD tests for timeshift playback
+- [ ] **Step 5: Commit**
+
+```bash
+git add lib/features/live/domain/repositories/timeshift_manager.dart
+git commit -m "feat(timeshift): implement segment cleanup for buffer limit"
+```
+
+---
+

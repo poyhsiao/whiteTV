@@ -1,30 +1,43 @@
-# Task 1 Report: Add integration_test dependency
+# Task 1 Report: SettingsStore.timeshiftBufferDuration
 
-## Status: DONE
+## What Was Implemented
 
-## Summary
+Added `timeshiftBufferDuration` field (int, minutes: 15/30/60) to:
+- `SettingsState` - with default value 30
+- `SettingsStore` - `updateTimeshiftBufferDuration()` method
+- `SettingsStorageService` - interface methods + implementation
+- `FakeSettingsStorageService` - test fake
 
-Added `integration_test` package to dev_dependencies in pubspec.yaml for E2E testing support.
+## TDD Evidence
 
-## Changes
-
-### Modified Files
-
-1. **`pubspec.yaml`**
-   - Added `integration_test` SDK dependency under `dev_dependencies`
-
-## Verification
-
+### RED (Failing Test Output)
 ```
-+ integration_test 0.0.0 from sdk flutter
-Changed 6 dependencies!
+test/features/settings/settings_store_test.dart:111:20: Error: The getter 'timeshiftBufferDuration' isn't defined for the type 'SettingsState'.
+test/features/settings/settings_store_test.dart:228:19: Error: The method 'updateTimeshiftBufferDuration' isn't defined for the type 'SettingsStore'.
+00:00 +0 -1: Some tests failed.
 ```
 
-`flutter pub get` resolved successfully. `integration_test` is listed in dependencies.
+### GREEN (Passing Test Output)
+```
+00:00 +13: SettingsStore timeshiftBufferDuration defaults to 30 minutes
+00:00 +14: SettingsStore updateTimeshiftBufferDuration updates state and storage
+00:00 +16: All tests passed!
+```
+
+## Files Changed
+
+- `lib/features/settings/settings_store.dart` - Added field, copyWith param, load, update method
+- `lib/features/settings/services/settings_storage_service.dart` - Added interface methods + implementation
+- `test/features/settings/settings_store_test.dart` - Added test cases
 
 ## Commit
 
-- **SHA**: f1c2f5d
-- **Message**: `chore: add integration_test dependency for E2E`
-- **Files changed**: 1
-- **Insertions**: +2 lines
+`51cb6c6` - feat: add timeshiftBufferDuration to SettingsStore
+
+## Self-Review
+
+- All tests pass (16 total)
+- Default value correctly set to 30
+- Storage integration working
+- Fake implementation mirrors interface contract
+- Follows existing code patterns

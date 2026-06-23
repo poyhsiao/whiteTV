@@ -1,70 +1,48 @@
-### Task 2: Create BasePage (Page Object base class)
+### Task 2: Settings 頁新增時移緩衝時長設定 UI
 
 **Files:**
-- Create: `test/e2e/pages/base_page.dart`
+- Modify: `lib/features/settings/presentation/screens/settings_screen.dart`
 
 **Interfaces:**
-- Produces: `BasePage` abstract class with common POM methods
+- Consumes: `settingsStoreProvider.timeshiftBufferDuration`
+- Produces: `settingsStoreProvider.notifier.updateTimeshiftBufferDuration(minutes)`
 
-- [ ] **Step 1: Create BasePage with common methods**
+- [ ] **Step 1: 找 Settings 頁中直播相關設定的位置**
+
+執行: `grep -n "直播" lib/features/settings/presentation/screens/settings_screen.dart`
+
+- [ ] **Step 2: 在直播設定區塊新增 RadioListTile**
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-/// Base Page Object class with common interactions
-abstract class BasePage {
-  final WidgetTester tester;
-
-  BasePage(this.tester);
-
-  /// Tap a widget by key or text
-  Future<void> tap(String locator) async {
-    if (locator.startsWith('#')) {
-      await tester.tap(find.byKey(Key(locator.substring(1))));
-    } else {
-      await tester.tap(find.text(locator));
-    }
-    await tester.pumpAndSettle();
-  }
-
-  /// Enter text into a field
-  Future<void> enterText(String locator, String text) async {
-    if (locator.startsWith('#')) {
-      await tester.enterText(find.byKey(Key(locator.substring(1))), text);
-    } else {
-      await tester.enterText(find.byType(TextField), text);
-    }
-    await tester.pumpAndSettle();
-  }
-
-  /// Wait for widget to appear
-  Future<void> waitFor(String locator, {Duration timeout = const Duration(seconds: 5)}) async {
-    await tester.pump(timeout);
-    if (locator.startsWith('#')) {
-      expect(find.byKey(Key(locator.substring(1))), findsOneWidget);
-    } else {
-      expect(find.text(locator), findsOneWidget);
-    }
-  }
-
-  /// Take screenshot (for debugging)
-  Future<void> takeScreenshot(String name) async {
-    await tester.takeScreenshot(name);
-  }
-}
+RadioListTile<int>(
+  title: const Text('15 分鐘'),
+  value: 15,
+  groupValue: settings.timeshiftBufferDuration,
+  onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+),
+RadioListTile<int>(
+  title: const Text('30 分鐘'),
+  value: 30,
+  groupValue: settings.timeshiftBufferDuration,
+  onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+),
+RadioListTile<int>(
+  title: const Text('60 分鐘'),
+  value: 60,
+  groupValue: settings.timeshiftBufferDuration,
+  onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+),
 ```
 
-- [ ] **Step 2: Verify BasePage compiles**
+- [ ] **Step 3: Run flutter analyze**
 
-Run: `dart analyze test/e2e/pages/base_page.dart`
-Expected: No errors
+Run: `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add test/e2e/pages/base_page.dart
-git commit -m "feat: add BasePage for E2E Page Objects"
+git add lib/features/settings/presentation/screens/settings_screen.dart
+git commit -m "feat(settings): add timeshift buffer duration RadioListTile"
 ```
 
 ---
