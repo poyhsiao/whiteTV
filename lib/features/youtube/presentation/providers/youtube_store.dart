@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
+import 'package:white_tv/core/api/client_factory.dart';
 import 'package:white_tv/core/api/models.dart';
 
 /// YouTube Store 狀態管理
@@ -110,6 +111,7 @@ class YoutubeStore extends StateNotifier<YoutubeState> {
 }
 
 // Provider
-final youtubeStoreProvider = StateNotifierProvider<YoutubeStore, YoutubeState>((ref) {
-  throw UnimplementedError('youtubeStoreProvider must be overridden in ProviderScope');
+final youtubeStoreProvider = StateNotifierProvider.autoDispose<YoutubeStore, YoutubeState>((ref) {
+  final client = createApiClient();
+  return YoutubeStore(client);
 });
