@@ -12,7 +12,7 @@
 - [x] Task 9: YouTube 模型 (82bae74, review clean)
 - [x] Task 10: ApiClient YouTube (2e9b473, review clean)
 - [x] Task 11: YoutubeStore (87b4033, review clean)
-- [ ] Task 12: 首頁 YouTube 專區
+- [x] Task 12: 首頁 YouTube 專區 (13f4f79, review clean)
 - [ ] Task 13: 分類頁 YouTube
 - [ ] Task 14: YouTube 播放整合
 - [ ] Task 15: YouTube BDD E2E

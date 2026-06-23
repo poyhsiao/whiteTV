@@ -33,6 +33,7 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
       'drama' => '電視劇',
       'anime' => '動漫',
       'variety' => '綜藝',
+      'youtube' => 'YouTube',
       _ => id,
     };
   }
