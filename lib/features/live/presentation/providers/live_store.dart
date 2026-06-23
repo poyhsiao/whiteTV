@@ -7,6 +7,7 @@ import 'package:white_tv/features/live/domain/repositories/epg_manager.dart';
 import 'package:white_tv/features/live/domain/repositories/m3u_parser.dart';
 import 'package:white_tv/features/live/domain/repositories/timeshift_manager.dart';
 import 'package:white_tv/features/live/domain/services/live_service.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
 
 // Provider definitions
 final m3uParserProvider = Provider<M3uParser>((ref) {
@@ -36,13 +37,23 @@ final liveServiceProvider = Provider<LiveService>((ref) {
 });
 
 final liveStoreProvider = StateNotifierProvider<LiveStore, LiveState>((ref) {
-  return LiveStore(ref.watch(liveServiceProvider));
+  return LiveStore(
+    ref.watch(liveServiceProvider),
+    ref.watch(settingsStoreProvider),
+    ref.watch(timeshiftManagerProvider),
+  );
 });
 
 class LiveStore extends StateNotifier<LiveState> {
   final LiveService _service;
+  final SettingsState? _settings;
+  final TimeshiftManager? _timeshiftManager;
 
-  LiveStore(this._service) : super(LiveState.initial());
+  LiveStore(
+    this._service, [
+    this._settings,
+    this._timeshiftManager,
+  ]) : super(LiveState.initial());
 
   Future<void> loadChannels(String m3uContent) async {
     state = state.copyWith(status: LiveStatus.loading);
@@ -56,6 +67,38 @@ class LiveStore extends StateNotifier<LiveState> {
   }
 
   Future<void> selectChannel(M3uChannel channel) async {
+    state = await _service.selectChannel(channel);
+  }
+
+  /// Play a channel with timeshift buffering.
+  /// Starts client-side buffer and determines timeshift mode based on channel support.
+  Future<void> playChannel(M3uChannel channel) async {
+    final channelId = channel.tvgId ?? channel.name;
+    final bufferDuration = Duration(minutes: _settings?.timeshiftBufferDuration ?? 30);
+
+    // Start client-side buffer
+    await _service.startClientBuffer(channelId, bufferDuration);
+
+    // Check service-side support and switch timeshift mode accordingly
+    final manager = _timeshiftManager;
+    if (manager != null) {
+      final serviceSideSupported = await manager.isServiceSideSupported(channelId);
+
+      if (serviceSideSupported) {
+        // Service-side timeshift: use server-side stream
+        final streamUrl = await manager.getServiceSideStream(
+          channelId,
+          Duration.zero,
+          bufferDuration,
+        );
+        if (streamUrl != null) {
+          state = await _service.startTimeshift(channel, Duration.zero);
+          return;
+        }
+      }
+    }
+
+    // Client-side timeshift or fallback: select channel directly
     state = await _service.selectChannel(channel);
   }
 

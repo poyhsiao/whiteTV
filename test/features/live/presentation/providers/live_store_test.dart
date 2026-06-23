@@ -1,14 +1,281 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:white_tv/features/live/presentation/providers/live_store.dart';
+import 'package:white_tv/features/live/data/models/epg_channel.dart';
+import 'package:white_tv/features/live/data/models/epg_program.dart';
+import 'package:white_tv/features/live/data/models/m3u_channel.dart';
 import 'package:white_tv/features/live/domain/models/live_state.dart';
+import 'package:white_tv/features/live/domain/repositories/epg_manager.dart';
+import 'package:white_tv/features/live/domain/repositories/m3u_parser.dart';
+import 'package:white_tv/features/live/domain/repositories/timeshift_manager.dart';
+import 'package:white_tv/features/live/domain/services/live_service.dart';
+import 'package:white_tv/features/live/presentation/providers/live_store.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
+import 'package:white_tv/features/settings/services/settings_storage_service.dart';
+
+class FakeM3uParser implements M3uParser {
+  @override
+  List<M3uChannel> parse(String content, {String? groupTitle}) => [];
+
+  @override
+  List<M3uChannel> searchChannels(String content, {required String query}) => [];
+}
+
+class FakeEpgManager implements EpgManager {
+  @override
+  Future<EpgChannel> fetchEpg(String channelId) async => EpgChannel(id: channelId, name: '', programs: []);
+
+  @override
+  Future<EpgProgram?> getCurrentProgram(String channelId) async => null;
+
+  @override
+  Future<EpgProgram?> getProgramAtTime(String channelId, DateTime time) async => null;
+
+  @override
+  Future<List<EpgProgram>> getProgramsForDay(String channelId, DateTime day) async => [];
+}
+
+class FakeSettingsStorageService implements SettingsStorageService {
+  @override
+  Future<void> saveAuthCookie(String cookie) async {}
+
+  @override
+  Future<String?> getAuthCookie() async => null;
+
+  @override
+  Future<void> clearAuthCookie() async {}
+
+  @override
+  Future<void> saveUsername(String? username) async {}
+
+  @override
+  Future<String?> getUsername() async => null;
+
+  @override
+  Future<void> saveOnboardingComplete(bool complete) async {}
+
+  @override
+  Future<bool> getOnboardingComplete() async => false;
+
+  @override
+  Future<void> saveLunaTVUrl(String url) async {}
+
+  @override
+  Future<String?> getLunaTVUrl() async => null;
+
+  @override
+  Future<void> saveThemeMode(String mode) async {}
+
+  @override
+  Future<String> getThemeMode() async => 'dark';
+
+  @override
+  Future<void> saveAutoPlay(bool enabled) async {}
+
+  @override
+  Future<bool> getAutoPlay() async => true;
+
+  @override
+  Future<void> saveDefaultQuality(String quality) async {}
+
+  @override
+  Future<String> getDefaultQuality() async => 'auto';
+
+  @override
+  Future<void> saveAutoSelectSource(bool enabled) async {}
+
+  @override
+  Future<bool> getAutoSelectSource() async => true;
+
+  @override
+  Future<void> saveBlockedSources(List<String> sources) async {}
+
+  @override
+  Future<List<String>> getBlockedSources() async => [];
+
+  @override
+  Future<void> saveHomeBlocks(Map<String, bool> blocks) async {}
+
+  @override
+  Future<Map<String, bool>> getHomeBlocks() async => {};
+
+  @override
+  Future<void> saveTabOrder(List<String> order) async {}
+
+  @override
+  Future<List<String>> getTabOrder() async => [];
+
+  @override
+  Future<void> saveTimeshiftBufferDuration(int minutes) async {}
+
+  @override
+  Future<int> getTimeshiftBufferDuration() async => 30;
+}
+
+class FakeTimeshiftManager implements TimeshiftManager {
+  @override
+  Future<TimeshiftController> startTimeshift({
+    required String channelId,
+    required String streamUrl,
+  }) async {
+    return TimeshiftController(
+      channelId: channelId,
+      streamUrl: streamUrl,
+      startTime: DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> pause() async {}
+
+  @override
+  Future<void> resume() async {}
+
+  @override
+  Future<Duration> seek(Duration position) async => position;
+
+  @override
+  Future<Duration> fastForward(Duration duration) async => duration;
+
+  @override
+  Future<Duration> rewind(Duration duration) async => duration;
+
+  @override
+  Future<void> stopTimeshift() async {}
+
+  @override
+  bool get isTimeshiftActive => false;
+
+  @override
+  Duration get maxTimeshiftDuration => const Duration(days: 7);
+
+  @override
+  Future<TimeshiftState> getState() async => const TimeshiftState(
+        position: Duration.zero,
+        bufferedDuration: Duration.zero,
+        isPaused: false,
+        isLive: true,
+      );
+
+  @override
+  Future<bool> isServiceSideSupported(String channelId) async => false;
+
+  @override
+  Future<String?> getServiceSideStream(
+    String channelId,
+    Duration startOffset,
+    Duration endOffset,
+  ) async =>
+      null;
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
+
+  @override
+  bool get isClientBufferActive => false;
+
+  @override
+  Future<File?> getBufferedStream(String channelId, Duration offset) async =>
+      null;
+}
+
+// Fake LiveService extending LiveService for testing
+class FakeLiveService extends LiveService {
+  LiveState _state = LiveState.initial();
+
+  FakeLiveService() : super(
+    m3uParser: FakeM3uParser(),
+    epgManager: FakeEpgManager(),
+    timeshiftManager: FakeTimeshiftManager(),
+  );
+
+  @override
+  Future<LiveState> loadChannels(String m3uContent) async {
+    _state = _state.copyWith(status: LiveStatus.loading);
+    // Simple M3U parse for test
+    final lines = m3uContent.split('\n');
+    final channels = <M3uChannel>[];
+    for (var i = 0; i < lines.length - 1; i++) {
+      if (lines[i].contains('#EXTINF')) {
+        final name = lines[i].contains(',') ? lines[i].split(',').last.trim() : 'Unknown';
+        final url = i + 1 < lines.length ? lines[i + 1].trim() : '';
+        if (url.isNotEmpty) {
+          channels.add(M3uChannel(name: name, url: url));
+        }
+      }
+    }
+    _state = _state.copyWith(status: LiveStatus.loaded, channels: channels);
+    return _state;
+  }
+
+  @override
+  Future<LiveState> selectChannel(M3uChannel channel) async {
+    _state = _state.copyWith(currentChannel: channel, status: LiveStatus.loaded);
+    return _state;
+  }
+
+  @override
+  Future<LiveState> startTimeshift(M3uChannel channel, Duration offset) async {
+    _state = _state.copyWith(
+      status: LiveStatus.timeshift,
+      currentChannel: channel,
+      timeshiftPosition: offset,
+    );
+    return _state;
+  }
+
+  @override
+  Future<LiveState> stopTimeshift() async {
+    _state = _state.copyWith(status: LiveStatus.loaded, clearTimeshiftPosition: true);
+    return _state;
+  }
+
+  @override
+  LiveState handleSignalError(String message) {
+    _state = _state.copyWith(isSignalError: true, errorMessage: message);
+    return _state;
+  }
+
+  @override
+  LiveState clearSignalError() {
+    _state = _state.copyWith(isSignalError: false, clearErrorMessage: true);
+    return _state;
+  }
+
+  @override
+  List<M3uChannel> searchChannels(String query) {
+    final queryLower = query.toLowerCase();
+    return _state.channels.where((c) => c.name.toLowerCase().contains(queryLower)).toList();
+  }
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
+}
 
 void main() {
   group('LiveStore', () {
     late ProviderContainer container;
 
     setUp(() {
-      container = ProviderContainer();
+      // Override liveStoreProvider to use fake LiveService directly,
+      // bypassing SettingsStore dependency
+      final fakeService = FakeLiveService();
+      final fakeSettings = const SettingsState();
+      final fakeTimeshiftManager = FakeTimeshiftManager();
+
+      container = ProviderContainer(
+        overrides: [
+          liveStoreProvider.overrideWith(
+            (ref) => LiveStore(fakeService, fakeSettings, fakeTimeshiftManager),
+          ),
+        ],
+      );
     });
 
     tearDown(() {

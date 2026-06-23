@@ -1,69 +1,49 @@
-# Task 6 Report: TabConfig and TabNavigationStore
+# Task 6: getBufferedStream() Implementation Report
 
 ## Status: DONE
 
-## Files Created
+## Commit
+- `73f0f23` - feat: implement getBufferedStream() for timeshift playback
 
-- `lib/features/settings/models/tab_config.dart` - TabConfig data model with id, label, isVisible, order, copyWith
-- `lib/features/settings/stores/tab_navigation_store.dart` - TabNavigationStore with visibility, reorder, and defaults
-- `test/features/settings/stores/tab_navigation_store_test.dart` - 29 tests covering all functionality
+## Test Summary
+All 13 tests passed (12 existing + 1 new).
+
+## TDD Evidence
+
+### RED Phase (Before Implementation)
+```
+test/features/live/domain/repositories/timeshift_manager_test.dart:159:28: Error: The method 'exists' isn't defined for the type 'Future<File?>'.
+lib/features/live/domain/repositories/timeshift_manager.dart:68:7: Error: The non-abstract class 'TimeshiftManagerImpl' is missing implementations for these members:
+ - TimeshiftManager.getBufferedStream
+```
+Test failed to compile - interface method not implemented.
+
+### GREEN Phase (After Implementation)
+```
+00:03 +12: TimeshiftManager startClientBuffer 回看播放從正確位置開始
+00:08 +13: All tests passed!
+```
 
 ## Implementation Details
 
-### TabConfig Model (`lib/features/settings/models/tab_config.dart`)
+### Interface Addition
+Added `Future<File?> getBufferedStream(String channelId, Duration offset)` to `TimeshiftManager`.
 
-Immutable data class for tab configuration:
-- `id` (String) - unique identifier (e.g. 'home', 'categories')
-- `label` (String) - display label in navigation UI
-- `isVisible` (bool, default true) - whether tab is shown in navigation
-- `order` (int, default 0) - sort position; lower values appear first
-- `copyWith()` - immutable copy with field overrides
-- `defaultTabs` constant - 6 standard tabs: 首頁, 分類, 直播, 搜尋, 收藏, 設定
+### Segment Tracking
+- Added `_segments` list (`List<_SegmentMetadata>`) to track segment files with timestamps
+- `_SegmentMetadata` class stores `file` and `startTime`
+- Refactored segment duration to `static const _segmentDuration = Duration(seconds: 30)`
 
-### TabNavigationStore (`lib/features/settings/stores/tab_navigation_store.dart`)
+### getBufferedStream Logic
+1. Returns `null` if buffer not active or channel mismatch
+2. Returns current `_bufferFile` if no segments yet
+3. Iterates segments by comparing target time (now - offset) against segment start/end times
+4. Falls back to last segment if offset beyond tracked range
 
-StateNotifier-based store following project's Riverpod patterns:
-- `visibleTabs` getter - filters hidden tabs and sorts by order
-- `isVisible(String id)` - checks if a tab is currently visible
-- `setVisibility(String id, bool visible)` - shows/hides a specific tab
-- `reorder(int oldIndex, int newIndex)` - moves tab and recalculates all order values
-- `restoreDefaults()` - resets to defaultTabs configuration
+### Cleanup
+- `stopClientBuffer()` now clears `_segments.clear()`
+- `startClientBuffer()` clears segments before starting
 
-### Test Coverage (29 tests)
-
-**TabConfig model tests (5):**
-- Default values, copyWith updates, copyWith preservation, equality, toString
-
-**defaultTabs constant tests (4):**
-- Contains 6 tabs, correct ids in order, all visible, sequential order values
-
-**TabNavigationState tests (3):**
-- visibleTabs filtering and sorting, empty when all hidden, copyWith
-
-**TabNavigationStore tests (15):**
-- Initialization with defaults
-- isVisible: true for visible, false for unknown, false after hiding
-- setVisibility: hide, show, no-op on unknown, no side effects
-- reorder: move tab, recalculate orders, invalid bounds handling, data preservation
-- restoreDefaults: full reset, order restoration
-
-**Provider tests (2):**
-- ProviderContainer access, state update reflection
-
-## Test Results
-
-```
-00:00 +0: loading tab_navigation_store_test.dart
-00:01 +29: All tests passed!
-```
-
-## Static Analysis
-
-```
-Analyzing 3 items...
-No issues found!
-```
-
-## Commits
-
-- `feat(settings): add TabConfig and TabNavigationStore`
+## Files Modified
+- `lib/features/live/domain/repositories/timeshift_manager.dart` - interface + implementation
+- `test/features/live/domain/repositories/timeshift_manager_test.dart` - new test

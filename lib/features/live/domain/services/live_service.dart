@@ -99,6 +99,14 @@ class LiveService {
     return _state;
   }
 
+  Future<void> startClientBuffer(String channelId, Duration duration) async {
+    await timeshiftManager.startClientBuffer(channelId, duration);
+  }
+
+  Future<void> stopClientBuffer() async {
+    await timeshiftManager.stopClientBuffer();
+  }
+
   LiveState handleSignalError(String message) {
     _state = _state.copyWith(isSignalError: true, errorMessage: message);
     return _state;
