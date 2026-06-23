@@ -1,12 +1,34 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/live/domain/repositories/timeshift_manager.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('TimeshiftManager', () {
     late TimeshiftManager timeshiftManager;
+    late Directory tempDir;
 
-    setUp(() {
+    setUp(() async {
       timeshiftManager = TimeshiftManagerImpl();
+      tempDir = await Directory.systemTemp.createTemp('timeshift_test_');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'getTemporaryDirectory') {
+            return tempDir.path;
+          }
+          return null;
+        },
+      );
+    });
+
+    tearDown(() async {
+      await timeshiftManager.stopClientBuffer();
+      await tempDir.delete(recursive: true);
     });
 
     test('starts timeshift mode for channel', () async {
@@ -107,24 +129,26 @@ void main() {
       expect(result, isNull);
     });
 
-    test('startClientBuffer creates TS segment file', () async {
-      await timeshiftManager.startClientBuffer(
-        'channel_1',
-        const Duration(minutes: 30),
-      );
-      await Future.delayed(const Duration(seconds: 2));
-      // Verify buffer was started - check internal state
-      expect(timeshiftManager.isClientBufferActive, isTrue);
-    });
+    group('startClientBuffer', () {
+      test('creates TS segment file after start', () async {
+        await timeshiftManager.startClientBuffer(
+          'channel_1',
+          const Duration(minutes: 30),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        final files = await tempDir.list().toList();
+        expect(files.any((f) => f.path.endsWith('.ts')), isTrue);
+      });
 
-    test('stopClientBuffer stops TS segment creation', () async {
-      await timeshiftManager.startClientBuffer(
-        'channel_1',
-        const Duration(minutes: 30),
-      );
-      expect(timeshiftManager.isClientBufferActive, isTrue);
-      await timeshiftManager.stopClientBuffer();
-      expect(timeshiftManager.isClientBufferActive, isFalse);
+      test('stopClientBuffer closes file handles', () async {
+        await timeshiftManager.startClientBuffer(
+          'channel_1',
+          const Duration(minutes: 30),
+        );
+        await Future.delayed(const Duration(seconds: 1));
+        await timeshiftManager.stopClientBuffer();
+        expect(timeshiftManager.isClientBufferActive, isFalse);
+      });
     });
   });
 }

@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:async';
+import 'package:path_provider/path_provider.dart';
+
 abstract interface class TimeshiftManager {
   const TimeshiftManager();
 
@@ -64,7 +68,14 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   TimeshiftState? _state;
   bool _isClientBufferActive = false;
 
-  static const _maxDuration = Duration(days: 7);
+  File? _bufferFile;
+  IOSink? _bufferSink;
+  Timer? _segmentTimer;
+  String? _currentChannelId;
+  Duration? _maxDuration;
+  DateTime? _recordingStartTime;
+
+  static const _maxTimeshiftDuration = Duration(days: 7);
 
   TimeshiftManagerImpl();
 
@@ -101,7 +112,7 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   Future<Duration> seek(Duration position) async {
     final clampedPosition = position.isNegative
         ? Duration.zero
-        : (position > _maxDuration ? _maxDuration : position);
+        : (position > _maxTimeshiftDuration ? _maxTimeshiftDuration : position);
     _state = _state?.copyWith(position: clampedPosition, isLive: false);
     return clampedPosition;
   }
@@ -130,7 +141,7 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   bool get isTimeshiftActive => _controller != null;
 
   @override
-  Duration get maxTimeshiftDuration => _maxDuration;
+  Duration get maxTimeshiftDuration => _maxTimeshiftDuration;
 
   @override
   Future<TimeshiftState> getState() async {
@@ -158,11 +169,57 @@ class TimeshiftManagerImpl implements TimeshiftManager {
 
   @override
   Future<void> startClientBuffer(String channelId, Duration duration) async {
+    _currentChannelId = channelId;
+    _maxDuration = duration;
+    _recordingStartTime = DateTime.now();
     _isClientBufferActive = true;
+
+    final tempDir = await getTemporaryDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    _bufferFile = File('${tempDir.path}/timeshift_${channelId}_$timestamp.ts');
+    _bufferSink = _bufferFile!.openWrite();
+
+    _segmentTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _createNewSegment(channelId, duration);
+    });
+  }
+
+  Future<void> _createNewSegment(String channelId, Duration maxDuration) async {
+    await _bufferSink?.close();
+
+    final tempDir = await getTemporaryDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    _bufferFile = File('${tempDir.path}/timeshift_${channelId}_$timestamp.ts');
+    _bufferSink = _bufferFile!.openWrite();
+
+    await _cleanupOldSegments(channelId, maxDuration);
+  }
+
+  Future<void> _cleanupOldSegments(String channelId, Duration maxDuration) async {
+    final tempDir = await getTemporaryDirectory();
+    final now = DateTime.now();
+    final cutoffTime = now.subtract(maxDuration);
+
+    await for (final entity in tempDir.list()) {
+      if (entity is File && entity.path.contains('timeshift_$channelId')) {
+        final stat = await entity.stat();
+        if (stat.modified.isBefore(cutoffTime)) {
+          await entity.delete();
+        }
+      }
+    }
   }
 
   @override
   Future<void> stopClientBuffer() async {
+    _segmentTimer?.cancel();
+    _segmentTimer = null;
+    await _bufferSink?.close();
+    _bufferSink = null;
+    _bufferFile = null;
+    _currentChannelId = null;
+    _maxDuration = null;
+    _recordingStartTime = null;
     _isClientBufferActive = false;
   }
 
