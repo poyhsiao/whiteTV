@@ -11,6 +11,8 @@ import 'package:white_tv/features/recommend/presentation/widgets/recommendation_
 import 'package:white_tv/shared/widgets/poster_card.dart';
 import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/shared/widgets/skeleton_loader.dart';
+import 'package:white_tv/features/youtube/presentation/providers/youtube_store.dart';
+import 'package:white_tv/features/youtube/presentation/widgets/youtube_section.dart';
 
 /// 首頁
 /// 參照: docs/spec/UI_UX.md Section 3
@@ -29,6 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Future.microtask(() {
       ref.read(homeStoreProvider.notifier).loadHome();
       ref.read(homeStoreProvider.notifier).loadAIRecommendations();
+      ref.read(youtubeStoreProvider.notifier).loadRecommend();
     });
   }
 
@@ -91,6 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTap: (record) => _navigateToDetail(record.videoId),
               showProgress: true,
             ),
+          _buildYoutubeSection(),
           if (showLive)
             _buildLiveEntrySection(isTV: true),
           if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
@@ -270,6 +274,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildYoutubeSection() {
+    final youtubeState = ref.watch(youtubeStoreProvider);
+
+    if (youtubeState.recommendVideos.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return YoutubeSection(videos: youtubeState.recommendVideos);
   }
 
   void _navigateToDetail(String videoId) {

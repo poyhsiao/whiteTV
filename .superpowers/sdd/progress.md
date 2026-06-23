@@ -10,8 +10,8 @@
 - [x] Task 7: LiveStore 整合 (3b92f8b, review clean)
 - [x] Task 8: Timeshift BDD E2E (c932aa4, review clean)
 - [x] Task 9: YouTube 模型 (82bae74, review clean)
-- [ ] Task 10: ApiClient YouTube
-- [ ] Task 11: YoutubeStore
+- [x] Task 10: ApiClient YouTube (2e9b473, review clean)
+- [x] Task 11: YoutubeStore (87b4033, review clean)
 - [ ] Task 12: 首頁 YouTube 專區
 - [ ] Task 13: 分類頁 YouTube
 - [ ] Task 14: YouTube 播放整合
