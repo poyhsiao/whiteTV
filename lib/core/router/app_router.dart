@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/category/category_screen.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
@@ -92,6 +93,20 @@ final _routeList = <GoRoute>[
     builder: (context, state) {
       final id = state.pathParameters['id']!;
       return CategoryScreen(categoryId: id);
+    },
+  ),
+  // TODO(Task14): Replace with full YouTube player screen
+  GoRoute(
+    path: '/youtube/:id',
+    name: 'youtube-player',
+    builder: (context, state) {
+      final videoId = state.pathParameters['id']!;
+      return Scaffold(
+        appBar: AppBar(title: const Text('YouTube')),
+        body: Center(
+          child: Text('YouTube video: $videoId (placeholder)'),
+        ),
+      );
     },
   ),
 ];
