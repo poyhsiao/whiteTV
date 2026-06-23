@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
-import 'package:white_tv/core/api/models.dart';
+import 'package:white_tv/core/api/models.dart' hide YoutubeVideo;
+import 'package:white_tv/features/youtube/domain/models/youtube_video.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/core/source/source_selector_provider.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
@@ -128,51 +129,73 @@ class PlayerStore extends StateNotifier<PlayerState> {
     _autoSaveTimer = null;
   }
 
-  Future<void> setVideo(String videoId, String episodeId) async {
-    try {
-      // Check local cache first
-      if (_downloadService != null) {
-        final isDownloaded = await _downloadService.isDownloaded(videoId);
-        if (isDownloaded) {
-          final localPath = await _downloadService.getLocalPath(videoId);
-          if (localPath != null) {
-            state = state.copyWith(
-              videoId: videoId,
-              episodeId: episodeId,
-              source: VideoSource(
-                id: 'local_$videoId',
-                url: 'file://$localPath',
-                name: 'local',
-              ),
-              currentPosition: Duration.zero,
-              error: null,
-              autoSwitchCount: 0,
-            );
-            return;
-          }
+  /// YouTube 影片播放
+///
+/// [video] - YouTubeVideo 包含 id, title, thumbnail, streamUrl
+Future<void> playYoutubeVideo(YoutubeVideo video) async {
+  await setVideo(
+    video.id,
+    video.id,
+    title: video.title,
+    thumbnail: video.thumbnail,
+    sources: [VideoSource(id: 'youtube', url: video.url, name: 'YouTube')],
+    autoSelectSource: false,
+  );
+}
+
+Future<void> setVideo(
+  String videoId,
+  String episodeId, {
+  String? title,
+  String? thumbnail,
+  List<VideoSource>? sources,
+  bool autoSelectSource = true,
+}) async {
+  try {
+    // Check local cache first (skip for YouTube - no local playback)
+    if (sources == null && _downloadService != null) {
+      final isDownloaded = await _downloadService.isDownloaded(videoId);
+      if (isDownloaded) {
+        final localPath = await _downloadService.getLocalPath(videoId);
+        if (localPath != null) {
+          state = state.copyWith(
+            videoId: videoId,
+            episodeId: episodeId,
+            source: VideoSource(
+              id: 'local_$videoId',
+              url: 'file://$localPath',
+              name: 'local',
+            ),
+            currentPosition: Duration.zero,
+            error: null,
+            autoSwitchCount: 0,
+          );
+          return;
         }
       }
-
-      // Fall back to online sources - 使用 SourceSelector 選擇來源
-      final sources = await _apiClient.getSources(videoId);
-      final fastestSource = await _sourceSelector.selectSource(
-        sources,
-        videoId,
-      );
-      _lastKnownSources = sources;
-
-      state = state.copyWith(
-        videoId: videoId,
-        episodeId: episodeId,
-        source: fastestSource,
-        currentPosition: Duration.zero,
-        error: null,
-        autoSwitchCount: 0,
-      );
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
     }
+
+    // Use provided sources (YouTube) or fetch from API
+    final videoSources = sources ?? await _apiClient.getSources(videoId);
+    _lastKnownSources = videoSources;
+
+    // Auto-select fastest source if enabled
+    final selectedSource = autoSelectSource
+        ? await _sourceSelector.selectSource(videoSources, videoId)
+        : videoSources.first;
+
+    state = state.copyWith(
+      videoId: videoId,
+      episodeId: episodeId,
+      source: selectedSource,
+      currentPosition: Duration.zero,
+      error: null,
+      autoSwitchCount: 0,
+    );
+  } catch (e) {
+    state = state.copyWith(error: e.toString());
   }
+}
 
   void play() {
     state = state.copyWith(isPlaying: true);
