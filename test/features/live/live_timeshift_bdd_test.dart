@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
@@ -123,6 +124,13 @@ class MockTimeshiftManager implements TimeshiftManager {
   TimeshiftState? _state;
   bool serviceSideSupported = false;
   String? serviceSideStreamUrl;
+  bool _isClientBufferActive = false;
+
+  @override
+  bool get isClientBufferActive => _isClientBufferActive;
+
+  @override
+  Future<File?> getBufferedStream(String channelId, Duration offset) async => null;
 
   @override
   Future<TimeshiftController> startTimeshift({
