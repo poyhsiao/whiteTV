@@ -13,6 +13,7 @@ class FakeSettingsStorageService implements SettingsStorageService {
   List<String> _blockedSources = [];
   Map<String, bool> _homeBlocks = {};
   List<String> _tabOrder = [];
+  int _timeshiftBufferDuration = 30;
 
   @override
   Future<void> saveLunaTVUrl(String url) async => _lunaTVUrl = url;
@@ -86,6 +87,14 @@ class FakeSettingsStorageService implements SettingsStorageService {
 
   @override
   Future<void> clearAuthCookie() async {}
+
+  @override
+  Future<int> getTimeshiftBufferDuration() async => _timeshiftBufferDuration;
+
+  @override
+  Future<void> saveTimeshiftBufferDuration(int minutes) async {
+    _timeshiftBufferDuration = minutes;
+  }
 }
 
 void main() {
@@ -99,6 +108,7 @@ void main() {
       expect(state.blockedSources, isEmpty);
       expect(state.homeBlocks, isEmpty);
       expect(state.tabOrder, isEmpty);
+      expect(state.timeshiftBufferDuration, 30);
     });
 
     test('copyWith creates new instance with updated values', () {
@@ -142,6 +152,7 @@ void main() {
       storage._blockedSources = ['source1', 'source2'];
       storage._homeBlocks = {'showRecentWatch': false};
       storage._tabOrder = ['live', 'home'];
+      storage._timeshiftBufferDuration = 60;
 
       final newStore = SettingsStore(storage);
       await Future.delayed(Duration.zero);
@@ -154,6 +165,7 @@ void main() {
       expect(newStore.state.blockedSources, ['source1', 'source2']);
       expect(newStore.state.homeBlocks, {'showRecentWatch': false});
       expect(newStore.state.tabOrder, ['live', 'home']);
+      expect(newStore.state.timeshiftBufferDuration, 60);
     });
 
     test('updateLunaTVUrl updates state and storage', () async {
@@ -205,6 +217,17 @@ void main() {
       final order = ['search', 'home', 'live'];
       await store.updateTabOrder(order);
       expect(store.state.tabOrder, order);
+    });
+
+    test('timeshiftBufferDuration defaults to 30 minutes', () {
+      final s = SettingsStore(FakeSettingsStorageService());
+      expect(s.state.timeshiftBufferDuration, 30);
+    });
+
+    test('updateTimeshiftBufferDuration updates state and storage', () async {
+      await store.updateTimeshiftBufferDuration(60);
+      expect(store.state.timeshiftBufferDuration, 60);
+      expect(storage._timeshiftBufferDuration, 60);
     });
   });
 

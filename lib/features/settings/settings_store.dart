@@ -11,6 +11,7 @@ class SettingsState {
   final List<String> blockedSources;
   final Map<String, bool> homeBlocks;
   final List<String> tabOrder;
+  final int timeshiftBufferDuration;
 
   const SettingsState({
     this.lunaTVUrl,
@@ -21,6 +22,7 @@ class SettingsState {
     this.blockedSources = const [],
     this.homeBlocks = const {},
     this.tabOrder = const [],
+    this.timeshiftBufferDuration = 30,
   });
 
   SettingsState copyWith({
@@ -32,6 +34,7 @@ class SettingsState {
     List<String>? blockedSources,
     Map<String, bool>? homeBlocks,
     List<String>? tabOrder,
+    int? timeshiftBufferDuration,
   }) {
     return SettingsState(
       lunaTVUrl: lunaTVUrl ?? this.lunaTVUrl,
@@ -42,6 +45,7 @@ class SettingsState {
       blockedSources: blockedSources ?? this.blockedSources,
       homeBlocks: homeBlocks ?? this.homeBlocks,
       tabOrder: tabOrder ?? this.tabOrder,
+      timeshiftBufferDuration: timeshiftBufferDuration ?? this.timeshiftBufferDuration,
     );
   }
 
@@ -73,6 +77,7 @@ class SettingsStore extends StateNotifier<SettingsState> {
     final blockedSources = await _storage.getBlockedSources();
     final homeBlocks = await _storage.getHomeBlocks();
     final tabOrder = await _storage.getTabOrder();
+    final timeshiftBufferDuration = await _storage.getTimeshiftBufferDuration();
 
     state = state.copyWith(
       lunaTVUrl: lunaTVUrl,
@@ -83,6 +88,7 @@ class SettingsStore extends StateNotifier<SettingsState> {
       blockedSources: blockedSources,
       homeBlocks: homeBlocks,
       tabOrder: tabOrder,
+      timeshiftBufferDuration: timeshiftBufferDuration,
     );
   }
 
@@ -130,6 +136,11 @@ class SettingsStore extends StateNotifier<SettingsState> {
   Future<void> updateTabOrder(List<String> order) async {
     await _storage.saveTabOrder(order);
     state = state.copyWith(tabOrder: order);
+  }
+
+  Future<void> updateTimeshiftBufferDuration(int minutes) async {
+    await _storage.saveTimeshiftBufferDuration(minutes);
+    state = state.copyWith(timeshiftBufferDuration: minutes);
   }
 }
 

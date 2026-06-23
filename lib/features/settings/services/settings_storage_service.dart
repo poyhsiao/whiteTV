@@ -12,6 +12,7 @@ class SettingsStorageService {
   static const _usernameKey = 'username';
   static const _authCookieKey = 'auth_cookie';
   static const _onboardingCompleteKey = 'onboarding_complete';
+  static const _timeshiftBufferDurationKey = 'timeshift_buffer_duration';
 
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
@@ -133,5 +134,14 @@ class SettingsStorageService {
 
   Future<bool> getOnboardingComplete() async {
     return _prefs.getBool(_onboardingCompleteKey) ?? false;
+  }
+
+  // Timeshift Buffer Duration
+  Future<void> saveTimeshiftBufferDuration(int minutes) async {
+    await _prefs.setInt(_timeshiftBufferDurationKey, minutes);
+  }
+
+  Future<int> getTimeshiftBufferDuration() async {
+    return _prefs.getInt(_timeshiftBufferDurationKey) ?? 30;
   }
 }
