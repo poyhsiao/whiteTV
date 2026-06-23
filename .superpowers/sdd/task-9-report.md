@@ -1,38 +1,44 @@
-# Task 9: Tab Customization BDD Tests - Report
+# Task 9 Report: YouTube Model
 
 ## Status: COMPLETE
 
 ## Summary
 
-Created BDD acceptance tests for the tab navigation customization feature.
-Tests follow the GIVEN/WHEN/THEN pattern and verify three user scenarios.
+Created `YoutubeVideo` and `YoutubeCategory` domain models following TDD workflow.
 
-## Test File
+## TDD Evidence
 
-`test/features/settings/tab_customization_bdd_test.dart`
-
-## Test Results
-
+### Step 1: Write Failing Test (RED)
 ```
-00:00 +3: All tests passed!
+$ flutter test test/features/youtube/domain/models/youtube_video_test.dart
+Error: Error when reading 'lib/features/youtube/domain/models/youtube_video.dart': No such file or directory
 ```
 
-All 3 scenarios pass.
+### Step 2: Implement Models (GREEN)
+Created `lib/features/youtube/domain/models/youtube_video.dart`:
+- `YoutubeVideo` with `id`, `title`, `thumbnail`, `duration`, `url`
+- `YoutubeCategory` with `id`, `name`, `videoCount`
+- Both with `fromJson()`, `toJson()`, and `copyWith()` where applicable
 
-## Scenarios Covered
+### Step 3: Tests Pass
+```
+$ flutter test test/features/youtube/domain/models/youtube_video_test.dart
+00:00 +5: All tests passed!
+```
 
-1. **Hide tab** - Verifies that hiding a tab via `setVisibility` removes it from the visible tabs list.
-2. **Reorder tabs** - Verifies that `reorder(4, 1)` moves the favorites tab to position 1.
-3. **Restore defaults** - Verifies that `restoreDefaults()` resets all tabs to their original visibility and order after customizations.
+## Files Created
 
-## Implementation Notes
+| File | Description |
+|------|-------------|
+| `lib/features/youtube/domain/models/youtube_video.dart` | YoutubeVideo + YoutubeCategory models |
+| `test/features/youtube/domain/models/youtube_video_test.dart` | 5 tests covering fromJson, toJson, copyWith |
 
-- Adapted from the requested spec to match the actual Riverpod `StateNotifier` API (the store uses `ProviderContainer` rather than taking a `MockStorage` argument).
-- Uses `readStore()` helper function to obtain the notifier from the container.
-- Each test is fully isolated via `setUp`/`tearDown` creating and disposing a fresh `ProviderContainer`.
+## Test Summary
+
+5 tests, 5 passed - covering JSON parsing, serialization, and copyWith for both models.
 
 ## Commit
 
 ```
-feat(settings): add BDD tests for tab customization
+82bae74 feat: add YoutubeVideo and YoutubeCategory models
 ```

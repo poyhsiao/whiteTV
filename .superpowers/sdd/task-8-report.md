@@ -1,37 +1,47 @@
-# Task 8: SettingsScreen Integration — Report
+# Task 8 Report: Timeshift BDD E2E Tests
 
-## Status: Completed
+## Status: DONE
 
-## Changes
+## Commits
 
-### `lib/features/settings/settings_screen.dart`
-- Added import for `reorderable_tab_list.dart`
-- Changed `TabController(length: 5, ...)` to `TabController(length: 6, ...)`
-- Added `Tab(text: 'Tab 設定')` as 6th tab in TabBar
-- Added `ReorderableTabList()` as 6th child in TabBarView
+- `c932aa4` — test: add buffer full scenario to timeshift BDD tests
 
-### `test/features/settings/settings_screen_test.dart`
-- Updated all 3 test descriptions from "4 tabs" to "6 tabs"
-- Added `expect(find.text('首頁區塊'), findsOneWidget)` and `expect(find.text('Tab 設定'), findsOneWidget)` assertions
-- Updated `tabBar.tabs.length` assertion from 4 to 6
+## Test Summary
+
+**20/20 tests passed** — All timeshift BDD scenarios pass including the new buffer full coverage.
+
+## What Was Done
+
+### Problem
+`MockTimeshiftManager` never set `isClientBufferActive = true` or returned buffered content — the "buffer full" scenario was uncovered.
+
+### Changes to `test/features/live/live_timeshift_bdd_test.dart`
+
+1. **Added `enableClientBuffer()` helper** to `MockTimeshiftManager`:
+   - Sets `_isClientBufferActive = true`
+   - Stores `_bufferedDuration` and `_maxDuration`
+   - Initializes `_state` with the buffered duration
+
+2. **Fixed `startTimeshift()`** to preserve buffer state when buffer is already active — previously it always reset `_state` to `bufferedDuration: Duration.zero`, losing buffer info.
+
+3. **Fixed `getBufferedStream()`** to return a non-null `File` when buffer is active (previously always returned `null`).
+
+4. **Added 3 new tests** in `Scenario: Buffer is full, old content evicted` group:
+   - `GIVEN client buffer is active with old segments WHEN user seeks beyond oldest buffered segment THEN timeline stops at the oldest available segment` — verifies `bufferedDuration` is preserved (30 min) when seek exceeds range
+   - `GIVEN client buffer is inactive WHEN getBufferedStream is called THEN null is returned` — verifies null safety
+   - `GIVEN client buffer is active WHEN getBufferedStream is called with valid offset THEN a buffered stream file is returned` — verifies buffer provides content
 
 ## Test Results
 
-All tests pass (all skipped via `skip: true` as pre-existing):
-
 ```
-00:00 +0 ~3: All tests skipped.
+00:00 +20: All tests passed!
 ```
 
-No compile errors from `flutter analyze`.
+## All Scenarios Covered
 
-## Commit
-
-```
-886c75d feat: integrate ReorderableTabList into SettingsScreen
-```
-
-## Files Modified
-
-1. `lib/features/settings/settings_screen.dart`
-2. `test/features/settings/settings_screen_test.dart`
+- Timeshift activation and seeking
+- Server-side unsupported fallback to client buffer
+- Return to live stream
+- **Buffer full / old content evicted (NEW)**
+- State transitions
+- Chinese BDD acceptance scenarios

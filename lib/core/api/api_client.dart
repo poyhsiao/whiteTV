@@ -59,4 +59,13 @@ abstract class ApiClient {
     List<String>? searchHistory,
     int limit = 20,
   });
+
+  /// YouTube 推薦影片
+  Future<List<YoutubeVideo>> getYoutubeRecommend();
+
+  /// YouTube 分類影片列表
+  Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page});
+
+  /// YouTube 分類列表
+  Future<List<YoutubeCategory>> getYoutubeCategories();
 }

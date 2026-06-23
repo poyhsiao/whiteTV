@@ -160,3 +160,55 @@ class PlaybackError {
 
   const PlaybackError({required this.message, this.isTimeout = false});
 }
+
+class YoutubeVideo {
+  final String id;
+  final String title;
+  final String? thumbnailUrl;
+  final String? channelTitle;
+  final String? duration;
+  final int? viewCount;
+  final String? publishedAt;
+
+  const YoutubeVideo({
+    required this.id,
+    required this.title,
+    this.thumbnailUrl,
+    this.channelTitle,
+    this.duration,
+    this.viewCount,
+    this.publishedAt,
+  });
+
+  factory YoutubeVideo.fromJson(Map<String, dynamic> json) {
+    return YoutubeVideo(
+      id: json['video_id'] as String? ?? json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      thumbnailUrl: json['thumbnail_url'] as String?,
+      channelTitle: json['channel_title'] as String?,
+      duration: json['duration'] as String?,
+      viewCount: json['view_count'] as int?,
+      publishedAt: json['published_at'] as String?,
+    );
+  }
+}
+
+class YoutubeCategory {
+  final String id;
+  final String name;
+  final String? thumbnailUrl;
+
+  const YoutubeCategory({
+    required this.id,
+    required this.name,
+    this.thumbnailUrl,
+  });
+
+  factory YoutubeCategory.fromJson(Map<String, dynamic> json) {
+    return YoutubeCategory(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      thumbnailUrl: json['thumbnail_url'] as String?,
+    );
+  }
+}

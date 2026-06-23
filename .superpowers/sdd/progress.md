@@ -7,9 +7,9 @@
 - [x] Task 4: stopClientBuffer() (fcbb5e8..242e57a, absorbed into Task 3)
 - [x] Task 5: 緩衝上限淘汰 (242e57a, review clean)
 - [x] Task 6: getBufferedStream() (73f0f23, review clean)
-- [ ] Task 7: LiveStore 整合
-- [ ] Task 8: Timeshift BDD E2E
-- [ ] Task 9: YouTube 模型
+- [x] Task 7: LiveStore 整合 (3b92f8b, review clean)
+- [x] Task 8: Timeshift BDD E2E (c932aa4, review clean)
+- [x] Task 9: YouTube 模型 (82bae74, review clean)
 - [ ] Task 10: ApiClient YouTube
 - [ ] Task 11: YoutubeStore
 - [ ] Task 12: 首頁 YouTube 專區

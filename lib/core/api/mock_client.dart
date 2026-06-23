@@ -300,4 +300,62 @@ https://example.com/ch2.m3u8
       ),
     ];
   }
+
+  // YouTube Mock Data
+  final List<YoutubeVideo> _mockYoutubeVideos = const [
+    YoutubeVideo(
+      id: 'yt-1',
+      title: '熱門影片 1',
+      thumbnailUrl: 'https://picsum.photos/seed/yt1/320/180',
+      channelTitle: '頻道 A',
+      duration: '10:30',
+      viewCount: 100000,
+      publishedAt: '2024-01-15',
+    ),
+    YoutubeVideo(
+      id: 'yt-2',
+      title: '熱門影片 2',
+      thumbnailUrl: 'https://picsum.photos/seed/yt2/320/180',
+      channelTitle: '頻道 B',
+      duration: '15:45',
+      viewCount: 50000,
+      publishedAt: '2024-01-14',
+    ),
+    YoutubeVideo(
+      id: 'yt-3',
+      title: '熱門影片 3',
+      thumbnailUrl: 'https://picsum.photos/seed/yt3/320/180',
+      channelTitle: '頻道 C',
+      duration: '8:20',
+      viewCount: 75000,
+      publishedAt: '2024-01-13',
+    ),
+  ];
+
+  final List<YoutubeCategory> _mockYoutubeCategories = const [
+    YoutubeCategory(id: 'music', name: '音樂', thumbnailUrl: 'https://picsum.photos/seed/ytcat1/320/180'),
+    YoutubeCategory(id: 'gaming', name: '遊戲', thumbnailUrl: 'https://picsum.photos/seed/ytcat2/320/180'),
+    YoutubeCategory(id: 'entertainment', name: '娛樂', thumbnailUrl: 'https://picsum.photos/seed/ytcat3/320/180'),
+    YoutubeCategory(id: 'tech', name: '科技', thumbnailUrl: 'https://picsum.photos/seed/ytcat4/320/180'),
+  ];
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeRecommend() async {
+    await Future.delayed(_delay);
+    return _mockYoutubeVideos;
+  }
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page}) async {
+    await Future.delayed(_delay);
+    return _mockYoutubeVideos
+        .where((v) => v.id.hashCode % 2 == categoryId.hashCode % 2)
+        .toList();
+  }
+
+  @override
+  Future<List<YoutubeCategory>> getYoutubeCategories() async {
+    await Future.delayed(_delay);
+    return _mockYoutubeCategories;
+  }
 }

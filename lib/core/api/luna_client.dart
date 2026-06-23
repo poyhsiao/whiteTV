@@ -252,4 +252,52 @@ class LunaClient implements ApiClient {
       return [];
     }
   }
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeRecommend() async {
+    try {
+      final response = await _dio.get('/api/youtube/recommend');
+      final data = response.data as Map<String, dynamic>;
+      return (data['videos'] as List?)
+              ?.map((v) => YoutubeVideo.fromJson(v as Map<String, dynamic>))
+              .toList() ??
+          [];
+    } on DioException {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page}) async {
+    try {
+      final response = await _dio.get(
+        '/api/youtube/list',
+        queryParameters: {
+          'category': categoryId,
+          if (page != null) 'page': page,
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      return (data['videos'] as List?)
+              ?.map((v) => YoutubeVideo.fromJson(v as Map<String, dynamic>))
+              .toList() ??
+          [];
+    } on DioException {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<YoutubeCategory>> getYoutubeCategories() async {
+    try {
+      final response = await _dio.get('/api/youtube/categories');
+      final data = response.data as Map<String, dynamic>;
+      return (data['categories'] as List?)
+              ?.map((c) => YoutubeCategory.fromJson(c as Map<String, dynamic>))
+              .toList() ??
+          [];
+    } on DioException {
+      return [];
+    }
+  }
 }
