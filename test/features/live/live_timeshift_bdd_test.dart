@@ -125,12 +125,35 @@ class MockTimeshiftManager implements TimeshiftManager {
   bool serviceSideSupported = false;
   String? serviceSideStreamUrl;
   bool _isClientBufferActive = false;
+  Duration _bufferedDuration = Duration.zero;
+  Duration _maxDuration = const Duration(days: 7);
+  File? _bufferedFile;
+
+  /// Enable client buffer simulation with buffered content.
+  void enableClientBuffer({
+    Duration bufferedDuration = const Duration(minutes: 30),
+    Duration maxDuration = const Duration(minutes: 60),
+  }) {
+    _isClientBufferActive = true;
+    _bufferedDuration = bufferedDuration;
+    _maxDuration = maxDuration;
+    _state = TimeshiftState(
+      position: Duration.zero,
+      bufferedDuration: bufferedDuration,
+      isPaused: false,
+      isLive: true,
+    );
+  }
 
   @override
   bool get isClientBufferActive => _isClientBufferActive;
 
   @override
-  Future<File?> getBufferedStream(String channelId, Duration offset) async => null;
+  Future<File?> getBufferedStream(String channelId, Duration offset) async {
+    if (!_isClientBufferActive) return null;
+    // Return a non-null file to simulate buffered content is available
+    return _bufferedFile ?? File('/mock/buffered_stream.m3u8');
+  }
 
   @override
   Future<TimeshiftController> startTimeshift({
@@ -142,12 +165,22 @@ class MockTimeshiftManager implements TimeshiftManager {
       streamUrl: streamUrl,
       startTime: DateTime.now(),
     );
-    _state = const TimeshiftState(
-      position: Duration.zero,
-      bufferedDuration: Duration.zero,
-      isPaused: false,
-      isLive: true,
-    );
+    // Preserve existing buffer state if client buffer already active
+    if (_isClientBufferActive) {
+      _state = TimeshiftState(
+        position: Duration.zero,
+        bufferedDuration: _bufferedDuration,
+        isPaused: false,
+        isLive: true,
+      );
+    } else {
+      _state = const TimeshiftState(
+        position: Duration.zero,
+        bufferedDuration: Duration.zero,
+        isPaused: false,
+        isLive: true,
+      );
+    }
     return _controller!;
   }
 
@@ -489,6 +522,77 @@ void main() {
           // Assert
           expect(state.status, LiveStatus.loaded);
           expect(state.timeshiftPosition, isNull);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Scenario: Buffer full — old content evicted
+    // -------------------------------------------------------------------------
+    group('Scenario: Buffer is full, old content evicted', () {
+      test(
+        'GIVEN client buffer is active with old segments '
+        'WHEN user seeks beyond oldest buffered segment '
+        'THEN timeline stops at the oldest available segment',
+        () async {
+          // Arrange — buffer has 30 minutes of content (max 60 min)
+          final manager = MockTimeshiftManager();
+          manager.enableClientBuffer(
+            bufferedDuration: const Duration(minutes: 30),
+            maxDuration: const Duration(minutes: 60),
+          );
+          final service = _createService(timeshiftManager: manager);
+          await service.startTimeshift(_testChannel, Duration.zero);
+
+          // Act — seek beyond buffer range (45 minutes back, but only 30 buffered)
+          final seekToOffset = const Duration(minutes: -45);
+          final state = await service.startTimeshift(_testChannel, seekToOffset);
+
+          // Assert — manager clamped to oldest available (30 min)
+          expect(manager.isClientBufferActive, true);
+          final tsState = await manager.getState();
+          expect(tsState.bufferedDuration, const Duration(minutes: 30));
+        },
+      );
+
+      test(
+        'GIVEN client buffer is inactive '
+        'WHEN getBufferedStream is called '
+        'THEN null is returned (no buffer to read from)',
+        () async {
+          // Arrange — buffer is not active
+          final manager = MockTimeshiftManager();
+          // _isClientBufferActive is false by default
+
+          // Act
+          final file = await manager.getBufferedStream('ch-test', const Duration(minutes: -10));
+
+          // Assert
+          expect(file, isNull);
+          expect(manager.isClientBufferActive, false);
+        },
+      );
+
+      test(
+        'GIVEN client buffer is active '
+        'WHEN getBufferedStream is called with valid offset '
+        'THEN a buffered stream file is returned',
+        () async {
+          // Arrange — buffer active with content
+          final manager = MockTimeshiftManager();
+          manager.enableClientBuffer(
+            bufferedDuration: const Duration(minutes: 30),
+          );
+
+          // Act
+          final file = await manager.getBufferedStream(
+            'ch-test',
+            const Duration(minutes: -10),
+          );
+
+          // Assert
+          expect(file, isNotNull);
+          expect(manager.isClientBufferActive, true);
         },
       );
     });
