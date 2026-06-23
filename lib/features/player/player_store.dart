@@ -130,20 +130,20 @@ class PlayerStore extends StateNotifier<PlayerState> {
   }
 
   /// YouTube 影片播放
-///
-/// [video] - YouTubeVideo 包含 id, title, thumbnail, streamUrl
-Future<void> playYoutubeVideo(YoutubeVideo video) async {
-  await setVideo(
-    video.id,
-    video.id,
-    title: video.title,
-    thumbnail: video.thumbnail,
-    sources: [VideoSource(id: 'youtube', url: video.url, name: 'YouTube')],
-    autoSelectSource: false,
-  );
-}
+  ///
+  /// [video] - YouTubeVideo 包含 id, title, thumbnail, streamUrl
+  Future<void> playYoutubeVideo(YoutubeVideo video) async {
+    await setVideo(
+      video.id,
+      video.id,
+      title: video.title,
+      thumbnail: video.thumbnail,
+      sources: [VideoSource(id: 'youtube', url: video.url, name: 'YouTube')],
+      autoSelectSource: false,
+    );
+  }
 
-Future<void> setVideo(
+  Future<void> setVideo(
   String videoId,
   String episodeId, {
   String? title,
