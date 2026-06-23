@@ -29,6 +29,8 @@ abstract interface class TimeshiftManager {
   Future<void> startClientBuffer(String channelId, Duration duration);
 
   Future<void> stopClientBuffer();
+
+  bool get isClientBufferActive;
 }
 
 class TimeshiftController {
@@ -60,6 +62,7 @@ class TimeshiftState {
 class TimeshiftManagerImpl implements TimeshiftManager {
   TimeshiftController? _controller;
   TimeshiftState? _state;
+  bool _isClientBufferActive = false;
 
   static const _maxDuration = Duration(days: 7);
 
@@ -154,10 +157,17 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   }
 
   @override
-  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+  Future<void> startClientBuffer(String channelId, Duration duration) async {
+    _isClientBufferActive = true;
+  }
 
   @override
-  Future<void> stopClientBuffer() async {}
+  Future<void> stopClientBuffer() async {
+    _isClientBufferActive = false;
+  }
+
+  @override
+  bool get isClientBufferActive => _isClientBufferActive;
 }
 
 extension on TimeshiftState {

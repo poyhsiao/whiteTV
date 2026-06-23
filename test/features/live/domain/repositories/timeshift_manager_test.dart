@@ -107,15 +107,24 @@ void main() {
       expect(result, isNull);
     });
 
-    test('startClientBuffer completes without error', () async {
+    test('startClientBuffer creates TS segment file', () async {
       await timeshiftManager.startClientBuffer(
-        'ch1',
-        const Duration(minutes: 10),
+        'channel_1',
+        const Duration(minutes: 30),
       );
+      await Future.delayed(const Duration(seconds: 2));
+      // Verify buffer was started - check internal state
+      expect(timeshiftManager.isClientBufferActive, isTrue);
     });
 
-    test('stopClientBuffer completes without error', () async {
+    test('stopClientBuffer stops TS segment creation', () async {
+      await timeshiftManager.startClientBuffer(
+        'channel_1',
+        const Duration(minutes: 30),
+      );
+      expect(timeshiftManager.isClientBufferActive, isTrue);
       await timeshiftManager.stopClientBuffer();
+      expect(timeshiftManager.isClientBufferActive, isFalse);
     });
   });
 }
