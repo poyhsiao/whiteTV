@@ -1,63 +1,58 @@
-# Task 7 Report: ReorderableTabList Widget
+# Task 7 Report: LiveStore Integration with Timeshift Buffering
 
-## Status: COMPLETED
+## Status: DONE
 
 ## Summary
 
-Successfully implemented the ReorderableTabList widget with drag-and-drop reordering and per-tab visibility toggles. All tests pass (9/9).
+Integrated timeshift buffering into `LiveStore.playChannel()` flow per SDD task brief.
 
-## Files Created
+## Changes Made
 
-| File | Purpose |
-|------|---------|
-| `lib/features/settings/widgets/reorderable_tab_list.dart` | Widget implementation |
-| `test/features/settings/widgets/reorderable_tab_list_test.dart` | Widget tests |
+### 1. `lib/features/live/domain/services/live_service.dart`
+Added two methods:
+- `Future<void> startClientBuffer(String channelId, Duration duration)` - delegates to `TimeshiftManager`
+- `Future<void> stopClientBuffer()` - delegates to `TimeshiftManager`
 
-## Widget Features
+### 2. `lib/features/live/presentation/providers/live_store.dart`
+- Added `SettingsState?` and `TimeshiftManager?` as nullable fields (backward compatible with existing tests)
+- Updated `liveStoreProvider` to inject `settingsStoreProvider` and `timeshiftManagerProvider`
+- Added `playChannel(M3uChannel channel)` method implementing:
+  1. Starts client buffer with `settings.timeshiftBufferDuration` (default 30 min)
+  2. Checks service-side timeshift support via `isServiceSideSupported()`
+  3. If supported: uses `getServiceSideStream()` for server-side timeshift
+  4. If not supported: falls back to `selectChannel()` for client-side buffer mode
 
-- **Drag-and-drop reordering**: Uses `ReorderableListView` with `ReorderableDragStartListener` for explicit drag handle control
-- **Visibility toggle**: Each tab has an `IconButton` that toggles between `Icons.visibility` and `Icons.visibility_off`
-- **Hint text**: Shows "長按拖曳可調整順序" at the bottom in grey color
-- **Integration**: Uses `tabNavigationStoreProvider` from `TabNavigationStore` for state management
+### 3. `test/features/live/presentation/providers/live_store_test.dart`
+- Added `FakeM3uParser`, `FakeEpgManager`, `FakeTimeshiftManager`, `FakeSettingsStorageService`
+- Added `FakeLiveService extends LiveService` with test doubles
+- Updated `ProviderContainer` overrides to use `liveStoreProvider.overrideWith()` directly
+
+## Architecture
+
+```
+playChannel(channel)
+  1. _service.startClientBuffer(channelId, Duration(minutes: bufferDuration))
+  2. _timeshiftManager.isServiceSideSupported(channelId)
+     -> true:  _timeshiftManager.getServiceSideStream() -> startTimeshift()
+     -> false: selectChannel() (client-side buffer mode)
+```
 
 ## Test Results
 
-All 9 tests passed:
-
-1. `renders all six default tabs` - Verifies all 6 default tabs are displayed
-2. `shows drag handle icon for each tab` - Checks drag handle icons are present
-3. `shows visibility icon for each tab` - Verifies visibility icons for all tabs
-4. `toggles tab visibility when visibility icon is tapped` - Tests toggle interaction
-5. `shows hint text at bottom` - Verifies hint text is displayed
-6. `hint text has grey color` - Checks hint text styling
-7. `all tabs are visible by default` - Verifies default visibility state
-8. `can toggle multiple tabs visibility independently` - Tests multiple toggles
-9. `toggling visibility does not change tab order` - Verifies reorder integrity
+| Test Suite | Result |
+|------------|--------|
+| `flutter analyze` on modified lib files | No issues |
+| `live_store_test.dart` | 15/15 passed |
+| Full `test/features/live/` suite | 127 passed, 6 pre-existing failures (unrelated - missing mock methods in other test files) |
 
 ## Commit
 
 ```
-commit 48223da
-feat: add ReorderableTabList widget with visibility toggle
+f1abee5 - feat: integrate LiveStore with timeshift buffering (Task 7)
 ```
 
-## Architecture
+## Files Modified
 
-The widget follows existing patterns in the project:
-- Uses `ConsumerWidget` from `flutter_riverpod`
-- Integrates with `TabNavigationStore` via `tabNavigationStoreProvider`
-- Matches styling and layout patterns from `TabOrderEditor` widget
-- Uses `ValueKey` for stable widget identity during reorder operations
-
-## Test Pattern
-
-Tests follow the project's established pattern:
-- `ProviderScope` for Riverpod dependency injection
-- `MaterialApp` + `Scaffold` wrapper
-- `pumpAndSettle()` for async settling
-- Widget finder patterns: `find.widgetWithText`, `find.descendant`, `find.byIcon`
-
-## Files Modified (Not Created)
-
-- `lib/features/settings/widgets/reorderable_tab_list.dart` (new)
-- `test/features/settings/widgets/reorderable_tab_list_test.dart` (new)
+- `lib/features/live/domain/services/live_service.dart`
+- `lib/features/live/presentation/providers/live_store.dart`
+- `test/features/live/presentation/providers/live_store_test.dart`

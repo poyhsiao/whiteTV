@@ -113,6 +113,18 @@ class FakeSettingsStorageService implements SettingsStorageService {
 }
 
 class FakeTimeshiftManager implements TimeshiftManager {
+  String? lastStartClientBufferChannelId;
+  Duration? lastStartClientBufferDuration;
+  bool serviceSideSupported = false;
+  String? serviceSideStreamUrl;
+
+  void reset() {
+    lastStartClientBufferChannelId = null;
+    lastStartClientBufferDuration = null;
+    serviceSideSupported = false;
+    serviceSideStreamUrl = null;
+  }
+
   @override
   Future<TimeshiftController> startTimeshift({
     required String channelId,
@@ -158,7 +170,7 @@ class FakeTimeshiftManager implements TimeshiftManager {
       );
 
   @override
-  Future<bool> isServiceSideSupported(String channelId) async => false;
+  Future<bool> isServiceSideSupported(String channelId) async => serviceSideSupported;
 
   @override
   Future<String?> getServiceSideStream(
@@ -166,10 +178,13 @@ class FakeTimeshiftManager implements TimeshiftManager {
     Duration startOffset,
     Duration endOffset,
   ) async =>
-      null;
+      serviceSideStreamUrl;
 
   @override
-  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+  Future<void> startClientBuffer(String channelId, Duration duration) async {
+    lastStartClientBufferChannelId = channelId;
+    lastStartClientBufferDuration = duration;
+  }
 
   @override
   Future<void> stopClientBuffer() async {}
@@ -186,25 +201,26 @@ class FakeTimeshiftManager implements TimeshiftManager {
 class FakeLiveService extends LiveService {
   LiveState _state = LiveState.initial();
 
-  FakeLiveService() : super(
+  FakeLiveService(TimeshiftManager manager) : super(
     m3uParser: FakeM3uParser(),
     epgManager: FakeEpgManager(),
-    timeshiftManager: FakeTimeshiftManager(),
+    timeshiftManager: manager,
   );
 
   @override
   Future<LiveState> loadChannels(String m3uContent) async {
     _state = _state.copyWith(status: LiveStatus.loading);
-    // Simple M3U parse for test
+    // Use same parsing as M3uParserImpl for accurate test
     final lines = m3uContent.split('\n');
     final channels = <M3uChannel>[];
-    for (var i = 0; i < lines.length - 1; i++) {
-      if (lines[i].contains('#EXTINF')) {
-        final name = lines[i].contains(',') ? lines[i].split(',').last.trim() : 'Unknown';
-        final url = i + 1 < lines.length ? lines[i + 1].trim() : '';
-        if (url.isNotEmpty) {
-          channels.add(M3uChannel(name: name, url: url));
-        }
+    String? currentExtInf;
+    for (var i = 0; i < lines.length; i++) {
+      final trimmed = lines[i].trim();
+      if (trimmed.startsWith('#EXTINF:')) {
+        currentExtInf = trimmed;
+      } else if (trimmed.isNotEmpty && !trimmed.startsWith('#') && currentExtInf != null) {
+        channels.add(M3uChannel.parse(currentExtInf, trimmed));
+        currentExtInf = null;
       }
     }
     _state = _state.copyWith(status: LiveStatus.loaded, channels: channels);
@@ -252,7 +268,10 @@ class FakeLiveService extends LiveService {
   }
 
   @override
-  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+  Future<void> startClientBuffer(String channelId, Duration duration) async {
+    // Delegate to manager so FakeTimeshiftManager can track it
+    await timeshiftManager.startClientBuffer(channelId, duration);
+  }
 
   @override
   Future<void> stopClientBuffer() async {}
@@ -265,9 +284,9 @@ void main() {
     setUp(() {
       // Override liveStoreProvider to use fake LiveService directly,
       // bypassing SettingsStore dependency
-      final fakeService = FakeLiveService();
-      final fakeSettings = const SettingsState();
       final fakeTimeshiftManager = FakeTimeshiftManager();
+      final fakeService = FakeLiveService(fakeTimeshiftManager);
+      const fakeSettings = SettingsState();
 
       container = ProviderContainer(
         overrides: [
@@ -529,6 +548,109 @@ https://example.com/test.m3u8
 
       final state = container.read(liveStoreProvider);
       expect(state.timeshiftPosition, const Duration(minutes: -10));
+    });
+
+    group('playChannel', () {
+      late FakeTimeshiftManager fakeTimeshiftManager;
+
+      setUp(() {
+        fakeTimeshiftManager = FakeTimeshiftManager();
+      });
+
+      test('calls startClientBuffer with correct channelId and duration', () async {
+        const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-id="ch123" tvg-name="Test Channel",Test Channel
+https://example.com/test.m3u8
+''';
+
+        final fakeService = FakeLiveService(fakeTimeshiftManager);
+        const fakeSettings = SettingsState(timeshiftBufferDuration: 30);
+        final containerForTest = ProviderContainer(
+          overrides: [
+            liveStoreProvider.overrideWith(
+              (ref) => LiveStore(fakeService, fakeSettings, fakeTimeshiftManager),
+            ),
+          ],
+        );
+
+        await containerForTest.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+        final channels = containerForTest.read(liveStoreProvider).channels;
+
+        await containerForTest.read(liveStoreProvider.notifier).playChannel(channels.first);
+
+        expect(fakeTimeshiftManager.lastStartClientBufferChannelId, 'ch123');
+        expect(fakeTimeshiftManager.lastStartClientBufferDuration, const Duration(minutes: 30));
+
+        containerForTest.dispose();
+      });
+
+      test('falls back to client-side selectChannel when service-side not supported', () async {
+        const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-name="Test Channel",Test Channel
+https://example.com/test.m3u8
+''';
+
+        // Service-side NOT supported
+        fakeTimeshiftManager.serviceSideSupported = false;
+
+        final fakeService = FakeLiveService(fakeTimeshiftManager);
+        const fakeSettings = SettingsState(timeshiftBufferDuration: 30);
+        final containerForTest = ProviderContainer(
+          overrides: [
+            liveStoreProvider.overrideWith(
+              (ref) => LiveStore(fakeService, fakeSettings, fakeTimeshiftManager),
+            ),
+          ],
+        );
+
+        await containerForTest.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+        final channels = containerForTest.read(liveStoreProvider).channels;
+
+        await containerForTest.read(liveStoreProvider.notifier).playChannel(channels.first);
+
+        // Should call startClientBuffer
+        expect(fakeTimeshiftManager.lastStartClientBufferChannelId, isNotNull);
+        // Falls back to selectChannel → status = loaded
+        final state = containerForTest.read(liveStoreProvider);
+        expect(state.status, LiveStatus.loaded);
+        expect(state.currentChannel, channels.first);
+
+        containerForTest.dispose();
+      });
+
+      test('uses service-side timeshift when supported', () async {
+        const testM3uContent = '''#EXTM3U
+#EXTINF:-1 tvg-id="ch123" tvg-name="Test Channel",Test Channel
+https://example.com/test.m3u8
+''';
+
+        // Service-side IS supported
+        fakeTimeshiftManager.serviceSideSupported = true;
+        fakeTimeshiftManager.serviceSideStreamUrl = 'https://service-side-stream.example.com/ch123';
+
+        final fakeService = FakeLiveService(fakeTimeshiftManager);
+        const fakeSettings = SettingsState(timeshiftBufferDuration: 30);
+        final containerForTest = ProviderContainer(
+          overrides: [
+            liveStoreProvider.overrideWith(
+              (ref) => LiveStore(fakeService, fakeSettings, fakeTimeshiftManager),
+            ),
+          ],
+        );
+
+        await containerForTest.read(liveStoreProvider.notifier).loadChannels(testM3uContent);
+        final channels = containerForTest.read(liveStoreProvider).channels;
+
+        await containerForTest.read(liveStoreProvider.notifier).playChannel(channels.first);
+
+        // Should check service-side support
+        // Falls back to startTimeshift since streamUrl is not null
+        final state = containerForTest.read(liveStoreProvider);
+        expect(state.status, LiveStatus.timeshift);
+        expect(state.currentChannel, channels.first);
+
+        containerForTest.dispose();
+      });
     });
   });
 }
