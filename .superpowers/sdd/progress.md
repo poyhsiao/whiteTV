@@ -13,8 +13,8 @@
 - [x] Task 10: ApiClient YouTube (2e9b473, review clean)
 - [x] Task 11: YoutubeStore (87b4033, review clean)
 - [x] Task 12: 首頁 YouTube 專區 (13f4f79, review clean)
-- [ ] Task 13: 分類頁 YouTube
-- [ ] Task 14: YouTube 播放整合
-- [ ] Task 15: YouTube BDD E2E
+- [x] Task 13: 分類頁 YouTube (41cb38c, review clean)
+- [x] Task 14: YouTube 播放整合 (4552a8b..3c71ccb, review clean)
+- [x] Task 15: YouTube BDD E2E (374ce1b, review clean)
 
-## Status: IN PROGRESS
+## Status: ALL COMPLETE

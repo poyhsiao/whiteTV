@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
-import 'package:white_tv/core/api/models.dart' hide YoutubeVideo;
-import 'package:white_tv/features/youtube/domain/models/youtube_video.dart';
+import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/core/source/source_selector_provider.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
@@ -131,14 +130,14 @@ class PlayerStore extends StateNotifier<PlayerState> {
 
   /// YouTube 影片播放
   ///
-  /// [video] - YouTubeVideo 包含 id, title, thumbnail, streamUrl
+  /// [video] - YoutubeVideo (unified model)
   Future<void> playYoutubeVideo(YoutubeVideo video) async {
     await setVideo(
       video.id,
       video.id,
       title: video.title,
-      thumbnail: video.thumbnail,
-      sources: [VideoSource(id: 'youtube', url: video.url, name: 'YouTube')],
+      thumbnail: video.thumbnail ?? video.thumbnailUrl,
+      sources: [VideoSource(id: 'youtube', url: video.url ?? '', name: 'YouTube')],
       autoSelectSource: false,
     );
   }

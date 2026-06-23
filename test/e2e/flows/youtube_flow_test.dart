@@ -11,6 +11,9 @@ import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/youtube/presentation/providers/youtube_store.dart';
+import 'package:white_tv/features/home/home_store.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
+import 'package:white_tv/features/settings/services/settings_storage_service.dart';
 import '../e2e_test_helpers.dart';
 import '../pages/youtube_page.dart';
 
@@ -124,12 +127,19 @@ void main() {
   group('YouTube Flow E2E', () {
     testWidgets('User can view YouTube section on home page', (WidgetTester tester) async {
       setupE2EPluginMocks();
+      final fakeStorage = FakeSettingsStorageService();
+      final fakeApiClient = FakeApiClient();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            settingsStorageServiceProvider.overrideWithValue(fakeStorage),
+            apiClientProvider.overrideWithValue(fakeApiClient),
             youtubeStoreProvider.overrideWith(
-              (ref) => YoutubeStore(FakeApiClient()),
+              (ref) => YoutubeStore(fakeApiClient),
+            ),
+            homeStoreProvider.overrideWith(
+              (ref) => HomeStore(fakeApiClient),
             ),
           ],
           child: WhiteTVApp(
@@ -150,12 +160,19 @@ void main() {
 
     testWidgets('User can navigate to YouTube category page', (WidgetTester tester) async {
       setupE2EPluginMocks();
+      final fakeStorage = FakeSettingsStorageService();
+      final fakeApiClient = FakeApiClient();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            settingsStorageServiceProvider.overrideWithValue(fakeStorage),
+            apiClientProvider.overrideWithValue(fakeApiClient),
             youtubeStoreProvider.overrideWith(
-              (ref) => YoutubeStore(FakeApiClient()),
+              (ref) => YoutubeStore(fakeApiClient),
+            ),
+            homeStoreProvider.overrideWith(
+              (ref) => HomeStore(fakeApiClient),
             ),
           ],
           child: WhiteTVApp(
@@ -174,12 +191,19 @@ void main() {
 
     testWidgets('User can select category on YouTube page', (WidgetTester tester) async {
       setupE2EPluginMocks();
+      final fakeStorage = FakeSettingsStorageService();
+      final fakeApiClient = FakeApiClient();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            settingsStorageServiceProvider.overrideWithValue(fakeStorage),
+            apiClientProvider.overrideWithValue(fakeApiClient),
             youtubeStoreProvider.overrideWith(
-              (ref) => YoutubeStore(FakeApiClient()),
+              (ref) => YoutubeStore(fakeApiClient),
+            ),
+            homeStoreProvider.overrideWith(
+              (ref) => HomeStore(fakeApiClient),
             ),
           ],
           child: WhiteTVApp(
