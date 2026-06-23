@@ -136,6 +136,14 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 _buildSourceSelector(state),
                 const SizedBox(height: 16),
                 _buildEpisodeList(detail, state),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  key: const Key('play_button'),
+                  onPressed: state.selectedEpisode != null
+                      ? () => _onEpisodeTap(detail, state.selectedEpisode!)
+                      : null,
+                  child: const Text('播放'),
+                ),
               ],
             ),
           ),

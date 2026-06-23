@@ -1,33 +1,71 @@
-# Task 2 Brief: 實作 TimeshiftServiceAdapter
+### Task 2: Create BasePage (Page Object base class)
 
-## 任務描述
+**Files:**
+- Create: `test/e2e/pages/base_page.dart`
 
-建立 `TimeshiftServiceAdapter` 服務端時移適配器，串接 LunaTV API。
+**Interfaces:**
+- Produces: `BasePage` abstract class with common POM methods
 
-## 檔案
-
-- Create: `lib/features/live/domain/services/timeshift_service_adapter.dart`
-- Test: `test/features/live/domain/services/timeshift_service_adapter_test.dart`
-
-## 介面
+- [ ] **Step 1: Create BasePage with common methods**
 
 ```dart
-class TimeshiftServiceAdapter {
-  TimeshiftServiceAdapter(this._apiClient);
-  
-  Future<bool> checkSupport(String channelId);
-  Future<String?> getStream(String channelId, Duration startOffset, Duration endOffset);
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// Base Page Object class with common interactions
+abstract class BasePage {
+  final WidgetTester tester;
+
+  BasePage(this.tester);
+
+  /// Tap a widget by key or text
+  Future<void> tap(String locator) async {
+    if (locator.startsWith('#')) {
+      await tester.tap(find.byKey(Key(locator.substring(1))));
+    } else {
+      await tester.tap(find.text(locator));
+    }
+    await tester.pumpAndSettle();
+  }
+
+  /// Enter text into a field
+  Future<void> enterText(String locator, String text) async {
+    if (locator.startsWith('#')) {
+      await tester.enterText(find.byKey(Key(locator.substring(1))), text);
+    } else {
+      await tester.enterText(find.byType(TextField), text);
+    }
+    await tester.pumpAndSettle();
+  }
+
+  /// Wait for widget to appear
+  Future<void> waitFor(String locator, {Duration timeout = const Duration(seconds: 5)}) async {
+    await tester.pump(timeout);
+    if (locator.startsWith('#')) {
+      expect(find.byKey(Key(locator.substring(1))), findsOneWidget);
+    } else {
+      expect(find.text(locator), findsOneWidget);
+    }
+  }
+
+  /// Take screenshot (for debugging)
+  Future<void> takeScreenshot(String name) async {
+    await tester.takeScreenshot(name);
+  }
 }
 ```
 
-## 實作要點
+- [ ] **Step 2: Verify BasePage compiles**
 
-- 使用 `ApiClient` 來檢查服務端是否支援時移
-- `getStream` 目前回傳 `null`（TODO，等待串接 LunaTV API）
-- 遵循現有程式碼風格
+Run: `dart analyze test/e2e/pages/base_page.dart`
+Expected: No errors
 
-## 提交訊息
+- [ ] **Step 3: Commit**
 
+```bash
+git add test/e2e/pages/base_page.dart
+git commit -m "feat: add BasePage for E2E Page Objects"
 ```
-feat(live): add TimeshiftServiceAdapter for service-side timeshift
-```
+
+---
+

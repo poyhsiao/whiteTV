@@ -1,28 +1,23 @@
-# Task 2 Report: TimeshiftServiceAdapter
+### Task 2: Create BasePage (Page Object base class)
 
-## Status: DONE
+**Status: DONE**
 
-## Commit
+**Commit**
 
-- `51f3208` feat: add TimeshiftServiceAdapter for service-side timeshift
+- `de73d06` feat: add BasePage for E2E Page Objects
 
-## Files Created
+**Files Created**
 
-- `lib/features/live/domain/services/timeshift_service_adapter.dart` — implementation
-- `test/features/live/domain/services/timeshift_service_adapter_test.dart` — 6 unit tests
+- `test/e2e/pages/base_page.dart` — BasePage abstract class with tap, enterText, waitFor, takeScreenshot
 
-## Test Results
+**Verification**
 
-```
-00:00 +6: All tests passed!
-```
+- `dart analyze test/e2e/pages/base_page.dart` — No issues found
 
-6/6 tests pass covering:
-- `checkSupport`: false path, error handling, empty channel ID
-- `getStream`: null return (TODO LunaTV API), different offsets, empty channel ID
+**Implementation Notes**
 
-## Implementation Notes
-
-- `checkSupport` returns `false` as stub — `ApiClient` has no dedicated timeshift endpoint yet
-- `getStream` returns `null` as specified in brief (TODO: LunaTV API integration)
-- Follows project coding conventions: `final` fields, `Future<bool>` / `Future<String?>` return types, `try/catch` error handling
+- `takeScreenshot` is a stub because `WidgetTester.takeScreenshot` is not available in `flutter_test` (requires `integration_test` package). Kept as no-op stub for future integration_test usage.
+- `tap` supports `#keyName` (by Key) and text-based locators
+- `enterText` supports `#keyName` (by Key) and TextField type fallback
+- `waitFor` pumps with configurable timeout then asserts widget existence
+- Follows project conventions: `final` fields, `Future<void>` return types

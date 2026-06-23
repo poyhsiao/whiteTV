@@ -29,7 +29,7 @@ void main() {
     );
 
     // Should show onboarding screen
-    await tester.pump();
-    expect(find.byType(Scaffold), findsWidgets);
+    await tester.pumpAndSettle();
+    expect(find.byType(Scaffold), findsOneWidget);
   });
 }

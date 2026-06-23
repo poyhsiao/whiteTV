@@ -211,6 +211,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           // Play/Pause
           Flexible(
             child: IconButton(
+              key: const Key('play_pause_button'),
               icon: Icon(
                 state.isPlaying ? Icons.pause : Icons.play_arrow,
                 color: AppColors.textPrimary,

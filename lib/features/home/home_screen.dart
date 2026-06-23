@@ -61,6 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return Scaffold(
+      key: const Key('home_screen'),
       body: SafeArea(
         child: deviceType == DeviceType.tv
             ? _buildTVLayout(state)

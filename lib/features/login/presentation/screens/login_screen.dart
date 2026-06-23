@@ -172,6 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       child: Column(
         children: [
           TextField(
+            key: const Key('username_field'),
             controller: _usernameController,
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
@@ -187,6 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 16),
           TextField(
+            key: const Key('password_field'),
             controller: _passwordController,
             style: const TextStyle(color: Colors.white),
             obscureText: true,
@@ -206,6 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
+              key: const Key('login_button'),
               onPressed: _isLoading ? null : _performLogin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFB347),
