@@ -144,58 +144,58 @@ class PlayerStore extends StateNotifier<PlayerState> {
   }
 
   Future<void> setVideo(
-  String videoId,
-  String episodeId, {
-  String? title,
-  String? thumbnail,
-  List<VideoSource>? sources,
-  bool autoSelectSource = true,
-}) async {
-  try {
-    // Check local cache first (skip for YouTube - no local playback)
-    if (sources == null && _downloadService != null) {
-      final isDownloaded = await _downloadService.isDownloaded(videoId);
-      if (isDownloaded) {
-        final localPath = await _downloadService.getLocalPath(videoId);
-        if (localPath != null) {
-          state = state.copyWith(
-            videoId: videoId,
-            episodeId: episodeId,
-            source: VideoSource(
-              id: 'local_$videoId',
-              url: 'file://$localPath',
-              name: 'local',
-            ),
-            currentPosition: Duration.zero,
-            error: null,
-            autoSwitchCount: 0,
-          );
-          return;
+    String videoId,
+    String episodeId, {
+    String? title,
+    String? thumbnail,
+    List<VideoSource>? sources,
+    bool autoSelectSource = true,
+  }) async {
+    try {
+      // Check local cache first (skip for YouTube - no local playback)
+      if (sources == null && _downloadService != null) {
+        final isDownloaded = await _downloadService.isDownloaded(videoId);
+        if (isDownloaded) {
+          final localPath = await _downloadService.getLocalPath(videoId);
+          if (localPath != null) {
+            state = state.copyWith(
+              videoId: videoId,
+              episodeId: episodeId,
+              source: VideoSource(
+                id: 'local_$videoId',
+                url: 'file://$localPath',
+                name: 'local',
+              ),
+              currentPosition: Duration.zero,
+              error: null,
+              autoSwitchCount: 0,
+            );
+            return;
+          }
         }
       }
+
+      // Use provided sources (YouTube) or fetch from API
+      final videoSources = sources ?? await _apiClient.getSources(videoId);
+      _lastKnownSources = videoSources;
+
+      // Auto-select fastest source if enabled
+      final selectedSource = autoSelectSource
+          ? await _sourceSelector.selectSource(videoSources, videoId)
+          : videoSources.first;
+
+      state = state.copyWith(
+        videoId: videoId,
+        episodeId: episodeId,
+        source: selectedSource,
+        currentPosition: Duration.zero,
+        error: null,
+        autoSwitchCount: 0,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
     }
-
-    // Use provided sources (YouTube) or fetch from API
-    final videoSources = sources ?? await _apiClient.getSources(videoId);
-    _lastKnownSources = videoSources;
-
-    // Auto-select fastest source if enabled
-    final selectedSource = autoSelectSource
-        ? await _sourceSelector.selectSource(videoSources, videoId)
-        : videoSources.first;
-
-    state = state.copyWith(
-      videoId: videoId,
-      episodeId: episodeId,
-      source: selectedSource,
-      currentPosition: Duration.zero,
-      error: null,
-      autoSwitchCount: 0,
-    );
-  } catch (e) {
-    state = state.copyWith(error: e.toString());
   }
-}
 
   void play() {
     state = state.copyWith(isPlaying: true);
