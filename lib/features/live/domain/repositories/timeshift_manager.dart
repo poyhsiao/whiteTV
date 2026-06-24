@@ -191,7 +191,12 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     ));
 
     _segmentTimer = Timer.periodic(_segmentDuration, (_) {
-      _createNewSegment(channelId, duration);
+      _createNewSegment(channelId, duration).catchError((e) {
+        _segmentTimer?.cancel();
+        _segmentTimer = null;
+        // Re-throw on outer zone so the error is not silently swallowed
+        throw e;
+      });
     });
   }
 
@@ -232,12 +237,35 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     _segmentTimer = null;
     await _bufferSink?.close();
     _bufferSink = null;
+
+    // Delete all segment files from disk
+    for (final segment in _segments) {
+      try {
+        if (await segment.file.exists()) {
+          await segment.file.delete();
+        }
+      } catch (_) {
+        // Best effort delete — continue cleaning up other segments
+      }
+    }
+    _segments.clear();
+
+    // Delete the current buffer file if it exists
+    if (_bufferFile != null) {
+      try {
+        if (await _bufferFile!.exists()) {
+          await _bufferFile!.delete();
+        }
+      } catch (_) {
+        // Best effort delete
+      }
+    }
     _bufferFile = null;
+
     _currentChannelId = null;
     _maxDuration = null;
     _recordingStartTime = null;
     _isClientBufferActive = false;
-    _segments.clear();
   }
 
   @override
