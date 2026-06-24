@@ -92,6 +92,8 @@ class LiveStore extends StateNotifier<LiveState> {
           bufferDuration,
         );
         if (streamUrl != null) {
+          // Stop client-side buffer before returning on service-side path
+          await _service.stopClientBuffer();
           state = await _service.startTimeshift(channel, Duration.zero);
           return;
         }
