@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -11,7 +13,7 @@ import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 import '../e2e_test_helpers.dart';
 import '../pages/search_page.dart';
 
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   @override
   Future<List<int>> search(String query, {SearchCategory? category}) async => [];
   @override

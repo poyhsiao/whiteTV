@@ -94,9 +94,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTap: (record) => _navigateToDetail(record.videoId),
               showProgress: true,
             ),
-          _buildYoutubeSection(),
-          if (showLive)
+          if (showLive) ...[
+            const SizedBox(height: 24),
             _buildLiveEntrySection(isTV: true),
+          ],
+          _buildYoutubeSection(),
+          if (state.hotMovies.isNotEmpty)
+            _buildCategoryRow('熱門電影', state.hotMovies, isTV: true),
           if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),
             Padding(
@@ -139,8 +143,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             records: state.recentHistory,
             onTap: (record) => _navigateToDetail(record.videoId),
           ),
-        if (showLive)
+        if (showLive) ...[
+          const SizedBox(height: 24),
           _buildLiveEntrySection(isTV: false),
+        ],
         if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
           const SizedBox(height: 24),
           Padding(
@@ -155,6 +161,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
+        if (state.hotMovies.isNotEmpty)
+          _buildCategoryRow('熱門電影', state.hotMovies, isTV: false),
         if (showCategories)
           ...state.categories.map((category) {
             final videos = state.videosByCategory[category.id] ?? [];
@@ -285,6 +293,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return YoutubeSection(videos: youtubeState.recommendVideos);
   }
+
 
   void _navigateToDetail(String videoId) {
     context.push('/detail/$videoId');

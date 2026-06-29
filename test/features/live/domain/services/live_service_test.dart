@@ -3,6 +3,7 @@ import 'package:white_tv/features/live/domain/services/live_service.dart';
 import 'package:white_tv/features/live/domain/repositories/m3u_parser.dart';
 import 'package:white_tv/features/live/domain/repositories/epg_manager.dart';
 import 'package:white_tv/features/live/domain/repositories/timeshift_manager.dart';
+import 'package:white_tv/features/live/domain/repositories/timeshift_manager_fallbacks.dart';
 import 'package:white_tv/features/live/data/models/m3u_channel.dart';
 import 'package:white_tv/features/live/data/models/epg_channel.dart';
 import 'package:white_tv/features/live/data/models/epg_program.dart';
@@ -143,7 +144,7 @@ class MockEpgManager implements EpgManager {
   Future<List<EpgProgram>> getProgramsForDay(String channelId, DateTime day) async => [];
 }
 
-class MockTimeshiftManager implements TimeshiftManager {
+class MockTimeshiftManager with TimeshiftManagerFallbacks implements TimeshiftManager {
   @override
   Future<TimeshiftController> startTimeshift({required String channelId, required String streamUrl}) async {
     return TimeshiftController(channelId: channelId, streamUrl: streamUrl, startTime: DateTime.now());

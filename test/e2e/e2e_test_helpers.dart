@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,7 +86,7 @@ class FakeSettingsStorageService implements SettingsStorageService {
 }
 
 /// FakeApiClient for E2E tests with configurable login.
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   Map<String, String>? _loginResult;
   Exception? _loginException;
 

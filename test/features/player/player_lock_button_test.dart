@@ -27,7 +27,7 @@ class _PreloadedPlayerStore extends PlayerStore {
   _PreloadedPlayerStore(super.api, super.selector);
 
   @override
-  Future<void> setVideo(String videoId, String episodeId) async {
+  Future<void> setVideo(String videoId, String episodeId, {bool autoSelectSource = true, List<dynamic>? sources, String? thumbnail, String? title}) async {
     // No-op: state is already preloaded, avoids starting _autoSaveTimer
   }
 }

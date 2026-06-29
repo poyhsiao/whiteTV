@@ -84,7 +84,7 @@ void main() {
 
     test('locks out after 3 failed attempts', () async {
       await service.setPin('1234');
-      await service.toggleEnabled(true); // Must enable before lockout kicks in
+      await service.toggleEnabled(true);
       await service.verifyPin('0000');
       await service.verifyPin('0000');
       await service.verifyPin('0000');

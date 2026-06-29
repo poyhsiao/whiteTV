@@ -47,3 +47,19 @@ Feature: 設定頁功能
     When 確認清除
     Then 快取應該被清除
     And 應該顯示 "清除成功"
+
+  Scenario: 家長鎖啟用後以正確 PIN 通過驗證
+    Given 使用者已啟用家長鎖並設定 PIN 為 "1234"
+    When 輸入 PIN "1234" 嘗試播放限制級內容
+    Then 應該驗證成功並允許繼續
+
+  Scenario: 家長鎖啟用後以錯誤 PIN 被阻擋
+    Given 使用者已啟用家長鎖並設定 PIN 為 "1234"
+    When 輸入 PIN "9999" 嘗試播放限制級內容
+    Then 應該驗證失敗並要求重新輸入
+    And 失敗次數應該記錄為 1
+
+  Scenario: 家長鎖未啟用時不應阻擋
+    Given 使用者未啟用家長鎖
+    When 嘗試播放限制級內容
+    Then 不應該要求輸入 PIN

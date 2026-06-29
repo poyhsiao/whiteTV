@@ -23,9 +23,10 @@ void main() {
         ),
       );
 
-      // Advance time to let the mock delay complete
+      // Advance time to let the mock delay complete (大於 mock delay 300ms)
       await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
+      // Drain pending timers to avoid leaked timer assertion
+      await tester.pump(const Duration(seconds: 1));
 
       // Scaffold should be visible
       expect(find.byType(Scaffold), findsOneWidget);

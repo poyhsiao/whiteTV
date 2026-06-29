@@ -1,3 +1,6 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+import 'package:white_tv/features/live/domain/repositories/timeshift_manager_fallbacks.dart';
+
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/api_client.dart';
@@ -19,7 +22,7 @@ import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 // Test Fakes & Mocks
 // ============================================================================
 
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   List<IptvChannel> mockChannels = [];
   String? mockM3U;
   bool shouldFail = false;
@@ -119,7 +122,7 @@ class MockEpgManager implements EpgManager {
 }
 
 /// Mock timeshift manager with configurable server-side support flag.
-class MockTimeshiftManager implements TimeshiftManager {
+class MockTimeshiftManager with TimeshiftManagerFallbacks implements TimeshiftManager {
   TimeshiftController? _controller;
   TimeshiftState? _state;
   bool serviceSideSupported = false;

@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +10,7 @@ import 'package:white_tv/features/search/services/search_history_service.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MockApiClient extends Mock implements ApiClient {}
+class MockApiClient extends Mock with ApiClientFallbacks implements ApiClient {}
 
 class MockSearchHistoryService extends Mock implements SearchHistoryService {}
 

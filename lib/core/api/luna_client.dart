@@ -59,6 +59,36 @@ class LunaClient implements ApiClient {
   }
 
   @override
+  Future<List<Video>> getHotMovies({int limit = 20}) async {
+    try {
+      final response = await _dio.get(
+        '/api/list',
+        queryParameters: {'type': 'movie', 'sort': 'hot', 'limit': limit},
+      );
+      final List<dynamic> data = response.data['list'] ?? [];
+      return data.map((json) => Video.fromJson(json)).toList();
+    } catch (_) {
+      final movies = await getVideosByCategory('movie');
+      return movies.take(limit).toList();
+    }
+  }
+
+  @override
+  Future<List<Video>> getRelatedVideos(String videoId, {int limit = 12}) async {
+    // 先取詳情拿到分類，再用分類取相關影片
+    try {
+      final detail = await getVideoDetail(videoId);
+      final categoryId = detail.category;
+      if (categoryId == null || categoryId.isEmpty) return [];
+      final all = await getVideosByCategory(categoryId);
+      return all.where((v) => v.id != videoId).take(limit).toList();
+    } catch (_) {
+      // 取得相關推薦失敗時回傳空陣列，避免回傳不相關分類影片
+      return [];
+    }
+  }
+
+  @override
   Future<VideoDetail> getVideoDetail(String videoId) async {
     final response = await _dio.get('/api/detail/$videoId');
     return VideoDetail.fromJson(response.data);

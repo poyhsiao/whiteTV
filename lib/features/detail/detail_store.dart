@@ -13,6 +13,7 @@ class DetailState {
   final VideoDetail? detail;
   final VideoSource? selectedSource;
   final Episode? selectedEpisode;
+  final List<Video> relatedVideos;
   final bool isLoading;
   final String? error;
 
@@ -20,6 +21,7 @@ class DetailState {
     this.detail,
     this.selectedSource,
     this.selectedEpisode,
+    this.relatedVideos = const [],
     this.isLoading = false,
     this.error,
   });
@@ -28,6 +30,7 @@ class DetailState {
     VideoDetail? detail,
     VideoSource? selectedSource,
     Episode? selectedEpisode,
+    List<Video>? relatedVideos,
     bool clearEpisode = false,
     bool? isLoading,
     String? error,
@@ -36,6 +39,7 @@ class DetailState {
       detail: detail ?? this.detail,
       selectedSource: selectedSource ?? this.selectedSource,
       selectedEpisode: clearEpisode ? null : (selectedEpisode ?? this.selectedEpisode),
+      relatedVideos: relatedVideos ?? this.relatedVideos,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -63,10 +67,19 @@ class DetailStore extends StateNotifier<DetailState> {
           ? detail.episodes.first
           : null;
 
+      // 載入相關推薦（UI_UX §10.1）
+      List<Video> related = [];
+      try {
+        related = await _apiClient.getRelatedVideos(videoId);
+      } catch (_) {
+        // 相關推薦非關鍵，載入失敗不影響主流程
+      }
+
       state = state.copyWith(
         detail: detail,
         selectedSource: selectedSource,
         selectedEpisode: firstEpisode,
+        relatedVideos: related,
         isLoading: false,
       );
     } catch (e) {

@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
@@ -8,7 +10,7 @@ import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/search/search_state.dart';
 
 /// Fake ApiClient for testing TimeshiftServiceAdapter
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   bool throwOnCheckSupport = false;
   bool checkSupportResult = false;
 

@@ -10,6 +10,7 @@ import 'package:white_tv/core/theme/glass_card.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
 import 'package:white_tv/shared/widgets/pin_dialog.dart';
+import 'package:white_tv/shared/widgets/poster_card.dart';
 
 bool isAdultContent(VideoDetail? detail) {
   if (detail?.category == null) return false;
@@ -144,6 +145,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       : null,
                   child: const Text('播放'),
                 ),
+                if (state.relatedVideos.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _buildRelatedSection(state),
+                ],
               ],
             ),
           ),
@@ -177,11 +182,44 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 _buildSourceSelector(state),
                 const SizedBox(height: 16),
                 _buildEpisodeList(detail, state),
+                if (state.relatedVideos.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _buildRelatedSection(state),
+                ],
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRelatedSection(DetailState state) {
+    // UI_UX §10.1: 詳情頁底部「相關推薦」橫向滾動
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text('相關推薦', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+        SizedBox(
+          height: 180,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: state.relatedVideos.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final video = state.relatedVideos[index];
+              return PosterCard(
+                title: video.title,
+                posterUrl: video.posterUrl,
+                onTap: () => context.push('/detail/${video.id}'),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

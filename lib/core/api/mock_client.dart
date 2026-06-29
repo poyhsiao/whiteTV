@@ -107,6 +107,33 @@ class MockClient implements ApiClient {
   }
 
   @override
+  Future<List<Video>> getHotMovies({int limit = 20}) async {
+    // 取首個電影分類的影片，按順序回傳作為熱門（不加延遲避免 pumpAndSettle 卡住）
+    final movieCategory = _categories.firstWhere(
+      (c) => c.id.contains('movie') || c.name.contains('電影'),
+      orElse: () => _categories.isNotEmpty ? _categories.first : const Category(id: '', name: ''),
+    );
+    if (movieCategory.id.isEmpty) return [];
+    final videos = _videosByCategory[movieCategory.id] ?? [];
+    return videos.take(limit).toList();
+  }
+
+  @override
+  Future<List<Video>> getRelatedVideos(String videoId, {int limit = 12}) async {
+    // 找到該影片所屬分類，回傳該分類其他影片作為相關（不加延遲避免測試卡住）
+    String? videoCategoryId;
+    for (final entry in _videosByCategory.entries) {
+      if (entry.value.any((v) => v.id == videoId)) {
+        videoCategoryId = entry.key;
+        break;
+      }
+    }
+    if (videoCategoryId == null) return [];
+    final videos = _videosByCategory[videoCategoryId] ?? [];
+    return videos.where((v) => v.id != videoId).take(limit).toList();
+  }
+
+  @override
   Future<VideoDetail> getVideoDetail(String videoId) async {
     await Future.delayed(_delay);
     for (final videos in _videosByCategory.values) {

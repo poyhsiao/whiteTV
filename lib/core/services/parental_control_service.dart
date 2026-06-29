@@ -109,6 +109,12 @@ class ParentalControlService {
   Future<bool> verifyPin(String pin) async {
     final prefs = await _getPrefs();
 
+    // ponytail: short-circuit when parental control is disabled. UI_UX §17.2
+    // specifies content plays without a PIN prompt in this state.
+    if (!(prefs.getBool(_enabledKey) ?? false)) {
+      return true;
+    }
+
     // Check lockout
     final lockoutMillis = prefs.getInt(_lockoutUntilKey);
     if (lockoutMillis != null) {

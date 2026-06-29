@@ -1,3 +1,6 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+import 'package:white_tv/features/settings/services/settings_storage_fallbacks.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
@@ -10,7 +13,7 @@ import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 
-class FakeSettingsStorageService implements SettingsStorageService {
+class FakeSettingsStorageService with SettingsStorageServiceFallbacks implements SettingsStorageService {
   String? _authCookie;
   String? _username;
 
@@ -84,7 +87,7 @@ class FakeSettingsStorageService implements SettingsStorageService {
   Future<List<String>> getTabOrder() async => [];
 }
 
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   Map<String, String>? _loginResult;
   Exception? _loginException;
 

@@ -17,6 +17,14 @@ abstract class ApiClient {
   /// 依分類取得影片列表
   Future<List<Video>> getVideosByCategory(String categoryId);
 
+  /// 取得熱門電影列表
+  /// UI_UX.md §3.1: 首頁「熱門電影」區塊，橫向滾動海報
+  Future<List<Video>> getHotMovies({int limit = 20});
+
+  /// 取得相關影片（同分類）
+  /// UI_UX.md §10.1: 詳情頁底部「相關推薦」區塊
+  Future<List<Video>> getRelatedVideos(String videoId, {int limit = 12});
+
   /// 取得影片詳情
   Future<VideoDetail> getVideoDetail(String videoId);
 

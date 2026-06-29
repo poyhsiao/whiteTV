@@ -1,10 +1,12 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/recommend/data/repositories/ai_recommend_repository.dart';
 
-class MockApiClient extends Mock implements ApiClient {}
+class MockApiClient extends Mock with ApiClientFallbacks implements ApiClient {}
 
 void main() {
   late AIRecommendRepository repository;

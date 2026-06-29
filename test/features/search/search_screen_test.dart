@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -128,7 +130,7 @@ void main() {
   });
 }
 
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   @override
   Future<List<int>> search(String query, {SearchCategory? category}) async {
     return [];

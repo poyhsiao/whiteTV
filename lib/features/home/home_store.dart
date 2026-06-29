@@ -12,6 +12,7 @@ import 'package:white_tv/features/recommend/data/repositories/ai_recommend_repos
 class HomeState {
   final List<Category> categories;
   final Map<String, List<Video>> videosByCategory;
+  final List<Video> hotMovies;
   final List<PlayHistory> recentHistory;
   final List<AIRecommendation> aiRecommendations;
   final bool isLoading;
@@ -21,6 +22,7 @@ class HomeState {
   const HomeState({
     this.categories = const [],
     this.videosByCategory = const {},
+    this.hotMovies = const [],
     this.recentHistory = const [],
     this.aiRecommendations = const [],
     this.isLoading = false,
@@ -31,6 +33,7 @@ class HomeState {
   HomeState copyWith({
     List<Category>? categories,
     Map<String, List<Video>>? videosByCategory,
+    List<Video>? hotMovies,
     List<PlayHistory>? recentHistory,
     List<AIRecommendation>? aiRecommendations,
     bool? isLoading,
@@ -40,6 +43,7 @@ class HomeState {
     return HomeState(
       categories: categories ?? this.categories,
       videosByCategory: videosByCategory ?? this.videosByCategory,
+      hotMovies: hotMovies ?? this.hotMovies,
       recentHistory: recentHistory ?? this.recentHistory,
       aiRecommendations: aiRecommendations ?? this.aiRecommendations,
       isLoading: isLoading ?? this.isLoading,
@@ -81,6 +85,14 @@ class HomeStore extends StateNotifier<HomeState> {
         }),
       );
 
+      // Load hot movies (UI_UX §3.1)
+      List<Video> hotMovies = [];
+      try {
+        hotMovies = await _apiClient.getHotMovies();
+      } catch (_) {
+        // Hot movies 為非關鍵內容，載入失敗不影響主流程
+      }
+
       // Load recent history if service is available
       List<PlayHistory> recentHistory = [];
       if (_historyService != null) {
@@ -94,6 +106,7 @@ class HomeStore extends StateNotifier<HomeState> {
       state = state.copyWith(
         categories: categories,
         videosByCategory: videosByCategory,
+        hotMovies: hotMovies,
         recentHistory: recentHistory,
         isLoading: false,
       );

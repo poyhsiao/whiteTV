@@ -199,4 +199,10 @@ class _MockService implements LiveService {
 
   @override
   Future<LiveState> loadFromApi() async => LiveState.initial();
+
+  @override
+  Future<void> startClientBuffer(String channelId, Duration duration) async {}
+
+  @override
+  Future<void> stopClientBuffer() async {}
 }

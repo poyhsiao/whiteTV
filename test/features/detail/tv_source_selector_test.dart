@@ -1,3 +1,5 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +14,7 @@ import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/search/search_state.dart';
 
 /// Minimal ApiClient for testing
-class FakeDetailClient implements ApiClient {
+class FakeDetailClient with ApiClientFallbacks implements ApiClient {
   const FakeDetailClient();
 
   @override

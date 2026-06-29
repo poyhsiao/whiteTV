@@ -1,3 +1,6 @@
+import 'package:white_tv/core/api/api_client_fallbacks.dart';
+import 'package:white_tv/features/live/domain/repositories/timeshift_manager_fallbacks.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/models.dart';
@@ -15,7 +18,7 @@ import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 
 // Minimal ApiClient implementation for testing
-class FakeApiClient implements ApiClient {
+class FakeApiClient with ApiClientFallbacks implements ApiClient {
   List<IptvChannel> mockChannels = [];
   String? mockM3U;
   bool shouldFail = false;
@@ -120,7 +123,7 @@ class MockEpgManager implements EpgManager {
   Future<List<EpgProgram>> getProgramsForDay(String channelId, DateTime day) async => [];
 }
 
-class MockTimeshiftManager implements TimeshiftManager {
+class MockTimeshiftManager with TimeshiftManagerFallbacks implements TimeshiftManager {
   @override
   Future<TimeshiftController> startTimeshift({required String channelId, required String streamUrl}) async {
     return TimeshiftController(channelId: channelId, streamUrl: streamUrl, startTime: DateTime.now());
