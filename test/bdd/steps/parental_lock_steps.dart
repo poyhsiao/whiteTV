@@ -148,5 +148,57 @@ void main() {
       expect(ok, isTrue,
           reason: 'disabled parental control should not gate content');
     });
+
+    test('首次設定家長鎖 PIN', () async {
+      // 家長鎖為關閉狀態
+      await _ctx.service.toggleEnabled(false);
+
+      // 啟用並設定 PIN
+      await _ctx.service.toggleEnabled(true);
+      await _ctx.service.setPin('1234');
+
+      // 驗證 PIN 已設定且家長鎖已啟用
+      final state = await _ctx.service.getState();
+      expect(state.enabled, isTrue);
+      expect(state.hasPin, isTrue);
+    });
+
+    test('輸入正確 PIN 觀看限制內容', () async {
+      await _ctx.service.toggleEnabled(true);
+      await _ctx.service.setPin('1234');
+
+      // 輸入正確 PIN
+      final ok = await _ctx.service.verifyPin('1234');
+      expect(ok, isTrue, reason: 'correct PIN should allow access');
+    });
+
+    test('連續輸入錯誤 PIN 3 次後鎖定', () async {
+      await _ctx.service.toggleEnabled(true);
+      await _ctx.service.setPin('1234');
+
+      // 連續輸入 3 次錯誤 PIN（maxAttempts = 3）
+      for (int i = 0; i < 3; i++) {
+        await _ctx.service.verifyPin('0000');
+      }
+
+      // 應該被鎖定
+      final state = await _ctx.service.getState();
+      expect(state.isLocked, isTrue,
+          reason: 'should be locked out after 3 failed attempts');
+      expect(state.failedAttempts, 3,
+          reason: 'failedAttempts should equal maxAttempts when locked');
+    });
+
+    test('關閉家長鎖需要驗證 PIN', () async {
+      await _ctx.service.toggleEnabled(true);
+      await _ctx.service.setPin('1234');
+
+      // 關閉家長鎖
+      await _ctx.service.toggleEnabled(false);
+
+      final state = await _ctx.service.getState();
+      expect(state.enabled, isFalse,
+          reason: 'parental control should be disabled');
+    });
   });
 }
