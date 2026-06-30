@@ -106,7 +106,7 @@ jobs:
           flutter pub get
 
       - name: Build macOS App
-        run: flutter build macos --release --verbose 2>&1 | tail -80
+        run: flutter build macos --release
 
       - name: Package macOS App
         env:
