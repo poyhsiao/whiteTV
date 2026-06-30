@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/core/source/source_selector.dart';
@@ -10,9 +11,11 @@ void main() {
     late SourceSelector sourceSelector;
     late PlayerStore store;
 
-    setUp(() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       mockClient = MockClient();
       sourceSelector = SourceSelector();
+      await sourceSelector.loadBlockedSources();
       store = PlayerStore(mockClient, sourceSelector);
     });
 

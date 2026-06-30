@@ -15,6 +15,12 @@ Feature: 設定頁功能
     When 切換來源屏蔽狀態
     Then 應該更新屏蔽列表
 
+  Scenario: 來源屏蔽後立即生效
+    Given 使用者屏蔽了"source1"來源
+    When 系統選擇播放來源
+    Then "source1"應該被自動排除
+    And 應該選擇次快的可用來源
+
   Scenario: 畫質偏好設定
     Given 使用者在播放設定
     When 點擊畫質設定

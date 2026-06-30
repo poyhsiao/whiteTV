@@ -1,9 +1,20 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/device/device_type.dart';
 import 'package:white_tv/core/device/feature_flags.dart';
 import 'package:white_tv/core/device/pip/pip_controller.dart';
 
+class MockMethodChannel extends Mock implements MethodChannel {}
+
 void main() {
+  late PiPController controller;
+
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    controller = PiPController();
+  });
+
   group('PiPController', () {
     group('Feature Flag Gating', () {
       test('PiP 启用时 enablePiP 返回 true', () {
@@ -12,71 +23,84 @@ void main() {
               reason: '$type should support PiP');
         }
       });
-
       test('TV 平台停用 PiP', () {
         expect(FeatureFlags.enablePiP(DeviceType.tv), isFalse);
       });
     });
 
-    group('PiPController State', () {
-      test('PiPController 初始状态 isActive 为 false', () {
-        final controller = PiPController();
+    group('Initial State', () {
+      test('isActive 初始为 false', () {
         expect(controller.isActive, isFalse);
       });
-
-      test('PiPController 初始状态 isSupported 为 false', () {
-        final controller = PiPController();
+      test('isSupported 初始为 false', () {
         expect(controller.isSupported, isFalse);
       });
-
-      test('PiPController 初始状态 currentRoute 为 null', () {
-        final controller = PiPController();
+      test('currentRoute 初始为 null', () {
         expect(controller.currentRoute, isNull);
       });
     });
 
-    group('PiPController Methods', () {
-      test('startPiP 启用画中画模式', () {
-        final controller = PiPController();
-        // TODO: Implement platform channel integration for iOS/macOS
-        // controller.startPiP('player');
-        expect(controller.isActive, isFalse,
-            reason: 'Stub returns false until platform channel implemented');
+    group('startPiP', () {
+      test('调用后 isActive 变为 true', () async {
+        await controller.startPiP('player');
+        expect(controller.isActive, isTrue);
       });
-
-      test('stopPiP 禁用画中画模式', () {
-        final controller = PiPController();
-        // TODO: Implement platform channel integration for iOS/macOS
-        // controller.stopPiP();
-        expect(controller.isActive, isFalse,
-            reason: 'Stub returns false until platform channel implemented');
+      test('调用后 currentRoute 被设置', () async {
+        await controller.startPiP('player');
+        expect(controller.currentRoute, equals('player'));
       });
+      test('调用后触发 onPiPStarted 回调', () async {
+        var called = false;
+        controller.onPiPStarted = () => called = true;
+        await controller.startPiP('player');
+        expect(called, isTrue);
+      });
+    });
 
-      test('updateRoute 更新当前路由', () {
-        final controller = PiPController();
+    group('stopPiP', () {
+      test('调用后 isActive 变为 false', () async {
+        await controller.startPiP('player');
+        await controller.stopPiP();
+        expect(controller.isActive, isFalse);
+      });
+      test('调用后触发 onPiPStopped 回调', () async {
+        var called = false;
+        controller.onPiPStopped = () => called = true;
+        await controller.stopPiP();
+        expect(called, isTrue);
+      });
+    });
+
+    group('updateRoute', () {
+      test('更新 currentRoute', () {
         controller.updateRoute('home');
         expect(controller.currentRoute, equals('home'));
       });
     });
 
-    group('PiPController Event Callbacks', () {
-      test('onPiPStarted 回调在 startPiP 时触发', () {
-        final controller = PiPController();
-        // TODO: Trigger callback when platform channel calls back
-        // Until then, this verifies the callback mechanism exists
+    group('checkPiPSupported', () {
+      test('返回 true 并设置 isSupported 当平台支持时', () async {
+        final result = await controller.checkPiPSupported();
+        expect(result, isTrue);
+        expect(controller.isSupported, isTrue);
+      });
+    });
+
+    group('Event Callbacks', () {
+      test('onPiPStarted 回调不为 null', () {
         expect(controller.onPiPStarted, isNotNull);
       });
-
-      test('onPiPStopped 回调在 stopPiP 时触发', () {
-        final controller = PiPController();
-        // TODO: Trigger callback when platform channel calls back
+      test('onPiPStopped 回调不为 null', () {
         expect(controller.onPiPStopped, isNotNull);
       });
-
-      test('onPiPError 回调用于错误处理', () {
-        final controller = PiPController();
-        // TODO: Trigger callback when platform channel reports error
+      test('onPiPError 回调不为 null', () {
         expect(controller.onPiPError, isNotNull);
+      });
+      test('onPiPError 回调可接收错误消息', () async {
+        String? receivedError;
+        controller.onPiPError = (msg) => receivedError = msg;
+        controller.onPiPError?.call('test error');
+        expect(receivedError, equals('test error'));
       });
     });
   });

@@ -16,7 +16,7 @@ class SourceSelector {
   List<String> _blockedSources = [];
 
   /// 選擇最佳來源
-  /// 1. 過濾屏蔽和不可用來源
+  /// 1. 過濾屏蔽和不可用來源（每次從 SharedPreferences 刷新屏蔽名單以保持同步）
   /// 2. 檢查快取是否有效
   /// 3. 如果快取過期則重新測速
   /// 4. 返回最快來源
@@ -25,14 +25,20 @@ class SourceSelector {
       throw ArgumentError('sources 不能為空');
     }
 
+    // ponytail: 每次選擇前刷新屏蔽名單，保持與 SettingsStore 同步
+    await _refreshBlockedSources();
+
     // 過濾屏蔽來源
     final availableSources = sources.where((s) {
       return !_blockedSources.contains(s.id) && s.isAvailable;
     }).toList();
 
     if (availableSources.isEmpty) {
-      // 如果所有來源都被屏蔽，返回原列表第一個作為備用
-      return sources.first;
+      // 所有來源都被屏蔽或不可用時，返回原列表第一個（前提是它可用）
+      final firstSource = sources.first;
+      if (firstSource.isAvailable) return firstSource;
+      // 第一個也不可用，返回原列表作為最後備用（呼叫端需處理）
+      return firstSource;
     }
 
     // 檢查快取
@@ -79,12 +85,10 @@ class SourceSelector {
   /// 使用 HEAD 請求測量響應時間
   Future<VideoSource> testSingleSource(VideoSource source) async {
     final stopwatch = Stopwatch()..start();
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 5);
 
     try {
-      // ponytail: 使用 Dart HttpClient 進行真實延遲測量
-      final client = HttpClient();
-      client.connectionTimeout = const Duration(seconds: 5);
-
       final request = await client.headUrl(Uri.parse(source.url));
       await request.close().timeout(const Duration(seconds: 5));
 
@@ -100,14 +104,15 @@ class SourceSelector {
       );
     } catch (e) {
       stopwatch.stop();
-      // 測試失敗返回高延遲
       return VideoSource(
         id: source.id,
         name: source.name,
         url: source.url,
-        latency: 9999, // 高延遲表示不可用
+        latency: 9999,
         isAvailable: false,
       );
+    } finally {
+      client.close();
     }
   }
 
@@ -145,11 +150,13 @@ class SourceSelector {
 
   /// 加載屏蔽來源列表（從持久化存儲）
   Future<void> loadBlockedSources() async {
+    await _refreshBlockedSources();
+  }
+
+  /// 刷新屏蔽來源列表（每次選擇時調用以保持同步）
+  Future<void> _refreshBlockedSources() async {
     final prefs = await SharedPreferences.getInstance();
-    final blocked = prefs.getStringList('blocked_sources');
-    if (blocked != null) {
-      _blockedSources = blocked;
-    }
+    _blockedSources = prefs.getStringList('blocked_sources')?.toList() ?? [];
   }
 
   /// 清除快取

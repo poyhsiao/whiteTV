@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
@@ -26,15 +27,19 @@ class FakeRef extends Ref {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('DetailStore', () {
     late MockClient mockClient;
     late SourceSelector sourceSelector;
     late ProviderContainer container;
     late DetailStore store;
 
-    setUp(() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       mockClient = MockClient();
       sourceSelector = SourceSelector();
+      await sourceSelector.loadBlockedSources();
       container = ProviderContainer();
       store = DetailStore(mockClient, sourceSelector, null);
     });
