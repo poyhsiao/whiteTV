@@ -110,7 +110,7 @@ class FakeApiClient with ApiClientFallbacks implements ApiClient {
   @override
   Future<int> testSourceLatency(String sourceUrl) async => 0;
   @override
-  Future<List<int>> search(String query, {SearchCategory? category}) async => [];
+  Future<List<Video>> search(String query, {SearchCategory? category}) async => [];
   @override
   Future<Map<String, dynamic>> getUserStats() async => {};
   @override

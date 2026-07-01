@@ -79,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
     final showCategories = settings.homeBlocks['showCategories'] ?? true;
     final showLive = settings.homeBlocks['showLive'] ?? false;
+    final showHotMovies = settings.homeBlocks['showHotMovies'] ?? true;
 
     return SingleChildScrollView(
       child: Column(
@@ -90,6 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           if (showRecentWatch)
             RecentWatchSection(
+              key: const Key('recent_watch_section'),
               records: state.recentHistory,
               onTap: (record) => _navigateToDetail(record.videoId),
               showProgress: true,
@@ -99,13 +101,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _buildLiveEntrySection(isTV: true),
           ],
           _buildYoutubeSection(),
-          if (state.hotMovies.isNotEmpty)
-            _buildCategoryRow('熱門電影', state.hotMovies, isTV: true),
+          if (showHotMovies && state.hotMovies.isNotEmpty)
+            _buildCategoryRow('熱門電影', state.hotMovies, isTV: true, rowKey: 'hot_movies_row'),
           if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: RecommendationCarousel(
+                key: const Key('ai_recommend_section'),
                 title: '為你推薦',
                 recommendations: state.aiRecommendations,
                 onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
@@ -118,7 +121,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (showCategories)
             ...state.categories.map((category) {
               final videos = state.videosByCategory[category.id] ?? [];
-              return _buildCategoryRow(category.name, videos, isTV: true);
+                return _buildCategoryRow(category.name, videos, isTV: true, rowKey: 'category_row_${category.name}');
+
             }),
         ],
       ),
@@ -131,6 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showRecommend = settings.homeBlocks['showAIRecommend'] ?? true;
     final showCategories = settings.homeBlocks['showCategories'] ?? true;
     final showLive = settings.homeBlocks['showLive'] ?? false;
+    final showHotMovies = settings.homeBlocks['showHotMovies'] ?? true;
 
     return ListView(
       children: [
@@ -140,6 +145,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         if (showRecentWatch)
           RecentWatchSection(
+            key: const Key('recent_watch_section'),
             records: state.recentHistory,
             onTap: (record) => _navigateToDetail(record.videoId),
           ),
@@ -152,6 +158,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: RecommendationCarousel(
+              key: const Key('ai_recommend_section'),
               title: '為你推薦',
               recommendations: state.aiRecommendations,
               onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
@@ -161,19 +168,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
-        if (state.hotMovies.isNotEmpty)
-          _buildCategoryRow('熱門電影', state.hotMovies, isTV: false),
+        if (showHotMovies && state.hotMovies.isNotEmpty)
+          _buildCategoryRow('熱門電影', state.hotMovies, isTV: false, rowKey: 'hot_movies_row'),
         if (showCategories)
           ...state.categories.map((category) {
             final videos = state.videosByCategory[category.id] ?? [];
-            return _buildCategoryGrid(category.name, videos);
+            return _buildCategoryRow(category.name, videos, isTV: false, rowKey: 'category_row_${category.name}');
           }),
       ],
     );
   }
 
-  Widget _buildCategoryRow(String title, List videos, {required bool isTV}) {
+  Widget _buildCategoryRow(String title, List videos, {required bool isTV, String? rowKey}) {
     return Column(
+      key: rowKey != null ? Key(rowKey) : null,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(

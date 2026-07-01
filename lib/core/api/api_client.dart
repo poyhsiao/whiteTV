@@ -35,7 +35,7 @@ abstract class ApiClient {
   Future<int> testSourceLatency(String sourceUrl);
 
   /// 搜尋影片
-  Future<List<int>> search(String query, {SearchCategory? category});
+  Future<List<Video>> search(String query, {SearchCategory? category});
 
   /// 取得使用者統計資料（包含播放歷史）
   Future<Map<String, dynamic>> getUserStats();

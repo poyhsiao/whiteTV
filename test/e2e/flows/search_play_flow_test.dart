@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/main.dart';
 import 'package:white_tv/core/router/app_router.dart';
 import 'package:white_tv/core/api/api_client.dart';
+import 'package:white_tv/core/api/models.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
@@ -15,7 +16,7 @@ import '../pages/search_page.dart';
 
 class FakeApiClient with ApiClientFallbacks implements ApiClient {
   @override
-  Future<List<int>> search(String query, {SearchCategory? category}) async => [];
+  Future<List<Video>> search(String query, {SearchCategory? category}) async => [];
   @override
   Future<List<IptvChannel>> getIptvChannels() async => [];
   @override

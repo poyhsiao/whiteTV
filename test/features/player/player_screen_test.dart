@@ -54,6 +54,9 @@ void main() {
       expect(store.state.controlsVisible, isTrue);
     });
 
+
+    ;
+
     testWidgets('renders video player container', (tester) async {
       final mockClient = MockClient();
 

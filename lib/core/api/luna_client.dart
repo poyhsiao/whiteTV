@@ -114,7 +114,7 @@ class LunaClient implements ApiClient {
   }
 
   @override
-  Future<List<int>> search(String query, {SearchCategory? category}) async {
+  Future<List<Video>> search(String query, {SearchCategory? category}) async {
     try {
       // Sanitize search query - trim whitespace and limit length
       final sanitizedQuery = query.trim();
@@ -131,7 +131,7 @@ class LunaClient implements ApiClient {
         },
       );
       final List<dynamic> data = response.data['results'] ?? [];
-      return data.map((json) => json['id'] as int).toList();
+      return data.map((json) => Video.fromJson(json)).toList();
     } on DioException {
       return [];
     }
@@ -269,10 +269,10 @@ class LunaClient implements ApiClient {
       final searchResults = await search(query);
 
       // 轉換為 AIRecommendation
-      return searchResults.take(limit).map((id) {
+      return searchResults.take(limit).map((video) {
         return AIRecommendation(
-          id: id.toString(),
-          title: '推薦內容 ($query)',
+          id: video.id,
+          title: video.title,
           source: 'local',
           sourceName: '本地推薦',
           sourceType: RecommendationSource.history,

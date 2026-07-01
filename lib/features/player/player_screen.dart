@@ -265,13 +265,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   style: const TextStyle(color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
-                LinearProgressIndicator(
+                Slider(
                   value: state.duration.inMilliseconds > 0
                       ? state.currentPosition.inMilliseconds /
-                            state.duration.inMilliseconds
-                      : 0,
-                  backgroundColor: AppColors.glassBorder,
-                  valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+                        state.duration.inMilliseconds
+                      : 0.0,
+                  inactiveColor: AppColors.glassBorder,
+                  activeColor: AppColors.accent,
+                  onChanged: (value) {
+                    final position = Duration(
+                      milliseconds: (value * state.duration.inMilliseconds).round(),
+                    );
+                    ref.read(player.playerStoreProvider.notifier).seek(position);
+                  },
                 ),
               ],
             ),

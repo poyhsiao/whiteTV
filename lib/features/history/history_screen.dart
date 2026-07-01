@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/history/history_state.dart';
 import 'package:white_tv/features/history/history_store.dart';
@@ -49,7 +50,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   void _onRecordTap(dynamic record) {
-    // TODO: Navigate to detail page
+    context.go('/detail/${record.videoId}');
   }
 
   void _onRecordDelete(dynamic record) {

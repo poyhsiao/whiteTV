@@ -30,7 +30,7 @@ class FakeDetailClient with ApiClientFallbacks implements ApiClient {
   @override
   Future<int> testSourceLatency(String url) async => 100;
   @override
-  Future<List<int>> search(String q, {SearchCategory? category}) async => [];
+  Future<List<Video>> search(String q, {SearchCategory? category}) async => [];
   @override
   Future<Map<String, dynamic>> getUserStats() async => {};
   @override

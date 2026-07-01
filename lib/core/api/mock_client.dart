@@ -203,7 +203,7 @@ class MockClient implements ApiClient {
   }
 
   @override
-  Future<List<int>> search(String query, {SearchCategory? category}) async {
+  Future<List<Video>> search(String query, {SearchCategory? category}) async {
     await Future.delayed(_delay);
     // Sanitize search query - trim whitespace and limit length
     final sanitizedQuery = query.trim();
@@ -218,7 +218,7 @@ class MockClient implements ApiClient {
               category == SearchCategory.all ||
               v.categoryId == category.apiValue),
     );
-    return filtered.map((v) => v.id.hashCode).toList();
+    return filtered.toList();
   }
 
   @override

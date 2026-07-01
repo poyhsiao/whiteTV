@@ -5,6 +5,7 @@ import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/search/search_store.dart';
 import 'package:white_tv/features/search/widgets/voice_input_button.dart';
 import 'package:white_tv/shared/widgets/empty_state.dart';
+import 'package:white_tv/features/search/widgets/search_results.dart';
 
 /// SearchScreen - 搜尋頁面
 class SearchScreen extends ConsumerWidget {
@@ -84,7 +85,7 @@ class SearchScreen extends ConsumerWidget {
                         icon: Icons.search_off,
                         title: '無搜尋結果',
                       )
-                    : const Center(child: Text('搜尋結果')),
+                    : SearchResults(results: searchState.results, isLoading: searchState.isLoading),
               ),
             ],
           ),

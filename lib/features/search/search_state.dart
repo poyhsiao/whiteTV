@@ -1,3 +1,4 @@
+import "package:white_tv/core/api/models.dart";
 enum SearchCategory {
   all('all'),
   movie('movie'),
@@ -11,7 +12,7 @@ enum SearchCategory {
 
 class SearchState {
   final String query;
-  final List<int> results;
+  final List<Video> results;
   final List<String> searchHistory;
   final bool isLoading;
   final String? error;
@@ -32,7 +33,7 @@ class SearchState {
 
   SearchState copyWith({
     String? query,
-    List<int>? results,
+    List<Video>? results,
     List<String>? searchHistory,
     bool? isLoading,
     String? error,
