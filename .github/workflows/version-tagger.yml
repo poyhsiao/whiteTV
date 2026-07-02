@@ -1,6 +1,6 @@
 name: Version Tagger
 
-on:
+'on':
   push:
     branches:
       - main
