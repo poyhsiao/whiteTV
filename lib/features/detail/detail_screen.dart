@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/api/models.dart';
@@ -9,6 +10,8 @@ import 'package:white_tv/core/theme/colors.dart';
 import 'package:white_tv/core/theme/glass_card.dart';
 import 'package:white_tv/core/theme/typography.dart';
 import 'package:white_tv/features/detail/detail_store.dart';
+import 'package:white_tv/features/downloads/downloads_store.dart';
+import 'package:white_tv/features/history/models/media_type.dart';
 import 'package:white_tv/shared/widgets/pin_dialog.dart';
 import 'package:white_tv/shared/widgets/poster_card.dart';
 
@@ -31,12 +34,50 @@ class DetailScreen extends ConsumerStatefulWidget {
 }
 
 class _DetailScreenState extends ConsumerState<DetailScreen> {
+  // TV D-pad navigation for episodes
+  final FocusNode _episodeFocusNode = FocusNode();
+  int _selectedEpisodeIndex = 0;
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       ref.read(detailStoreProvider.notifier).loadDetail(widget.videoId);
     });
+  }
+
+  @override
+  void dispose() {
+    _episodeFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleEpisodeKeyEvent(VideoDetail detail, KeyEvent event, List<Episode> episodes) {
+    if (event is! KeyDownEvent) return;
+
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.arrowRight) {
+      if (_selectedEpisodeIndex < episodes.length - 1) {
+        setState(() => _selectedEpisodeIndex++);
+        _selectCurrentEpisode(detail, episodes);
+      }
+    } else if (key == LogicalKeyboardKey.arrowLeft) {
+      if (_selectedEpisodeIndex > 0) {
+        setState(() => _selectedEpisodeIndex--);
+        _selectCurrentEpisode(detail, episodes);
+      }
+    } else if (key == LogicalKeyboardKey.select) {
+      if (episodes.isNotEmpty) {
+        _onEpisodeTap(detail, episodes[_selectedEpisodeIndex]);
+      }
+    }
+  }
+
+  void _selectCurrentEpisode(VideoDetail detail, List<Episode> episodes) {
+    if (episodes.isNotEmpty && _selectedEpisodeIndex < episodes.length) {
+      ref.read(detailStoreProvider.notifier).selectEpisode(episodes[_selectedEpisodeIndex]);
+    }
   }
 
   @override
@@ -100,6 +141,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     }
   }
 
+  void _download(BuildContext context, WidgetRef ref, VideoDetail detail, VideoSource source) {
+    ref.read(downloadsStoreProvider.notifier).startDownload(
+      videoId: detail.id,
+      url: source.url,
+      title: detail.title,
+      posterUrl: detail.posterUrl,
+      sourceName: source.name,
+      mediaType: detail.category?.contains('tv') ?? false
+          ? MediaType.series
+          : MediaType.movie,
+    );
+  }
+
   Widget _buildTVLayout(
       BuildContext context, VideoDetail detail, DetailState state) {
     return SingleChildScrollView(
@@ -136,7 +190,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 const SizedBox(height: 16),
                 _buildSourceSelector(state),
                 const SizedBox(height: 16),
-                _buildEpisodeList(detail, state),
+                _buildTVEpisodeSelector(detail, state),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   key: const Key('play_button'),
@@ -144,6 +198,15 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       ? () => _onEpisodeTap(detail, state.selectedEpisode!)
                       : null,
                   child: const Text('播放'),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  key: const Key('download_button_tv'),
+                  onPressed: state.selectedSource == null
+                      ? null
+                      : () => _download(context, ref, detail, state.selectedSource!),
+                  icon: const Icon(Icons.download),
+                  label: const Text('下載'),
                 ),
                 if (state.relatedVideos.isNotEmpty) ...[
                   const SizedBox(height: 24),
@@ -182,6 +245,31 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 _buildSourceSelector(state),
                 const SizedBox(height: 16),
                 _buildEpisodeList(detail, state),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        key: const Key('play_button'),
+                        onPressed: state.selectedEpisode != null
+                            ? () => _onEpisodeTap(detail, state.selectedEpisode!)
+                            : null,
+                        child: const Text('播放'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const Key('download_button_mobile'),
+                        onPressed: state.selectedSource == null
+                            ? null
+                            : () => _download(context, ref, detail, state.selectedSource!),
+                        icon: const Icon(Icons.download),
+                        label: const Text('下載'),
+                      ),
+                    ),
+                  ],
+                ),
                 if (state.relatedVideos.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   _buildRelatedSection(state),
@@ -262,7 +350,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   const SizedBox(width: 8),
                   Text('${source.latency}ms', style: AppTypography.caption),
                   const SizedBox(width: 8),
-                  Text('${episodeCount}集', style: AppTypography.caption),
+                  Text('$episodeCount集', style: AppTypography.caption),
                   if (isSelected) ...[
                     const SizedBox(width: 8),
                     Text('[自動]', style: AppTypography.caption.copyWith(
@@ -354,6 +442,126 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  // TV D-pad episode selector with left/right navigation
+  Widget _buildTVEpisodeSelector(VideoDetail detail, DetailState state) {
+    final episodes = detail.episodes;
+    if (episodes.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Episodes', style: AppTypography.subtitle),
+        const SizedBox(height: 8),
+        Focus(
+          focusNode: _episodeFocusNode,
+          onKeyEvent: (node, event) {
+            _handleEpisodeKeyEvent(detail, event, episodes);
+            return KeyEventResult.handled;
+          },
+          child: SizedBox(
+            height: 60,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: episodes.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final episode = episodes[index];
+                final isSelected = state.selectedEpisode == episode ||
+                    (_selectedEpisodeIndex == index && state.selectedEpisode == null);
+
+                // Auto-focus on current episode mount
+                if (index == _selectedEpisodeIndex && !_episodeFocusNode.hasFocus) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _episodeFocusNode.requestFocus();
+                  });
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedEpisodeIndex = index);
+                    _onEpisodeTap(detail, episode);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.accent : Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected
+                          ? Border.all(color: AppColors.accent, width: 2)
+                          : null,
+                    ),
+                    child: Text(
+                      'EP ${episode.number}',
+                      style: AppTypography.body.copyWith(
+                        color: isSelected ? Colors.black : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Episode count info
+        Text(
+          '${_selectedEpisodeIndex + 1} / ${episodes.length}',
+          style: AppTypography.caption,
+        ),
+      ],
+    );
+  }
+}
+
+class _DownloadButton extends ConsumerWidget {
+  const _DownloadButton({required this.detail, this.selectedSource});
+
+  final VideoDetail detail;
+  final VideoSource? selectedSource;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final downloadState = ref.watch(downloadsStoreProvider);
+    final videoId = detail.id;
+    final isDownloading = downloadState.isDownloading(videoId);
+    final progress = downloadState.downloadProgress[videoId];
+
+    if (isDownloading) {
+      return OutlinedButton(
+        onPressed: null,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 8),
+            Text('下載中 ${((progress ?? 0) * 100).toInt()}%'),
+          ],
+        ),
+      );
+    }
+
+    return OutlinedButton.icon(
+      key: const Key('download_button_mobile'),
+      onPressed: selectedSource == null
+          ? null
+          : () {
+              ref.read(downloadsStoreProvider.notifier).startDownload(
+                    videoId: videoId,
+                    url: selectedSource!.url,
+                    title: detail.title,
+                    posterUrl: detail.posterUrl,
+                    sourceName: selectedSource!.name,
+                    mediaType: detail.category?.contains('tv') ?? false
+                        ? MediaType.series
+                        : MediaType.movie,
+                  );
+            },
+      icon: const Icon(Icons.download),
+      label: const Text('下載'),
     );
   }
 }

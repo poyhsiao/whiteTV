@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/features/category/category_screen.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
@@ -13,6 +12,8 @@ import 'package:white_tv/features/search/search_screen.dart';
 import 'package:white_tv/features/settings/presentation/screens/remote_guide_screen.dart';
 import 'package:white_tv/features/settings/settings_screen.dart';
 import 'package:white_tv/features/youtube/presentation/screens/youtube_category_screen.dart';
+import 'package:white_tv/features/downloads/presentation/screens/downloads_screen.dart';
+import 'package:white_tv/features/youtube/presentation/screens/youtube_player_screen.dart';
 
 /// GoRouter configuration
 /// Routes: / (home), /detail/:id, /player/:id/:episodeId
@@ -62,6 +63,11 @@ final _routeList = <GoRoute>[
     builder: (context, state) => const OnboardingScreen(),
   ),
   GoRoute(
+    path: '/downloads',
+    name: 'downloads',
+    builder: (context, state) => const DownloadsScreen(),
+  ),
+  GoRoute(
     path: '/settings',
     name: 'settings',
     builder: (context, state) => const SettingsScreen(),
@@ -99,17 +105,15 @@ final _routeList = <GoRoute>[
       return CategoryScreen(categoryId: id);
     },
   ),
-  // TODO(Task14): Replace with full YouTube player screen
+  // YouTube Player Screen (Task14 completed)
   GoRoute(
     path: '/youtube/:id',
     name: 'youtube-player',
     builder: (context, state) {
       final videoId = state.pathParameters['id']!;
-      return Scaffold(
-        appBar: AppBar(title: const Text('YouTube')),
-        body: Center(
-          child: Text('YouTube video: $videoId (placeholder)'),
-        ),
+      return YoutubePlayerScreen(
+        videoId: videoId,
+        youtubeUrl: state.uri.queryParameters['url'],
       );
     },
   ),
