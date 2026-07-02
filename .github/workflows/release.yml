@@ -2,6 +2,9 @@ name: Build Release
 
 on:
   push:
+    branches:
+      - main
+  push:
     tags:
       - 'v*'
 
@@ -12,10 +15,40 @@ env:
   FLUTTER_VERSION: '3.44.0'
 
 jobs:
+  create-tag:
+    name: Create Tag
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump version
+        id: version
+        run: |
+          CURRENT=$(grep "^version:" pubspec.yaml | awk '{print $2}')
+          IFS='.' read -r major minor patch <<< "$CURRENT"
+          NEW="${major}.${minor}.$((patch + 1))"
+          sed -i "s/^version:.*/version: $NEW/" pubspec.yaml
+          echo "version=$NEW" >> $GITHUB_OUTPUT
+          echo "Bumping $CURRENT -> $NEW"
+
+      - name: Commit and push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to $VERSION"
+          git tag "v$VERSION"
+          git push origin main --tags
+
   android:
     name: Build Android/Web
     runs-on: ubuntu-latest
-
+    needs: [create-tag]
     steps:
       - uses: actions/checkout@v4
 
@@ -78,6 +111,7 @@ jobs:
   macos:
     name: Build macOS
     runs-on: macos-latest
+    needs: [create-tag]
     steps:
       - uses: actions/checkout@v4
 
@@ -100,83 +134,70 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Install dependencies
-        run: |
-          flutter config --enable-macos-desktop
-          flutter create --platforms=macos .
-          flutter pub get
+        run: flutter pub get
 
-      - name: Build macOS App
-        run: flutter build macos --release
-
-      - name: Package macOS App
+      - name: Build macOS
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          cd build/macos/Build/Products/Release
-          ls -la
-          zip -r ../whitetv-${VERSION}-macos.zip white_tv.app
-          ls -la ../*.zip || ls -la *.zip || echo "zip not found"
+          flutter build macos --release
+          cd build/macos/Release
+          zip -r "../whitetv-${VERSION}-macos.zip" .
+        working-directory: ${{ github.workspace }}
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifact
-          path: build/macos/Build/Products/whitetv-v*.zip
+          path: build/macos/whitetv-v*.zip
 
-  # iOS builds require Apple Developer certificates which are not available in standard CI
-  # For iOS releases, use a workflow with certificate provisioning
-  # ios:
-  #   name: Build iOS
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     - name: Extract version
-  #       env:
-  #         REF: ${{ github.ref }}
-  #       run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
-  #
-  #     - uses: subosito/flutter-action@v2
-  #       with:
-  #         flutter-version: ${{ env.FLUTTER_VERSION }}
-  #         channel: 'stable'
-  #
-  #     - name: Cache Flutter dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pub-cache
-  #         key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-flutter-
-  #
-  #     - name: Install dependencies
-  #       run: |
-  #         flutter config --enable-ios
-  #         flutter create --platforms=ios .
-  #         flutter pub get
-  #
-  #     - name: Build iOS Device App
-  #       run: flutter build ios --release
-  #
-  #     - name: Package iOS App
-  #       env:
-  #         VERSION: ${{ env.VERSION }}
-  #       run: |
-  #         cd build/ios/iphoneos
-  #         ls -la
-  #         zip -r ../whitetv-${VERSION}-ios.zip Runner.app
-  #         ls -la ../*.zip || ls -la *.zip || echo "zip not found"
-  #
-  #     - name: Upload iOS artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ios-artifact
-  #         path: build/ios/whitetv-v*.zip
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: [create-tag]
+    steps:
+      - uses: actions/checkout@v4
 
-  release:
-    name: Create Release
+      - name: Extract version
+        env:
+          REF: ${{ github.ref }}
+        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: |
+          flutter build ios --release --no-codesign
+          cd build/ios/iphoneos
+          zip -r "../whitetv-${VERSION}-ios.zip" .
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact
+          path: build/ios/whitetv-v*.zip
+
+  publish:
+    name: Publish Release
     runs-on: ubuntu-latest
-    needs: [android, macos]
+    needs: [android, macos, ios]
     steps:
       - uses: actions/checkout@v4
 
