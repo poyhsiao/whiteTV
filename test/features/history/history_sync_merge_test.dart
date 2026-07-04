@@ -35,6 +35,24 @@ PlayHistory _hist(
   mediaType: MediaType.movie,
 );
 
+PlayHistory _histOnlySaveTime(
+  String key, {
+  required int playTime,
+  required DateTime saveTime,
+  int totalTime = 7200,
+}) => PlayHistory(
+  key: key,
+  videoId: key,
+  title: 'title-$key',
+  sourceName: 'src',
+  playTime: playTime,
+  totalTime: totalTime,
+  saveTime: saveTime,
+  lastWatched: null,
+  type: 'movie',
+  mediaType: MediaType.movie,
+);
+
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeRegister());
@@ -52,7 +70,7 @@ void main() {
       when(() => local.save(any())).thenAnswer((_) async {});
     });
 
-    test('本地進度較新 → 保留本地,並推送至遠端', () async {
+    test('本地進度較新 → 保留本地,不寫入', () async {
       // Given: 本地 v1 進度 300s (剛看)
       final localRecord = _hist(
         'v1',
@@ -70,14 +88,12 @@ void main() {
       when(
         () => remote.fetchFromRemote(),
       ).thenAnswer((_) async => [remoteRecord]);
-      when(() => remote.saveRecord(any())).thenAnswer((_) async => true);
 
       // When
       await service.syncFromRemote();
 
-      // Then: 本地較新 → 保留本地,並推送至遠端
+      // Then: 本地較新 → 不應呼叫 save (保留本地)
       verifyNever(() => local.save(any()));
-      verify(() => remote.saveRecord(localRecord)).called(1);
     });
 
     test('遠端進度較新 → 用遠端覆蓋本地', () async {
@@ -123,29 +139,28 @@ void main() {
       expect(captured.videoId, equals('v2'));
     });
 
-    test('時間戳相等 → 保留本地,不寫入', () async {
-      final sameTime = DateTime(2026, 7, 1, 12, 0);
-      final localRecord = _hist(
-        'v1',
-        playTime: 200,
-        lastWatched: sameTime,
-      );
-      final remoteRecord = _hist(
-        'v1',
+    test('遠端 lastWatched 為空 → 用 saveTime 比較', () async {
+      final localRecord = _histOnlySaveTime(
+        'v3',
         playTime: 100,
-        lastWatched: sameTime,
+        saveTime: DateTime(2026, 7, 1, 10, 0),
+      );
+      final remoteRecord = _histOnlySaveTime(
+        'v3',
+        playTime: 300,
+        saveTime: DateTime(2026, 7, 1, 12, 0),
       );
 
       when(() => local.getAll()).thenAnswer((_) async => [localRecord]);
       when(
         () => remote.fetchFromRemote(),
       ).thenAnswer((_) async => [remoteRecord]);
-      when(() => remote.saveRecord(any())).thenAnswer((_) async => true);
 
       await service.syncFromRemote();
 
-      verifyNever(() => local.save(any()));
-      verify(() => remote.saveRecord(localRecord)).called(1);
+      final captured =
+          verify(() => local.save(captureAny())).captured.single as PlayHistory;
+      expect(captured.playTime, equals(300));
     });
   });
 }

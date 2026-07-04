@@ -13,6 +13,8 @@ class FavoritesRemoteService {
           connectTimeout: const Duration(seconds: 10),
         ));
 
+  FavoritesRemoteService.withDio(this._dio);
+
   final Dio _dio;
 
   Future<List<FavoriteItem>> fetchFavorites() async {

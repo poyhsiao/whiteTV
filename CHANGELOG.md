@@ -32,9 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
-- QR Remote (InputService + LocalHttpServer) — 實作行動電話掃碼輸入,TV 顯示 QR Code 實作中
+- QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠
 - settings_store.dart 覆蓋率: 98% (65/66)
 - 整體 Sprint 3 模組回歸: 31 全綠 / 0 失敗
+
+## Sprint 4 Hardening (2026-07-04)
+- Sprint 4.1 input_service: 57%→65% (4 retrofitted test,純 getter 達極限)
+- Sprint 4.2 favorites_remote_service: 5 mock HTTP test,但因 service 無 Dio factory 採測試替身
+- Sprint 4.3 voice_input_service: 受限於 _speech 硬編碼,需 DI refactor
+- Sprint 4.4 app_router: 受限於 14 GoRoute builder 內 pathParameters,需 integration test
+- 整體 Sprint 4: 13 個新 test 全綠 / 0 失敗 / 0 issues
 
 ## [0.10.3] - 2026-06-21
 

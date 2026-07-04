@@ -52,9 +52,8 @@ class HistoryService {
   }
 
   /// Syncs records from remote and merges with local storage.
-  /// Merge policy: lastWatched timestamp — local newer or equal wins,
-  /// remote overwrites only when strictly newer. When local is newer,
-  /// also pushes local record back to remote for bidirectional sync.
+  /// Merge policy: lastWatched timestamp — remote overwrites only if strictly newer
+  /// than local; ties and local-newer cases keep the local record.
   Future<void> syncFromRemote() async {
     final remoteRecords = await _remoteService.fetchFromRemote();
     final localRecords = await _localService.getAll();
@@ -70,13 +69,8 @@ class HistoryService {
       final remoteStamp = remoteRecord.lastWatched ?? remoteRecord.saveTime;
       if (remoteStamp.isAfter(localStamp)) {
         await _localService.save(remoteRecord);
-      } else {
-        // 本地較新或相等,保留本地並同步到遠端
-        final pushed = await pushRecordToRemote(local);
-        if (!pushed) {
-          _offlineQueue.add(local);
-        }
       }
+      // else: 本地較新,保留本地
     }
   }
 

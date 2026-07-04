@@ -185,11 +185,6 @@ void main() {
       expect(store.state.autoPlay, false);
     });
 
-    test('updateDefaultQuality updates state and storage', () async {
-      await store.updateDefaultQuality('720p');
-      expect(store.state.defaultQuality, '720p');
-    });
-
     test('updateAutoSelectSource updates state and storage', () async {
       await store.updateAutoSelectSource(false);
       expect(store.state.autoSelectSource, false);
@@ -230,7 +225,7 @@ void main() {
     });
 
     // Sprint 3.2
-    test('updateDefaultQuality persists new quality value', () async {
+    test('updateDefaultQuality updates state and storage', () async {
       await store.updateDefaultQuality('1080p');
       expect(store.state.defaultQuality, equals('1080p'));
       expect(storage._defaultQuality, equals('1080p'));

@@ -46,10 +46,6 @@ class _BackConfirmationState extends State<BackConfirmation> {
   }
 
   void _onPop(bool didPop) {
-    final navigator = Navigator.maybeOf(context);
-    final canPop = didPop || (navigator?.canPop() ?? false);
-    if (canPop) return;
-
     if (_exitRequested) return;
 
     if (_waitingForSecond) {
@@ -57,9 +53,6 @@ class _BackConfirmationState extends State<BackConfirmation> {
       _waitingForSecond = false;
       _exitRequested = true;
       widget.onConfirmExit();
-      Timer(const Duration(seconds: 1), () {
-        _exitRequested = false;
-      });
       return;
     }
 
