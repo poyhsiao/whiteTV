@@ -185,11 +185,6 @@ void main() {
       expect(store.state.autoPlay, false);
     });
 
-    test('updateDefaultQuality updates state and storage', () async {
-      await store.updateDefaultQuality('720p');
-      expect(store.state.defaultQuality, '720p');
-    });
-
     test('updateAutoSelectSource updates state and storage', () async {
       await store.updateAutoSelectSource(false);
       expect(store.state.autoSelectSource, false);

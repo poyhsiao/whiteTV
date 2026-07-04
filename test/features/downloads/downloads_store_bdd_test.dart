@@ -62,7 +62,11 @@ class _RealisticDownloadService implements DownloadService {
 class _MemHistory implements HistoryLocalService {
   final List<PlayHistory> _records = [];
   @override
-  Future<List<PlayHistory>> getAll() async => List.from(_records);
+  Future<List<PlayHistory>> getAll() async {
+    final records = List<PlayHistory>.from(_records)
+      ..sort((a, b) => b.saveTime.compareTo(a.saveTime));
+    return records;
+  }
 
   @override
   Future<void> save(PlayHistory record) async {

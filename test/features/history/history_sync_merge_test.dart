@@ -35,6 +35,24 @@ PlayHistory _hist(
   mediaType: MediaType.movie,
 );
 
+PlayHistory _histOnlySaveTime(
+  String key, {
+  required int playTime,
+  required DateTime saveTime,
+  int totalTime = 7200,
+}) => PlayHistory(
+  key: key,
+  videoId: key,
+  title: 'title-$key',
+  sourceName: 'src',
+  playTime: playTime,
+  totalTime: totalTime,
+  saveTime: saveTime,
+  lastWatched: null,
+  type: 'movie',
+  mediaType: MediaType.movie,
+);
+
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeRegister());
@@ -119,6 +137,30 @@ void main() {
       final captured =
           verify(() => local.save(captureAny())).captured.single as PlayHistory;
       expect(captured.videoId, equals('v2'));
+    });
+
+    test('遠端 lastWatched 為空 → 用 saveTime 比較', () async {
+      final localRecord = _histOnlySaveTime(
+        'v3',
+        playTime: 100,
+        saveTime: DateTime(2026, 7, 1, 10, 0),
+      );
+      final remoteRecord = _histOnlySaveTime(
+        'v3',
+        playTime: 300,
+        saveTime: DateTime(2026, 7, 1, 12, 0),
+      );
+
+      when(() => local.getAll()).thenAnswer((_) async => [localRecord]);
+      when(
+        () => remote.fetchFromRemote(),
+      ).thenAnswer((_) async => [remoteRecord]);
+
+      await service.syncFromRemote();
+
+      final captured =
+          verify(() => local.save(captureAny())).captured.single as PlayHistory;
+      expect(captured.playTime, equals(300));
     });
   });
 }

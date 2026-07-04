@@ -46,12 +46,9 @@ void main() {
     });
 
     test('inputStream 訂閱後開始 emit currentInput', () async {
-      final received = <String>[];
-      final sub = service.inputStream.listen(received.add);
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-      await sub.cancel();
+      final first = await service.inputStream.first;
       // 起始 currentInput = '' → distinct 仍 emit 第一筆 ''
-      expect(received.first, equals(''));
+      expect(first, equals(''));
     });
 
     test('onInputComplete 可被 setOnInputComplete 替換', () {
