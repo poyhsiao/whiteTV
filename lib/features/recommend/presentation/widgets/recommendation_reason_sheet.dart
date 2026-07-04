@@ -45,6 +45,8 @@ class RecommendationReasonSheet extends StatelessWidget {
           // 推薦項目標題
           Text(
             recommendation.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

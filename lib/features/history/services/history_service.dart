@@ -52,7 +52,8 @@ class HistoryService {
   }
 
   /// Syncs records from remote and merges with local storage.
-  /// Merge policy: lastWatched timestamp — local newer wins, otherwise remote overwrites.
+  /// Merge policy: lastWatched timestamp — remote overwrites only if strictly newer
+  /// than local; ties and local-newer cases keep the local record.
   Future<void> syncFromRemote() async {
     final remoteRecords = await _remoteService.fetchFromRemote();
     final localRecords = await _localService.getAll();

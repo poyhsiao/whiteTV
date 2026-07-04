@@ -36,7 +36,7 @@ void main() {
         ),
       );
       dio.httpClientAdapter = adapter;
-      final svc = _ServiceWithDio(dio);
+      final svc = FavoritesRemoteService.withDio(dio);
 
       final result = await svc.fetchFavorites();
 
@@ -56,7 +56,7 @@ void main() {
         ),
       );
       dio.httpClientAdapter = adapter;
-      final svc = _ServiceWithDio(dio);
+      final svc = FavoritesRemoteService.withDio(dio);
 
       final ok = await svc.addFavorite(_fav('v1'));
 
@@ -76,7 +76,7 @@ void main() {
         ),
       );
       dio.httpClientAdapter = adapter;
-      final svc = _ServiceWithDio(dio);
+      final svc = FavoritesRemoteService.withDio(dio);
 
       final ok = await svc.removeFavorite('v42');
 
@@ -96,7 +96,7 @@ void main() {
         ),
       );
       dio.httpClientAdapter = adapter;
-      final svc = _ServiceWithDio(dio);
+      final svc = FavoritesRemoteService.withDio(dio);
 
       final ok = await svc.syncToServer([_fav('a'), _fav('b')]);
 
@@ -130,65 +130,5 @@ class _StubAdapter implements HttpClientAdapter {
     lastMethod = options.method;
     lastPath = options.path;
     return _reply(options);
-  }
-}
-
-class _ServiceWithDio {
-  _ServiceWithDio(this._dio);
-  final Dio _dio;
-
-  Future<List<FavoriteItem>> fetchFavorites() async {
-    final response = await _dio.get('/favorites');
-    final List<dynamic> data = response.data['list'] ?? [];
-    return data
-        .map(
-          (json) => FavoriteItem(
-            id: json['id'] as String,
-            title: json['title'] as String,
-            posterUrl: json['poster'] as String? ?? '',
-            type: json['type'] as String? ?? 'movie',
-            isAvailable: json['available'] as bool? ?? true,
-            addedAt: json['addedAt'] != null
-                ? DateTime.parse(json['addedAt'] as String)
-                : DateTime.now(),
-          ),
-        )
-        .toList();
-  }
-
-  Future<bool> addFavorite(FavoriteItem item) async {
-    await _dio.post(
-      '/favorites',
-      data: {
-        'id': item.id,
-        'title': item.title,
-        'type': item.type,
-        'poster': item.posterUrl,
-      },
-    );
-    return true;
-  }
-
-  Future<bool> removeFavorite(String id) async {
-    await _dio.delete('/favorites/$id');
-    return true;
-  }
-
-  Future<bool> syncToServer(List<FavoriteItem> items) async {
-    await _dio.post(
-      '/favorites/sync',
-      data: {
-        'items': items
-            .map(
-              (i) => {
-                'id': i.id,
-                'type': i.type,
-                'addedAt': i.addedAt.toIso8601String(),
-              },
-            )
-            .toList(),
-      },
-    );
-    return true;
   }
 }
