@@ -72,7 +72,10 @@ class HistoryService {
         await _localService.save(remoteRecord);
       } else {
         // 本地較新或相等,保留本地並同步到遠端
-        await pushRecordToRemote(local);
+        final pushed = await pushRecordToRemote(local);
+        if (!pushed) {
+          _offlineQueue.add(local);
+        }
       }
     }
   }

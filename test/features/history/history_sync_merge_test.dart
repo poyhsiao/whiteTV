@@ -52,7 +52,7 @@ void main() {
       when(() => local.save(any())).thenAnswer((_) async {});
     });
 
-    test('本地進度較新 → 保留本地,不寫入', () async {
+    test('本地進度較新 → 保留本地,並推送至遠端', () async {
       // Given: 本地 v1 進度 300s (剛看)
       final localRecord = _hist(
         'v1',
@@ -70,12 +70,14 @@ void main() {
       when(
         () => remote.fetchFromRemote(),
       ).thenAnswer((_) async => [remoteRecord]);
+      when(() => remote.saveRecord(any())).thenAnswer((_) async => true);
 
       // When
       await service.syncFromRemote();
 
-      // Then: 本地較新 → 不應呼叫 save (保留本地)
+      // Then: 本地較新 → 保留本地,並推送至遠端
       verifyNever(() => local.save(any()));
+      verify(() => remote.saveRecord(localRecord)).called(1);
     });
 
     test('遠端進度較新 → 用遠端覆蓋本地', () async {
