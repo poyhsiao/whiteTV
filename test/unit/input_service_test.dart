@@ -34,5 +34,32 @@ void main() {
       service.clearInput();
       expect(service.currentInput, equals(''));
     });
+
+    // Sprint 4.1 — 補覆蓋率
+    test('getQrCodeUrl 啟動前回空字串', () {
+      expect(service.getQrCodeUrl(), equals(''));
+    });
+
+    test('stopServer 未啟動時是 no-op', () async {
+      await service.stopServer();
+      expect(service.isRunning, isFalse);
+    });
+
+    test('inputStream 訂閱後開始 emit currentInput', () async {
+      final received = <String>[];
+      final sub = service.inputStream.listen(received.add);
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await sub.cancel();
+      // 起始 currentInput = '' → distinct 仍 emit 第一筆 ''
+      expect(received.first, equals(''));
+    });
+
+    test('onInputComplete 可被 setOnInputComplete 替換', () {
+      service.setOnInputComplete((text) {});
+      final first = service.onInputComplete;
+      service.setOnInputComplete((text) {});
+      final second = service.onInputComplete;
+      expect(identical(first, second), isFalse);
+    });
   });
 }
