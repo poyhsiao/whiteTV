@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
-- QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠
+- QR Remote (InputService + LocalHttpServer) — 實作行動電話掃碼輸入,TV 顯示 QR Code 實作中
 - settings_store.dart 覆蓋率: 98% (65/66)
 - 整體 Sprint 3 模組回歸: 31 全綠 / 0 失敗
 

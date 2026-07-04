@@ -44,6 +44,7 @@ void main() {
       );
 
       expect(find.text('熱門電影'), findsOneWidget);
+      expect(find.textContaining('AI 推薦'), findsNothing);
     });
 
     testWidgets('標題始終渲染', (tester) async {

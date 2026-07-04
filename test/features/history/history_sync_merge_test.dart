@@ -120,5 +120,30 @@ void main() {
           verify(() => local.save(captureAny())).captured.single as PlayHistory;
       expect(captured.videoId, equals('v2'));
     });
+
+    test('時間戳相等 → 保留本地,不寫入', () async {
+      final sameTime = DateTime(2026, 7, 1, 12, 0);
+      final localRecord = _hist(
+        'v1',
+        playTime: 200,
+        lastWatched: sameTime,
+      );
+      final remoteRecord = _hist(
+        'v1',
+        playTime: 100,
+        lastWatched: sameTime,
+      );
+
+      when(() => local.getAll()).thenAnswer((_) async => [localRecord]);
+      when(
+        () => remote.fetchFromRemote(),
+      ).thenAnswer((_) async => [remoteRecord]);
+      when(() => remote.saveRecord(any())).thenAnswer((_) async => true);
+
+      await service.syncFromRemote();
+
+      verifyNever(() => local.save(any()));
+      verify(() => remote.saveRecord(localRecord)).called(1);
+    });
   });
 }

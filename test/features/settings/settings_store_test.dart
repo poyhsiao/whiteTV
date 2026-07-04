@@ -230,7 +230,7 @@ void main() {
     });
 
     // Sprint 3.2
-    test('updateDefaultQuality updates state and storage', () async {
+    test('updateDefaultQuality persists new quality value', () async {
       await store.updateDefaultQuality('1080p');
       expect(store.state.defaultQuality, equals('1080p'));
       expect(storage._defaultQuality, equals('1080p'));

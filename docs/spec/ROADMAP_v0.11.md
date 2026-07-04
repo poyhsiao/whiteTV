@@ -46,22 +46,24 @@
 
 ### 2.1 繼續觀看進度同步 (Continue Watching Sync)
 - **規範**: UI_UX.md §6 歷史記錄功能 + 規範細項 (跨設備同步)
-- **現況**: `RecentWatchSection` / `RecentContinueSection` UI 已實作;`syncFromRemote()` 在 `HistoryStore` 存在,但**進度同步策略不明確**(LunaTV API 是否支援單筆上報未確認)
-- **缺口**: 需確認 LunaTV `/user/my-stats` 端點格式,實作進度增量同步
-- **TDD 起步**:
-  - 紅: `test/features/history/..._test.dart` 測 `syncFromRemote` 合併本地+遠端 (遠端優先,本地更新較新則覆寫)
-  - 綠: HistoryStore.mergeRemote(remote) 用 lastWatched timestamp 比較
-  - 重構: 抽出 `MergeStrategy` policy class
-- **BDD**: test/bdd/features/continue_watching_progress.feature 已存在但可能未對應實作 — 驗證 step defs
+- **現況**: ✅ 已實作 `HistoryService.syncFromRemote()` merge 策略
+  - 用 `lastWatched` timestamp 比較,本地較新或相等時保留本地並同步到遠端
+  - 遠端較新時覆寫本地
+  - 缺本地記錄時直接寫入
+- **已交付**:
+  - `lib/features/history/services/history_service.dart` — merge 邏輯
+  - `test/features/history/history_sync_merge_test.dart` — 3 個情境 + 1 個邊界測試 (時間戳相等)
 
 ### 2.2 全域返回鍵 (TV `Back` 行為)
 - **規範**: UI_UX.md §15.1 TV 遙控器全按鍵對應:`Back` → 返回上一頁/關閉對話框
-- **現況**: 多數頁面用 `Navigator.pop`,未實作 **首頁 `Back` 鍵退出應用** 的全局行為
-- **缺口**: TV 平台首頁 `Back` 鍵應彈出「再按一次退出」確認,而非直接退出
-- **TDD 起步**:
-  - 紅: widget test `TV Back on home shows confirmation` 
-  - 綠: `HomeScreen` 包 `WillPopScope` / `PopScope`(onPopInvoked)
-  - 重構: 抽 `BackConfirmation` mixin 或 widget
+- **現況**: ✅ 已實作 `BackConfirmation` widget
+  - TV 首頁按 `Back` → 顯示 SnackBar「再按一次退出 whiteTV」
+  - 2 秒內再按第二次觸發 `onConfirmExit` (`SystemNavigator.pop()`)
+  - 使用 `PopScope` + Timer 實作,非根路由可正常 pop
+- **已交付**:
+  - `lib/shared/widgets/back_confirmation.dart` — 可复用 widget
+  - `lib/features/home/home_screen.dart` — TV 平台整合
+  - `test/widget/back_confirmation_test.dart` — 3 個 widget test
 
 ### 2.3 QR Remote (TV 掃碼輸入 — 不同於 QR 掃碼輸入)
 - **規範**: UI_UX.md §9.4 TV 模式:手機掃碼輸入 — TV 顯示 QR Code,**手機掃碼後手機開網頁輸入即時傳到 TV**
