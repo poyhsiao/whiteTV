@@ -219,6 +219,36 @@ void main() {
       expect(store.state.tabOrder, order);
     });
 
+    // Sprint 3.1
+    test('updateAutoPlay toggles state and persists to storage', () async {
+      await store.updateAutoPlay(false);
+      expect(store.state.autoPlay, isFalse);
+      expect(storage._autoPlay, isFalse);
+      await store.updateAutoPlay(true);
+      expect(store.state.autoPlay, isTrue);
+      expect(storage._autoPlay, isTrue);
+    });
+
+    // Sprint 3.2
+    test('updateDefaultQuality persists new quality value', () async {
+      await store.updateDefaultQuality('1080p');
+      expect(store.state.defaultQuality, equals('1080p'));
+      expect(storage._defaultQuality, equals('1080p'));
+    });
+
+    // Sprint 3.3
+    test(
+      'updateAutoSelectSource toggles state and persists to storage',
+      () async {
+        await store.updateAutoSelectSource(false);
+        expect(store.state.autoSelectSource, isFalse);
+        expect(storage._autoSelectSource, isFalse);
+        await store.updateAutoSelectSource(true);
+        expect(store.state.autoSelectSource, isTrue);
+        expect(storage._autoSelectSource, isTrue);
+      },
+    );
+
     test('timeshiftBufferDuration defaults to 30 minutes', () {
       final s = SettingsStore(FakeSettingsStorageService());
       expect(s.state.timeshiftBufferDuration, 30);

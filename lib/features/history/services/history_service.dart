@@ -52,10 +52,31 @@ class HistoryService {
   }
 
   /// Syncs records from remote and merges with local storage.
+  /// Merge policy: lastWatched timestamp — local newer or equal wins,
+  /// remote overwrites only when strictly newer. When local is newer,
+  /// also pushes local record back to remote for bidirectional sync.
   Future<void> syncFromRemote() async {
     final remoteRecords = await _remoteService.fetchFromRemote();
-    for (final record in remoteRecords) {
-      await _localService.save(record);
+    final localRecords = await _localService.getAll();
+    final localByKey = {for (final r in localRecords) r.key: r};
+
+    for (final remoteRecord in remoteRecords) {
+      final local = localByKey[remoteRecord.key];
+      if (local == null) {
+        await _localService.save(remoteRecord);
+        continue;
+      }
+      final localStamp = local.lastWatched ?? local.saveTime;
+      final remoteStamp = remoteRecord.lastWatched ?? remoteRecord.saveTime;
+      if (remoteStamp.isAfter(localStamp)) {
+        await _localService.save(remoteRecord);
+      } else {
+        // 本地較新或相等,保留本地並同步到遠端
+        final pushed = await pushRecordToRemote(local);
+        if (!pushed) {
+          _offlineQueue.add(local);
+        }
+      }
     }
   }
 
@@ -83,7 +104,7 @@ class HistoryService {
   }
 
   /// Pushes a single record to remote storage.
-/// Used for manual sync or retry after network recovery.
+  /// Used for manual sync or retry after network recovery.
   Future<bool> pushRecordToRemote(PlayHistory record) async {
     try {
       final result = await _remoteService.saveRecord(record);

@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **TV 全域 Back 鍵確認** (Sprint 1.1 / ROADMAP §2.2)
+  - `BackConfirmation` widget (lib/shared/widgets/back_confirmation.dart)
+  - TV 平台首頁按 Back → SnackBar「再按一次退出 whiteTV」;2 秒內再按觸發退出
+  - `SystemNavigator.pop()` 整合
+- **Category 排序測試覆蓋** (Sprint 1.2 / ROADMAP §3.2.a)
+  - 10 個 retrofitted test 驗證 SortOption 5 種 + copyWith 行為
+- **Downloads BDD 整合測試** (Sprint 1.3 / ROADMAP §3.1.a)
+  - `downloads_store_bdd_test.dart` 驗證完整鏈結 (下載 → history 標記 → list 出現)
+- **跨設備歷史同步合併策略** (Sprint 2.1 / ROADMAP §2.1)
+  - `HistoryService.syncFromRemote()` 用 lastWatched timestamp 比較,本地較新覆寫遠端
+  - 3 個 merge test 驗證 3 種情境 (本地新 / 遠端新 / 本地空)
+- **AIRecommend Reason widget test** (Sprint 2.2 / ROADMAP §3.4)
+  - 3 個 widget test 驗證 reason/title 渲染
+  - 補上 RecommendationReasonSheet 顯示 recommendation.title
+- **YouTube Store unit test** (Sprint 2.3 / ROADMAP §3.3)
+  - 7 個 test 驗證 loadRecommend/loadCategories/selectCategory/clear 的 success/error
+  - 覆蓋率 91% (LF:34 / LH:31)
+
+### Changed
+- `HomeScreen` (lib/features/home/home_screen.dart) 包 `BackConfirmation` widget (僅 TV)
+- `RecommendationReasonSheet` 加上 `recommendation.title` 顯示
+
+## Sprint 3 Coverage (2026-07-04)
+- 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
+- QR Remote (InputService + LocalHttpServer) — 實作行動電話掃碼輸入,TV 顯示 QR Code 實作中
+- settings_store.dart 覆蓋率: 98% (65/66)
+- 整體 Sprint 3 模組回歸: 31 全綠 / 0 失敗
+
 ## [0.10.3] - 2026-06-21
 
 ### Added

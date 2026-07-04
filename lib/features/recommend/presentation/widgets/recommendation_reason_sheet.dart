@@ -41,6 +41,18 @@ class RecommendationReasonSheet extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          // 推薦項目標題
+          Text(
+            recommendation.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+            ),
+          ),
           const SizedBox(height: 16),
 
           // Reason text
@@ -110,10 +122,7 @@ class RecommendationReasonSheet extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Text(
         '$emoji $text',
-        style: const TextStyle(
-          fontSize: 14,
-          color: Colors.white70,
-        ),
+        style: const TextStyle(fontSize: 14, color: Colors.white70),
       ),
     );
   }
