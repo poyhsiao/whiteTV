@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/device/device_type.dart';
@@ -13,6 +14,7 @@ import 'package:white_tv/features/settings/settings_store.dart';
 import 'package:white_tv/shared/widgets/skeleton_loader.dart';
 import 'package:white_tv/features/youtube/presentation/providers/youtube_store.dart';
 import 'package:white_tv/features/youtube/presentation/widgets/youtube_section.dart';
+import 'package:white_tv/shared/widgets/back_confirmation.dart';
 
 /// 首頁
 /// 參照: docs/spec/UI_UX.md Section 3
@@ -40,12 +42,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(homeStoreProvider);
     final deviceType = DeviceUtils.getDeviceType(context);
 
+    final Widget child;
     if (state.isLoading) {
-      return const Scaffold(body: HomeSkeleton());
-    }
-
-    if (state.error != null) {
-      return Scaffold(
+      child = const Scaffold(body: HomeSkeleton());
+    } else if (state.error != null) {
+      child = Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -61,15 +62,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       );
+    } else {
+      child = Scaffold(
+        key: const Key('home_screen'),
+        body: SafeArea(
+          child: deviceType == DeviceType.tv
+              ? _buildTVLayout(state)
+              : _buildMobileLayout(state),
+        ),
+      );
     }
 
-    return Scaffold(
-      key: const Key('home_screen'),
-      body: SafeArea(
-        child: deviceType == DeviceType.tv
-            ? _buildTVLayout(state)
-            : _buildMobileLayout(state),
-      ),
+    // ponytail: TV 才需要 Back 確認; Mobile/Android 沿用系統預設返回
+    if (deviceType != DeviceType.tv) return child;
+    return BackConfirmation(
+      onConfirmExit: () => SystemNavigator.pop(),
+      child: child,
     );
   }
 
@@ -102,7 +110,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
           _buildYoutubeSection(),
           if (showHotMovies && state.hotMovies.isNotEmpty)
-            _buildCategoryRow('熱門電影', state.hotMovies, isTV: true, rowKey: 'hot_movies_row'),
+            _buildCategoryRow(
+              '熱門電影',
+              state.hotMovies,
+              isTV: true,
+              rowKey: 'hot_movies_row',
+            ),
           if (showRecommend && state.aiRecommendations.isNotEmpty) ...[
             const SizedBox(height: 24),
             Padding(
@@ -111,7 +124,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 key: const Key('ai_recommend_section'),
                 title: '為你推薦',
                 recommendations: state.aiRecommendations,
-                onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
+                onRefresh: () => ref
+                    .read(homeStoreProvider.notifier)
+                    .loadAIRecommendations(),
                 onRecommendationTap: (recommendation) {
                   _navigateToDetail(recommendation.id);
                 },
@@ -121,8 +136,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (showCategories)
             ...state.categories.map((category) {
               final videos = state.videosByCategory[category.id] ?? [];
-                return _buildCategoryRow(category.name, videos, isTV: true, rowKey: 'category_row_${category.name}');
-
+              return _buildCategoryRow(
+                category.name,
+                videos,
+                isTV: true,
+                rowKey: 'category_row_${category.name}',
+              );
             }),
         ],
       ),
@@ -161,7 +180,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               key: const Key('ai_recommend_section'),
               title: '為你推薦',
               recommendations: state.aiRecommendations,
-              onRefresh: () => ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
+              onRefresh: () =>
+                  ref.read(homeStoreProvider.notifier).loadAIRecommendations(),
               onRecommendationTap: (recommendation) {
                 _navigateToDetail(recommendation.id);
               },
@@ -169,17 +189,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
         if (showHotMovies && state.hotMovies.isNotEmpty)
-          _buildCategoryRow('熱門電影', state.hotMovies, isTV: false, rowKey: 'hot_movies_row'),
+          _buildCategoryRow(
+            '熱門電影',
+            state.hotMovies,
+            isTV: false,
+            rowKey: 'hot_movies_row',
+          ),
         if (showCategories)
           ...state.categories.map((category) {
             final videos = state.videosByCategory[category.id] ?? [];
-            return _buildCategoryRow(category.name, videos, isTV: false, rowKey: 'category_row_${category.name}');
+            return _buildCategoryRow(
+              category.name,
+              videos,
+              isTV: false,
+              rowKey: 'category_row_${category.name}',
+            );
           }),
       ],
     );
   }
 
-  Widget _buildCategoryRow(String title, List videos, {required bool isTV, String? rowKey}) {
+  Widget _buildCategoryRow(
+    String title,
+    List videos, {
+    required bool isTV,
+    String? rowKey,
+  }) {
     return Column(
       key: rowKey != null ? Key(rowKey) : null,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,7 +310,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
@@ -301,7 +339,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return YoutubeSection(videos: youtubeState.recommendVideos);
   }
-
 
   void _navigateToDetail(String videoId) {
     context.push('/detail/$videoId');
