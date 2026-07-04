@@ -8,10 +8,15 @@ final favoritesRemoteServiceProvider = Provider<FavoritesRemoteService>((ref) {
 
 class FavoritesRemoteService {
   FavoritesRemoteService({required String baseUrl})
-      : _dio = Dio(BaseOptions(
+    : _dio = Dio(
+        BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 10),
-        ));
+        ),
+      );
+
+  /// 注入既有 Dio 實例 (用於測試或自訂 httpClientAdapter)。
+  FavoritesRemoteService.fromDio(Dio dio) : _dio = dio;
 
   FavoritesRemoteService.withDio(this._dio);
 
@@ -24,12 +29,15 @@ class FavoritesRemoteService {
   }
 
   Future<bool> addFavorite(FavoriteItem item) async {
-    await _dio.post('/favorites', data: {
-      'id': item.id,
-      'title': item.title,
-      'type': item.type,
-      'poster': item.posterUrl,
-    });
+    await _dio.post(
+      '/favorites',
+      data: {
+        'id': item.id,
+        'title': item.title,
+        'type': item.type,
+        'poster': item.posterUrl,
+      },
+    );
     return true;
   }
 
@@ -39,24 +47,31 @@ class FavoritesRemoteService {
   }
 
   Future<bool> syncToServer(List<FavoriteItem> items) async {
-    await _dio.post('/favorites/sync', data: {
-      'items': items.map((i) => {
-            'id': i.id,
-            'type': i.type,
-            'addedAt': i.addedAt.toIso8601String(),
-          }).toList(),
-    });
+    await _dio.post(
+      '/favorites/sync',
+      data: {
+        'items': items
+            .map(
+              (i) => {
+                'id': i.id,
+                'type': i.type,
+                'addedAt': i.addedAt.toIso8601String(),
+              },
+            )
+            .toList(),
+      },
+    );
     return true;
   }
 
   FavoriteItem _fromJson(Map<String, dynamic> json) => FavoriteItem(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        posterUrl: json['poster'] as String? ?? '',
-        type: json['type'] as String? ?? 'movie',
-        isAvailable: json['available'] as bool? ?? true,
-        addedAt: json['addedAt'] != null
-            ? DateTime.parse(json['addedAt'] as String)
-            : DateTime.now(),
-      );
+    id: json['id'] as String,
+    title: json['title'] as String,
+    posterUrl: json['poster'] as String? ?? '',
+    type: json['type'] as String? ?? 'movie',
+    isAvailable: json['available'] as bool? ?? true,
+    addedAt: json['addedAt'] != null
+        ? DateTime.parse(json['addedAt'] as String)
+        : DateTime.now(),
+  );
 }
