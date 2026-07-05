@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:white_tv/core/api/dio_provider.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
 
 final favoritesRemoteServiceProvider = Provider<FavoritesRemoteService>((ref) {
-  throw UnimplementedError('favoritesRemoteServiceProvider must be overridden');
+  // Sprint 7.1 — pull shared Dio instead of constructing one here.
+  // baseUrl lives on the overridden Dio (see lib/main.dart ProviderScope).
+  return FavoritesRemoteService.withDio(ref.watch(dioProvider));
 });
 
 class FavoritesRemoteService {
