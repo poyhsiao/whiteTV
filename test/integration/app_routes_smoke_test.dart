@@ -40,10 +40,13 @@ Future<ProviderContainer> _container() async {
 }
 
 Future<void> _pumpRoute(WidgetTester tester, String location) async {
+  final container = await _container();
+  addTearDown(container.dispose);
+
   final router = createAppRouter(initialLocation: location);
   await tester.pumpWidget(
     UncontrolledProviderScope(
-      container: await _container(),
+      container: container,
       child: MaterialApp.router(routerConfig: router),
     ),
   );

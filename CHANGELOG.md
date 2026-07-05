@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Sprint 7.1 DioProvider 統一 (2026-07-05)
 - 新增 `lib/core/api/dio_provider.dart` — canonical Dio provider,跨模組共用,default `Dio()` (fail-soft)
 - `lib/providers/downloads_providers.dart` 移除本地 `dioProvider`,改 `export '...dio_provider.dart' show dioProvider`(相容既有 import)
-- `lib/features/favorites/services/favorites_remote_service.dart` 改用 `ref.watch(dioProvider)` + `FavoritesRemoteService.withDio(...)`,消除 `Dio(BaseOptions(...))` 硬編碼
+- `lib/features/favorites/services/favorites_remote_service.dart` 改用 `ref.watch(dioProvider)` + `FavoritesRemoteService.fromDio(...)`,消除 `Dio(BaseOptions(...))` 硬編碼
 - 新增 `test/core/api/dio_provider_test.dart` — 3 個測試:override 成功 / legacy re-export 同一物件 / 預設返回 `Dio`
 - `test/features/favorites/stores/favorites_store_test.dart` 補 `favoritesRemoteServiceProvider.overrideWith(throw ...)` 保留 "Remote service not configured" 語意
 - 全 suite: +1267 ~15 / 0 失敗 / 0 issues
