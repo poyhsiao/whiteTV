@@ -57,6 +57,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 涵蓋 home/detail/player/login/settings/history/category/youtube 等
 - 整體 Sprint 5: 25 個 test 全綠 / 0 失敗 / 0 issues
 
+## Sprint 6 評估 (2026-07-04)
+- Sprint 6.1 _PlatformSpeechController 跳過 (SpeechToText 不可注入,70% 為合理極限)
+- Sprint 6.2 AppRouter MaterialApp.router pumpWidget 跳過 (14 builder 投資報酬低)
+- Sprint 6.3 DI Audit: 3 個剩餘 hardcoded dep 識別,docs/spec/DI_AUDIT.md
+- Sprint 7+ 候選: DioProvider 統一管理 / 整體 Provider audit / AppRouter smoke test
+
 ## [0.10.3] - 2026-06-21
 
 ### Added
