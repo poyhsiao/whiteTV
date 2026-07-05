@@ -43,6 +43,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sprint 4.4 app_router: 受限於 14 GoRoute builder 內 pathParameters,需 integration test
 - 整體 Sprint 4: 13 個新 test 全綠 / 0 失敗 / 0 issues
 
+## Sprint 5 DI Refactor (2026-07-04)
+- **FavoritesRemoteService** (lib/features/favorites/services/favorites_remote_service.dart)
+  - 新增 `FavoritesRemoteService.fromDio(Dio)` factory 注入既有 Dio
+  - 覆蓋率 12%→90% (5 個 mock HTTP test)
+- **TVVoiceInputService** (lib/features/search/services/voice_input_service.dart)
+  - 新增 `SpeechController` abstract interface
+  - 新增 `_PlatformSpeechController` 適配 `SpeechToText`
+  - 新增 `TVVoiceInputService.fromSpeech(SpeechController)` factory
+  - 覆蓋率 28%→70% (7 個 test)
+- **AppRouter** (lib/core/router/app_router.dart)
+  - 既有 test 改寫為 navigate-based, 13 個 test 覆蓋 13 個 route 結構
+  - 涵蓋 home/detail/player/login/settings/history/category/youtube 等
+- 整體 Sprint 5: 25 個 test 全綠 / 0 失敗 / 0 issues
+
 ## [0.10.3] - 2026-06-21
 
 ### Added
