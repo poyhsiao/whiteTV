@@ -30,6 +30,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `HomeScreen` (lib/features/home/home_screen.dart) 包 `BackConfirmation` widget (僅 TV)
 - `RecommendationReasonSheet` 加上 `recommendation.title` 顯示
 
+## Sprint 7.1 DioProvider 統一 (2026-07-05)
+- 新增 `lib/core/api/dio_provider.dart` — canonical Dio provider,跨模組共用,default `Dio()` (fail-soft)
+- `lib/providers/downloads_providers.dart` 移除本地 `dioProvider`,改 `export '...dio_provider.dart' show dioProvider`(相容既有 import)
+- `lib/features/favorites/services/favorites_remote_service.dart` 改用 `ref.watch(dioProvider)` + `FavoritesRemoteService.fromDio(...)`,消除 `Dio(BaseOptions(...))` 硬編碼
+- 新增 `test/core/api/dio_provider_test.dart` — 3 個測試:override 成功 / legacy re-export 同一物件 / 預設返回 `Dio`
+- `test/features/favorites/stores/favorites_store_test.dart` 補 `favoritesRemoteServiceProvider.overrideWith(throw ...)` 保留 "Remote service not configured" 語意
+- 全 suite: +1267 ~15 / 0 失敗 / 0 issues
+
+## Sprint 8.1 InputServiceProvider (2026-07-05)
+- 新增 `lib/core/services/input_service_provider.dart` — canonical InputService provider
+- `lib/features/login/presentation/screens/login_screen.dart` 改用 `ref.read(inputServiceProvider)`(從直接 `InputService()` 改為注入)
+- `lib/features/settings/presentation/screens/input_screen.dart` 改為 `ConsumerStatefulWidget` + provider 注入
+- 新增 `test/core/services/input_service_provider_test.dart` — 2 個測試
+- `test/features/settings/input_screen_test.dart` 與 `test/features/login/login_screen_test.dart` 加 `ProviderScope` + `_SpyInputService` override
+- 全 suite: +1269 ~15 / 0 失敗 / 0 issues
+
+## Sprint 8.2 SourceSelector HttpClient 工廠 (2026-07-05)
+- `SourceSelector` 新增 named ctor `httpClientFactory` (Sprint 7.3 audit 高 ROI 候選)
+- 改寫 `testSingleSource` 用 `_httpClientFactory()` 而非 `new HttpClient()`
+- 新增 `test/core/source/source_selector_httpclient_test.dart` — 3 個測試 (happy / throw / backward compat)
+- 全 suite: +1272 ~15 / 0 失敗 / 0 issues
+
+## Sprint 7.2 AppRouter smoke test (2026-07-05)
+- 新增 `test/integration/app_routes_smoke_test.dart` — 3 個 pumpWidget test,驗證 3 個 GoRoute (`/downloads`, `/onboarding`, `/remote-guide`) 真的 navigate 到正確 widget
+- 用 `UncontrolledProviderScope` + `createAppRouter(initialLocation: ...)` 注入完整 ProviderScope
+- 複雜 route (history/home, 需完整 store override) 留給各自 widget test,不在 smoke 範圍
+- 全 suite: +1275 ~15 / 0 失敗 / 0 issues
+
+## Sprint 8.3 SourceSelector prefs DI (2026-07-05)
+- `SourceSelector` ctor 新增 `prefsReader` / `prefsWriter` named params(預設走 `SharedPreferences`)
+- `setBlockedSources` 改用 `_prefsWriter`,`_refreshBlockedSources` 改用 `_prefsReader`(移除內部 `SharedPreferences.getInstance` 呼叫)
+- 新增 `test/core/source/source_selector_prefs_test.dart` — 4 個測試(預設相容 / writer 注入 / reader 注入影響 selectSource / 空 reader)
+- 全 suite: +1279 ~15 / 0 失敗 / 0 issues
+- 後續:`source_selector_provider.dart` 可改用 `ref.read(sharedPreferencesProvider)` 傳入 lambda,提升 test isolation(Sprint 8.3 follow-up)
+
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
 - QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠

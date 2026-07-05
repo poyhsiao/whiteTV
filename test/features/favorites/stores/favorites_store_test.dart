@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/favorites/data/models/favorite_item.dart';
 import 'package:white_tv/features/favorites/domain/models/favorites_state.dart';
 import 'package:white_tv/features/favorites/presentation/providers/favorites_store.dart';
+import 'package:white_tv/features/favorites/services/favorites_remote_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -11,7 +12,19 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      container = ProviderContainer();
+      container = ProviderContainer(
+        overrides: [
+          // Sprint 7.1 — favoritesRemoteServiceProvider now resolves to a real
+          // service via dioProvider; tests that want "no remote" semantics
+          // (or no HTTP) override back to a throwing sentinel so FavoritesStore
+          // sees null and emits "Remote service not configured".
+          favoritesRemoteServiceProvider.overrideWith(
+            (ref) => throw UnimplementedError(
+              'favoritesRemoteServiceProvider not configured for this test',
+            ),
+          ),
+        ],
+      );
     });
 
     tearDown(() {
