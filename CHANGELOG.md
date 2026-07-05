@@ -46,6 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `test/features/settings/input_screen_test.dart` 與 `test/features/login/login_screen_test.dart` 加 `ProviderScope` + `_SpyInputService` override
 - 全 suite: +1269 ~15 / 0 失敗 / 0 issues
 
+## Sprint 8.2 SourceSelector HttpClient 工廠 (2026-07-05)
+- `SourceSelector` 新增 named ctor `httpClientFactory` (Sprint 7.3 audit 高 ROI 候選)
+- 改寫 `testSingleSource` 用 `_httpClientFactory()` 而非 `new HttpClient()`
+- 新增 `test/core/source/source_selector_httpclient_test.dart` — 3 個測試 (happy / throw / backward compat)
+- 全 suite: +1272 ~15 / 0 失敗 / 0 issues
+
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
 - QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠

@@ -15,6 +15,15 @@ class SourceSelector {
   final Map<String, _CachedSource> _cache = {};
   List<String> _blockedSources = [];
 
+  /// Sprint 8.2 — factory for `dart:io` HttpClient. Default uses real
+  /// HttpClient(); tests override with a stub that returns canned responses.
+  final HttpClient Function() _httpClientFactory;
+
+  SourceSelector({HttpClient Function()? httpClientFactory})
+      : _httpClientFactory = httpClientFactory ?? _defaultHttpClientFactory;
+
+  static HttpClient _defaultHttpClientFactory() => HttpClient();
+
   /// 選擇最佳來源
   /// 1. 過濾屏蔽和不可用來源（每次從 SharedPreferences 刷新屏蔽名單以保持同步）
   /// 2. 檢查快取是否有效
@@ -85,7 +94,7 @@ class SourceSelector {
   /// 使用 HEAD 請求測量響應時間
   Future<VideoSource> testSingleSource(VideoSource source) async {
     final stopwatch = Stopwatch()..start();
-    final client = HttpClient();
+    final client = _httpClientFactory();
     client.connectionTimeout = const Duration(seconds: 5);
 
     try {
