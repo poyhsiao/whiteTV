@@ -63,6 +63,7 @@ void main() {
       final path = '/youtube/abc?url=https://youtube.com/watch?v=abc';
       expect(routeNameFor(path), equals('youtube-player'));
       expect(pathParamsFor(path)['id'], equals('abc'));
+      expect(Uri.parse(path).queryParameters['url'], equals('https://youtube.com/watch?v=abc'));
     });
 
     test('/history 匹配 history route', () {
@@ -87,6 +88,10 @@ void main() {
 
     test('/live 匹配 live route', () {
       expect(routeNameFor('/live'), equals('live'));
+    });
+
+    test('/live/player 匹配 live-player 嵌套 route', () {
+      expect(routeNameFor('/live/player'), equals('live-player'));
     });
   });
 }

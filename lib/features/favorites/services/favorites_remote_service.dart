@@ -18,8 +18,6 @@ class FavoritesRemoteService {
   /// 注入既有 Dio 實例 (用於測試或自訂 httpClientAdapter)。
   FavoritesRemoteService.fromDio(Dio dio) : _dio = dio;
 
-  FavoritesRemoteService.withDio(this._dio);
-
   final Dio _dio;
 
   Future<List<FavoriteItem>> fetchFavorites() async {

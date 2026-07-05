@@ -13,7 +13,6 @@ class _MockSpeechController implements SpeechController {
   bool stopCalled = false;
   bool initializeReturns = true;
   SpeechResultCallback? listenCallback;
-  final _resultController = StreamController<String>.broadcast();
 
   @override
   Future<bool> initialize() async {
@@ -32,15 +31,8 @@ class _MockSpeechController implements SpeechController {
     stopCalled = true;
   }
 
-  @override
-  Stream<String> get results => _resultController.stream;
-
   void emitWords(String words) {
     listenCallback?.call(words);
-  }
-
-  void dispose() {
-    _resultController.close();
   }
 }
 
@@ -60,7 +52,6 @@ void main() {
 
     tearDown(() {
       service.stopListening();
-      mockSpeech.dispose();
     });
 
     test('initial state is not listening', () {

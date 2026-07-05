@@ -21,7 +21,6 @@ abstract class SpeechController {
   Future<bool> initialize();
   void listen({required SpeechResultCallback onResult});
   Future<void> stop();
-  Stream<String> get results;
 }
 
 /// 真實平台 speech_to_text 適配。
@@ -38,9 +37,6 @@ class _PlatformSpeechController implements SpeechController {
 
   @override
   Future<void> stop() async => _speech.stop();
-
-  @override
-  Stream<String> get results => const Stream.empty();
 }
 
 class TVVoiceInputService implements VoiceInputService {
