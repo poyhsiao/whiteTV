@@ -58,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 複雜 route (history/home, 需完整 store override) 留給各自 widget test,不在 smoke 範圍
 - 全 suite: +1275 ~15 / 0 失敗 / 0 issues
 
+## Sprint 8.3 SourceSelector prefs DI (2026-07-05)
+- `SourceSelector` ctor 新增 `prefsReader` / `prefsWriter` named params(預設走 `SharedPreferences`)
+- `setBlockedSources` 改用 `_prefsWriter`,`_refreshBlockedSources` 改用 `_prefsReader`(移除內部 `SharedPreferences.getInstance` 呼叫)
+- 新增 `test/core/source/source_selector_prefs_test.dart` — 4 個測試(預設相容 / writer 注入 / reader 注入影響 selectSource / 空 reader)
+- 全 suite: +1279 ~15 / 0 失敗 / 0 issues
+- 後續:`source_selector_provider.dart` 可改用 `ref.read(sharedPreferencesProvider)` 傳入 lambda,提升 test isolation(Sprint 8.3 follow-up)
+
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
 - QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠

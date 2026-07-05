@@ -19,10 +19,34 @@ class SourceSelector {
   /// HttpClient(); tests override with a stub that returns canned responses.
   final HttpClient Function() _httpClientFactory;
 
-  SourceSelector({HttpClient Function()? httpClientFactory})
-      : _httpClientFactory = httpClientFactory ?? _defaultHttpClientFactory;
+  /// Sprint 8.3 — async reader for the persisted blocked-source list.
+  /// Default reads `blocked_sources` from SharedPreferences; tests inject
+  /// an in-memory function to avoid real storage I/O.
+  final Future<List<String>> Function() _prefsReader;
+
+  /// Sprint 8.3 — async writer for the persisted blocked-source list.
+  /// Default writes to SharedPreferences; tests inject an in-memory function.
+  final Future<void> Function(List<String>) _prefsWriter;
+
+  SourceSelector({
+    HttpClient Function()? httpClientFactory,
+    Future<List<String>> Function()? prefsReader,
+    Future<void> Function(List<String>)? prefsWriter,
+  })  : _httpClientFactory = httpClientFactory ?? _defaultHttpClientFactory,
+        _prefsReader = prefsReader ?? _defaultPrefsReader,
+        _prefsWriter = prefsWriter ?? _defaultPrefsWriter;
 
   static HttpClient _defaultHttpClientFactory() => HttpClient();
+
+  static Future<List<String>> _defaultPrefsReader() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('blocked_sources')?.toList() ?? const [];
+  }
+
+  static Future<void> _defaultPrefsWriter(List<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('blocked_sources', ids);
+  }
 
   /// 選擇最佳來源
   /// 1. 過濾屏蔽和不可用來源（每次從 SharedPreferences 刷新屏蔽名單以保持同步）
@@ -147,9 +171,7 @@ class SourceSelector {
   /// 設置屏蔽來源列表
   Future<void> setBlockedSources(List<String> sources) async {
     _blockedSources = List.from(sources);
-    // 持久化到 SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('blocked_sources', _blockedSources);
+    await _prefsWriter(List<String>.from(_blockedSources));
   }
 
   /// 獲取屏蔽來源列表
@@ -164,8 +186,7 @@ class SourceSelector {
 
   /// 刷新屏蔽來源列表（每次選擇時調用以保持同步）
   Future<void> _refreshBlockedSources() async {
-    final prefs = await SharedPreferences.getInstance();
-    _blockedSources = prefs.getStringList('blocked_sources')?.toList() ?? [];
+    _blockedSources = await _prefsReader();
   }
 
   /// 清除快取
