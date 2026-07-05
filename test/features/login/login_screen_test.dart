@@ -4,34 +4,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:white_tv/core/services/input_service.dart';
 import 'package:white_tv/core/services/input_service_provider.dart';
 import 'package:white_tv/features/login/presentation/screens/login_screen.dart';
-
-class _SpyInputService extends InputService {
-  @override
-  Future<bool> startServer({int port = 8080}) async => true;
-
-  @override
-  Future<void> stopServer() async {}
-
-  @override
-  String? get currentIp => '127.0.0.1';
-
-  @override
-  int? get currentPort => 8080;
-
-  @override
-  bool get isRunning => true;
-
-  @override
-  String getQrCodeUrl() => 'http://127.0.0.1:8080/qr';
-}
+import '../../helpers/spy_input_service.dart';
 
 Widget _wrap(Widget child) {
   return ProviderScope(
     overrides: [
-      inputServiceProvider.overrideWithValue(_SpyInputService()),
+      inputServiceProvider.overrideWithValue(SpyInputService()),
     ],
     child: MaterialApp(home: child),
   );
