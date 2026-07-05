@@ -17,12 +17,12 @@ void main() {
       expect(yaml['permissions']['contents'], equals('write'));
     });
 
-    test('release workflow has android, macos, and release jobs', () {
+    test('release workflow has android, macos, and publish jobs', () {
       final jobs = yaml['jobs'] as YamlMap;
       expect(jobs.containsKey('android'), isTrue);
       expect(jobs.containsKey('macos'), isTrue);
       // iOS job is disabled - requires Apple certificates not available in standard CI
-      expect(jobs.containsKey('release'), isTrue);
+      expect(jobs.containsKey('publish'), isTrue);
     });
 
     test('release workflow has android job with mobile APK build', () {
