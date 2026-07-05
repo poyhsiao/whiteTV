@@ -5,6 +5,11 @@ name: Build Release
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag to build (e.g. v0.10.17)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -18,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name }}
 
       - name: Extract version
-        env:
-          REF: ${{ github.ref }}
-        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -81,11 +86,11 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name }}
 
       - name: Extract version
-        env:
-          REF: ${{ github.ref }}
-        run: echo "VERSION=${REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -95,7 +100,7 @@ jobs:
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.pub-cache
+          path: ~/Library/Caches/flutter
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
@@ -110,7 +115,6 @@ jobs:
           flutter build macos --release
           cd build/macos/Release
           zip -r "../whitetv-${VERSION}-macos.zip" .
-        working-directory: ${{ github.workspace }}
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -121,7 +125,7 @@ jobs:
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: [android]
+    needs: [android, macos]
     steps:
       - uses: actions/checkout@v4
 
@@ -135,7 +139,6 @@ jobs:
           mv artifacts/android-web-artifacts/*.apk artifacts/ 2>/dev/null || true
           mv artifacts/android-web-artifacts/*.tgz artifacts/ 2>/dev/null || true
           mv artifacts/macos-artifact/*.zip artifacts/ 2>/dev/null || true
-          mv artifacts/ios-artifact/*.zip artifacts/ 2>/dev/null || true
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -144,3 +147,4 @@ jobs:
           draft: false
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ inputs.tag_name }}
