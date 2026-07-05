@@ -30,5 +30,4 @@ jobs:
         with:
           model: ${{ secrets.LLM_MODEL_NAME }}
         env:
-          LLM_SERVICE_PROVIDER: ${{ secrets.LLM_SERVICE_PROVIDER }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          ${{ secrets.LLM_SERVICE_PROVIDER }}: ${{ secrets.LLM_API_KEY }}
