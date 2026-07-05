@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
 import 'package:white_tv/shared/widgets/qr_input_widget.dart';
 import 'package:white_tv/core/services/input_service.dart';
+import 'package:white_tv/core/services/input_service_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final void Function(bool success) onLoginComplete;
@@ -21,7 +22,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final InputService _inputService = InputService();
+  // Sprint 8.1 — inject InputService via provider; tests can override.
+  late final InputService _inputService = ref.read(inputServiceProvider);
 
   bool _isLoading = false;
   String? _errorMessage;

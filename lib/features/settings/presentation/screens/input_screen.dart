@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/shared/widgets/qr_input_widget.dart';
 import 'package:white_tv/core/services/input_service.dart';
+import 'package:white_tv/core/services/input_service_provider.dart';
 
-class InputScreen extends StatefulWidget {
+class InputScreen extends ConsumerStatefulWidget {
   final String title;
   final String? initialValue;
   final void Function(String) onComplete;
@@ -15,17 +17,17 @@ class InputScreen extends StatefulWidget {
   });
 
   @override
-  State<InputScreen> createState() => _InputScreenState();
+  ConsumerState<InputScreen> createState() => _InputScreenState();
 }
 
-class _InputScreenState extends State<InputScreen> {
-  late InputService _inputService;
+class _InputScreenState extends ConsumerState<InputScreen> {
+  // Sprint 8.1 — inject InputService via provider; tests can override.
+  late final InputService _inputService = ref.read(inputServiceProvider);
   String _currentInput = '';
 
   @override
   void initState() {
     super.initState();
-    _inputService = InputService();
     _inputService.setOnInputComplete(widget.onComplete);
     _startServer();
   }

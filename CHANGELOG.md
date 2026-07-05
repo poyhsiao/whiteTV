@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `test/features/favorites/stores/favorites_store_test.dart` 補 `favoritesRemoteServiceProvider.overrideWith(throw ...)` 保留 "Remote service not configured" 語意
 - 全 suite: +1267 ~15 / 0 失敗 / 0 issues
 
+## Sprint 8.1 InputServiceProvider (2026-07-05)
+- 新增 `lib/core/services/input_service_provider.dart` — canonical InputService provider
+- `lib/features/login/presentation/screens/login_screen.dart` 改用 `ref.read(inputServiceProvider)`(從直接 `InputService()` 改為注入)
+- `lib/features/settings/presentation/screens/input_screen.dart` 改為 `ConsumerStatefulWidget` + provider 注入
+- 新增 `test/core/services/input_service_provider_test.dart` — 2 個測試
+- `test/features/settings/input_screen_test.dart` 與 `test/features/login/login_screen_test.dart` 加 `ProviderScope` + `_SpyInputService` override
+- 全 suite: +1269 ~15 / 0 失敗 / 0 issues
+
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
 - QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠
