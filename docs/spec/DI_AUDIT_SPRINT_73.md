@@ -2,7 +2,7 @@
 
 **目的**: Sprint 6.3 DI_AUDIT 完成 dioProvider 後,做整體掃描,識別 Sprint 8+ 候選。
 **方法**: `grep -rn "= [A-Z][A-Za-z]*()" lib/ | grep -v "_test.dart\|.g.dart"`
-**產出**: 3 個高價值候選 + 5 個低優先級雜訊。
+**產出**: 3 個高價值候選 + 8 個低優先級雜訊。
 
 ---
 

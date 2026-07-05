@@ -43,15 +43,14 @@ void main() {
         prefsWriter: (ids) async => prefs.store['blocked_sources'] = ids,
       );
 
-      // seed internal state from prefs (mirrors loadBlockedSources behavior)
-      await selector.setBlockedSources(['blocked-id']);
-
+      // Don't explicitly call setBlockedSources; let selectSource refresh from prefs
       final sources = [
         const VideoSource(id: 'blocked-id', name: 'B', url: 'http://b'),
         const VideoSource(id: 'ok-id', name: 'A', url: 'http://a'),
       ];
 
       final picked = await selector.selectSource(sources, 'vid-1');
+      // selectSource internally calls _refreshBlockedSources, which reads from prefs
       // blocked-id is filtered out, so we must get ok-id (or fallback).
       expect(picked.id, 'ok-id');
     });
