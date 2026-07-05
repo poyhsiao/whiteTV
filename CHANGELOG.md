@@ -52,6 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 新增 `test/core/source/source_selector_httpclient_test.dart` — 3 個測試 (happy / throw / backward compat)
 - 全 suite: +1272 ~15 / 0 失敗 / 0 issues
 
+## Sprint 7.2 AppRouter smoke test (2026-07-05)
+- 新增 `test/integration/app_routes_smoke_test.dart` — 3 個 pumpWidget test,驗證 3 個 GoRoute (`/downloads`, `/onboarding`, `/remote-guide`) 真的 navigate 到正確 widget
+- 用 `UncontrolledProviderScope` + `createAppRouter(initialLocation: ...)` 注入完整 ProviderScope
+- 複雜 route (history/home, 需完整 store override) 留給各自 widget test,不在 smoke 範圍
+- 全 suite: +1275 ~15 / 0 失敗 / 0 issues
+
 ## Sprint 3 Coverage (2026-07-04)
 - 設定頁 3 項 (autoPlay / defaultQuality / autoSelectSource) — retrofitted coverage tests
 - QR Remote (InputService + LocalHttpServer) — 已實作,既有測試 12 個全綠

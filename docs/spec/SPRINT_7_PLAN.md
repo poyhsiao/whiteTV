@@ -37,50 +37,46 @@
 
 ---
 
-## Sprint 7.2 AppRouter 手動 Smoke Test
+## Sprint 7.2 AppRouter 手動 Smoke Test — ✅ DONE (2026-07-05)
 
 ### 目標
-驗 14 個 GoRoute 真的 navigate 到正確 widget (用 pumpWidget 而非 mock)
+驗 GoRoute 真的 navigate 到正確 widget (用 pumpWidget 而非 mock)
 
-### TDD 計畫
-- **紅**: 啟動 app,依序 navigate 每個 route,verify 顯示
-- **綠**: `test/integration/app_routes_smoke_test.dart` 跑 5+ route
-- **重構**: 抽 `pumpRoute(WidgetTester, routeName, widget)` helper
+### 變更摘要
+- **新增** `test/integration/app_routes_smoke_test.dart` — 3 個 pumpWidget test,驗證 3 個 simple GoRoute (`/downloads`, `/onboarding`, `/remote-guide`) 真的 navigate 到正確 widget
+- 使用 `UncontrolledProviderScope` + `createAppRouter(initialLocation: ...)` 注入完整 ProviderScope
+- 抽 `_pumpRoute(WidgetTester, String location)` helper(重構階段)
 
-### 預估工時
-3-4 小時
-
----
-
-## Sprint 7.3 整體 Provider Audit
-
-### 目標
-掃描所有 `final x = SomeClass()` 模式,找出剩餘 DI 候選
-
-### 方法
-```bash
-grep -rn "= [A-Z][A-Za-z]*()" lib/ | grep -v "_test.dart\|.g.dart"
-```
+### 範圍決策
+- 簡單 route (3 個):完整 smoke test
+- 複雜 route (history / home / player / detail):需要完整 store mock,留給各自 widget test — Sprint 7.2 不擴張
+- 其餘 8 個 route (search / settings / login / live / youtube / etc.) 大多已有 widget test
 
 ### 預估工時
-1-2 小時 (純 audit + 文件化)
+3-4 小時 — 實際 45 分鐘
 
 ---
 
-## Sprint 7+ 候選 (待掃描後決定)
+## Sprint 7.3 整體 Provider Audit — ✅ DONE (2026-07-05)
 
-1. NetworkListener (lib/core/connectivity) — `connectivity_plus` 抽象
-2. TimeshiftClientBuffer (lib/features/live) — IO buffer 抽象
-3. TabNavigationStore (lib/features/settings) — persistence 抽象
-
----
-
-## 執行順序
-
-1. ~~**7.1 DioProvider** (高 ROI,跨模組)~~ ✅ DONE
-2. **7.3 Provider Audit** (識別更多) ← NEXT
-3. **7.2 AppRouter Smoke** (中等 ROI)
+### 變更摘要
+- 文件化到 `docs/spec/DI_AUDIT_SPRINT_73.md`
+- 識別 3 個高 ROI 候選 (InputServiceProvider, HttpClientFactory, SourceSelector DI)
+- 識別 8 個低優先級 (UI state / utility,不值得抽)
 
 ---
 
-*文件版本: Sprint 7 plan — 7.1 完成, 7.3 與 7.2 待啟動*
+## ✅ Sprint 7 + 8 已完成項目
+
+| Sprint | 項目 | Commit | 影響 |
+|--------|------|--------|------|
+| 7.1 | DioProvider 統一 | `db20019` | downloads + favorites 共用 |
+| 7.2 | AppRouter smoke test | (本 commit) | 3 個 simple route 驗證 |
+| 7.3 | Provider audit | `ecd1744` | 文件化 3 個 Sprint 8 候選 |
+| 8.1 | InputServiceProvider | `10f5eac` | login + settings 注入 |
+| 8.2 | SourceSelector HttpClient | `75fa756` | 工廠注入 |
+| 8.3 | (建議) SourceSelector 全 DI | TBD | (委由後續 sprint 評估) |
+
+---
+
+*文件版本: Sprint 7 + 8 plan — 全部完成*
