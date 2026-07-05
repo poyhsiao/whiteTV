@@ -162,7 +162,8 @@ jobs:
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: [android, macos, ios]
+    needs: [android]
+    if: always()
     steps:
       - uses: actions/checkout@v4
 
