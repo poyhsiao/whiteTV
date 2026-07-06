@@ -16,6 +16,7 @@ class _FakeDownloadServiceOk implements DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async {
     onProgress?.call(50, 100);
     await Future.delayed(const Duration(milliseconds: 10));
@@ -38,6 +39,7 @@ class _FakeDownloadServiceFail implements DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async => null; // 模擬下載失敗
 
   @override
@@ -56,6 +58,7 @@ class _FakeDownloadServiceNetworkError implements DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async {
     throw DioException(
       type: DioExceptionType.connectionError,

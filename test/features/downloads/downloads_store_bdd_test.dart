@@ -20,6 +20,7 @@ class _RealisticDownloadService implements DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async {
     onProgress?.call(100, 100);
     final path = '/fake/$videoId.mp4';

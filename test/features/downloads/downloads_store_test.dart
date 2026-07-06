@@ -20,6 +20,7 @@ class FakeDownloadService implements DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async => null;
 
   @override

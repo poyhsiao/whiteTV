@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
 
@@ -14,42 +16,69 @@ class DownloadService {
     required String videoId,
     required String url,
     void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
   }) async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final downloadsDir = Directory('${dir.path}/downloads');
-      if (!await downloadsDir.exists()) {
-        await downloadsDir.create(recursive: true);
-      }
-
-      final filePath = '${downloadsDir.path}/$videoId.mp4';
-
-      await _dio.download(
-        url,
-        filePath,
-        onReceiveProgress: onProgress,
-      );
-
-      // Update history record to mark as downloaded
-      final records = await _localService.getAll();
-      final recordIndex = records.indexWhere((r) => r.videoId == videoId);
-
-      if (recordIndex >= 0) {
-        final record = records[recordIndex];
-        final updated = record.copyWith(
-          isDownloaded: true,
-          localPath: filePath,
-          saveTime: DateTime.now(),
-        );
-        await _localService.save(updated);
-      }
-
-      return filePath;
-    } on DioException {
-      return null;
-    } on FileSystemException {
-      return null;
+    final attempts = max(1, maxRetries);
+    final dir = await getApplicationDocumentsDirectory();
+    final downloadsDir = Directory('${dir.path}/downloads');
+    if (!await downloadsDir.exists()) {
+      await downloadsDir.create(recursive: true);
     }
+
+    final filePath = '${downloadsDir.path}/$videoId.mp4';
+    DioException? lastError;
+
+    for (int attempt = 0; attempt < attempts; attempt++) {
+      try {
+        await _dio.download(
+          url,
+          filePath,
+          onReceiveProgress: onProgress,
+        );
+
+        // Update history record to mark as downloaded
+        final records = await _localService.getAll();
+        final recordIndex = records.indexWhere((r) => r.videoId == videoId);
+
+        if (recordIndex >= 0) {
+          final record = records[recordIndex];
+          final updated = record.copyWith(
+            isDownloaded: true,
+            localPath: filePath,
+            saveTime: DateTime.now(),
+          );
+          await _localService.save(updated);
+        }
+
+        return filePath;
+      } on DioException catch (e) {
+        lastError = e;
+        final isRetryable = e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout;
+
+        if (!isRetryable) {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with non-retryable error: ${e.type}. Will not retry.');
+          break;
+        }
+
+        if (attempt < attempts - 1) {
+          final delay = Duration(milliseconds: (100 * pow(2, attempt)).toInt());
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with retryable error: ${e.type}. Retrying after ${delay.inMilliseconds}ms...');
+          await Future.delayed(delay);
+        } else {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with retryable error: ${e.type}. All retry attempts exhausted.');
+        }
+      } on FileSystemException {
+        rethrow;
+      }
+    }
+
+    if (lastError != null) {
+      debugPrint('DownloadService: Download failed after all retry attempts. Last error: ${lastError.type}');
+      throw lastError;
+    }
+    return null;
   }
 
   Future<bool> isDownloaded(String videoId) async {

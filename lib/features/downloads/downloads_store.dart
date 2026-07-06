@@ -71,11 +71,9 @@ class DownloadsStore extends StateNotifier<DownloadsState> {
       );
 
       if (path != null) {
-        // Save current active IDs before await — loadDownloads() will update state
-        final updatedActiveIds = state.activeDownloadIds.toSet()..remove(videoId);
         await loadDownloads();
         state = state.copyWith(
-          activeDownloadIds: updatedActiveIds,
+          activeDownloadIds: state.activeDownloadIds.toSet()..remove(videoId),
           downloadProgress: Map.from(state.downloadProgress)..remove(videoId),
         );
       } else {
