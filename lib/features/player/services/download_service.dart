@@ -4,6 +4,16 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
 
+class DownloadException implements Exception {
+  final String message;
+  final Object? underlyingError;
+
+  DownloadException(this.message, [this.underlyingError]);
+
+  @override
+  String toString() => 'DownloadException: $message';
+}
+
 class DownloadService {
   final Dio _dio;
   final HistoryLocalService _localService;
@@ -16,6 +26,10 @@ class DownloadService {
     void Function(int received, int total)? onProgress,
     int maxRetries = 3,
   }) async {
+    if (maxRetries < 1) {
+      throw DownloadException('maxRetries must be at least 1, got $maxRetries');
+    }
+
     final dir = await getApplicationDocumentsDirectory();
     final downloadsDir = Directory('${dir.path}/downloads');
     if (!await downloadsDir.exists()) {
@@ -56,8 +70,8 @@ class DownloadService {
             e.type != DioExceptionType.receiveTimeout) {
           break;
         }
-      } on FileSystemException {
-        rethrow;
+      } on FileSystemException catch (e) {
+        throw DownloadException('File system error during download', e);
       }
     }
 
