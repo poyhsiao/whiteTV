@@ -122,6 +122,54 @@ jobs:
           name: macos-artifact
           path: build/macos/whitetv-v*.zip
 
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name }}
+
+      - name: Extract version
+        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/flutter
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Set up code signing (CI, no-op)
+        run: |
+          mkdir -p ios/Runner
+          echo "" > ios/Runner/FAKE_SIGNING
+
+      - name: Build iOS
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p build/ios/whitetv-${VERSION}-ios
+          cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
+          cd build/ios
+          zip -r "whitetv-${VERSION}-ios.zip" whitetv-${VERSION}-ios
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifact
+          path: build/ios/whitetv-v*.zip
+
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
