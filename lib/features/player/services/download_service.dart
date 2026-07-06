@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
 
@@ -52,21 +53,31 @@ class DownloadService {
         return filePath;
       } on DioException catch (e) {
         lastError = e;
-        if (e.type != DioExceptionType.connectionError &&
-            e.type != DioExceptionType.connectionTimeout &&
-            e.type != DioExceptionType.receiveTimeout) {
+        final isRetryable = e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout;
+
+        if (!isRetryable) {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with non-retryable error: ${e.type}. Will not retry.');
           break;
         }
+
         if (attempt < attempts - 1) {
           final delay = Duration(milliseconds: (100 * pow(2, attempt)).toInt());
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with retryable error: ${e.type}. Retrying after ${delay.inMilliseconds}ms...');
           await Future.delayed(delay);
+        } else {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$attempts failed with retryable error: ${e.type}. All retry attempts exhausted.');
         }
       } on FileSystemException {
         rethrow;
       }
     }
 
-    if (lastError != null) throw lastError;
+    if (lastError != null) {
+      debugPrint('DownloadService: Download failed after all retry attempts. Last error: ${lastError.type}');
+      throw lastError;
+    }
     return null;
   }
 

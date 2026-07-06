@@ -113,6 +113,39 @@ void main() {
         expect(result, endsWith('video1.mp4'));
         expect(attempt, equals(2));
       });
+
+      test('throws DioException after exhausting all retries on connectionTimeout', () async {
+        // Mock dio.download to always throw a retryable error
+        when(() => mockDio.download(
+              any(),
+              any(),
+              onReceiveProgress: any(named: 'onReceiveProgress'),
+            )).thenThrow(DioException(
+          requestOptions: RequestOptions(path: ''),
+          type: DioExceptionType.connectionTimeout,
+        ));
+
+        // Call download with a finite maxRetries
+        await expectLater(
+          downloadService.download(
+            videoId: 'video1',
+            url: 'https://example.com/video1.mp4',
+            maxRetries: 2,
+          ),
+          throwsA(isA<DioException>().having(
+            (e) => e.type,
+            'type',
+            DioExceptionType.connectionTimeout,
+          )),
+        );
+
+        // Verify that download was attempted maxRetries times
+        verify(() => mockDio.download(
+              any(),
+              any(),
+              onReceiveProgress: any(named: 'onReceiveProgress'),
+            )).called(2);
+      });
     });
 
     group('isDownloaded', () {
