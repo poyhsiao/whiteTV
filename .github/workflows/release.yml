@@ -112,7 +112,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build macos --release || true
+          flutter build macos --release
           cd build/macos/Release
           zip -r "../whitetv-${VERSION}-macos.zip" .
 
@@ -125,6 +125,7 @@ jobs:
   ios:
     name: Build iOS
     runs-on: macos-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -158,7 +159,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build ios --release --no-codesign || true
+          flutter build ios --release --no-codesign
           mkdir -p build/ios/whitetv-${VERSION}-ios
           cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
           cd build/ios
