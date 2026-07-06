@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +17,7 @@ class DownloadService {
     void Function(int received, int total)? onProgress,
     int maxRetries = 3,
   }) async {
+    final attempts = max(1, maxRetries);
     final dir = await getApplicationDocumentsDirectory();
     final downloadsDir = Directory('${dir.path}/downloads');
     if (!await downloadsDir.exists()) {
@@ -25,7 +27,7 @@ class DownloadService {
     final filePath = '${downloadsDir.path}/$videoId.mp4';
     DioException? lastError;
 
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
+    for (int attempt = 0; attempt < attempts; attempt++) {
       try {
         await _dio.download(
           url,
@@ -50,18 +52,20 @@ class DownloadService {
         return filePath;
       } on DioException catch (e) {
         lastError = e;
-        // Only retry on connection errors, not on 4xx client errors
         if (e.type != DioExceptionType.connectionError &&
             e.type != DioExceptionType.connectionTimeout &&
             e.type != DioExceptionType.receiveTimeout) {
           break;
+        }
+        if (attempt < attempts - 1) {
+          final delay = Duration(milliseconds: (100 * pow(2, attempt)).toInt());
+          await Future.delayed(delay);
         }
       } on FileSystemException {
         rethrow;
       }
     }
 
-    // All retries exhausted — rethrow as DioException for store to handle
     if (lastError != null) throw lastError;
     return null;
   }
