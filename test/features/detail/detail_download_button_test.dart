@@ -15,7 +15,9 @@ import 'package:white_tv/features/history/services/history_local_service.dart';
 import 'package:white_tv/features/player/services/download_service.dart';
 
 class _FakeDownloadSvc implements DownloadService {
-  @override Future<String?> download({required String videoId, required String url, void Function(int received, int total)? onProgress}) async => "/fake/path/$videoId.mp4";
+  @override Future<String?> download({required String videoId, required String url, void Function(int received, int total)? onProgress,
+    int maxRetries = 3,
+  }) async => "/fake/path/$videoId.mp4";
   @override Future<bool> deleteDownload(String videoId) async => true;
   @override Future<String?> getLocalPath(String videoId) async => null;
   @override Future<bool> isDownloaded(String videoId) async => false;

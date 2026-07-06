@@ -64,22 +64,54 @@ void main() {
         expect(result, endsWith('video1.mp4'));
       });
 
-      test('returns null when download fails', () async {
+      test('throws DioException when download fails', () async {
+        // Non-retryable error: service skips retry loop and throws lastError
         when(() => mockDio.download(
               any(),
               any(),
               onReceiveProgress: any(named: 'onReceiveProgress'),
             )).thenThrow(DioException(
           requestOptions: RequestOptions(path: ''),
-          type: DioExceptionType.connectionTimeout,
+          type: DioExceptionType.cancel,
         ));
+
+        expect(
+          () => downloadService.download(
+            videoId: 'video1',
+            url: 'https://example.com/video1.mp4',
+          ),
+          throwsA(isA<DioException>()),
+        );
+      });
+
+      test('retries on connectionTimeout and succeeds on second attempt', () async {
+        var attempt = 0;
+        when(() => mockDio.download(
+              any(),
+              any(),
+              onReceiveProgress: any(named: 'onReceiveProgress'),
+            )).thenAnswer((_) async {
+          attempt++;
+          if (attempt == 1) {
+            throw DioException(
+              requestOptions: RequestOptions(path: ''),
+              type: DioExceptionType.connectionTimeout,
+            );
+          }
+          return Response<Object>(
+            requestOptions: RequestOptions(path: ''),
+            statusCode: 200,
+          );
+        });
 
         final result = await downloadService.download(
           videoId: 'video1',
           url: 'https://example.com/video1.mp4',
         );
 
-        expect(result, isNull);
+        expect(result, isNotNull);
+        expect(result, endsWith('video1.mp4'));
+        expect(attempt, equals(2));
       });
     });
 
