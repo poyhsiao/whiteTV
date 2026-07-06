@@ -173,7 +173,7 @@ jobs:
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: [android, macos, ios]
+    needs: [android, macos]
     steps:
       - uses: actions/checkout@v4
 
@@ -187,7 +187,6 @@ jobs:
           mv artifacts/android-web-artifacts/*.apk artifacts/ 2>/dev/null || true
           mv artifacts/android-web-artifacts/*.tgz artifacts/ 2>/dev/null || true
           mv artifacts/macos-artifact/*.zip artifacts/ 2>/dev/null || true
-          mv artifacts/ios-artifact/*.zip artifacts/ 2>/dev/null || true
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
