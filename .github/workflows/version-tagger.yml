@@ -20,22 +20,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          fetch-tags: true
 
       - name: Bump version
         id: version
         run: |
-          # Fetch and rebase to ensure we have the latest remote state
           git fetch origin main
-          git rebase origin/main
 
           CURRENT=$(grep "^version:" pubspec.yaml | awk '{print $2}')
           IFS='.' read -r major minor patch <<< "$CURRENT"
           NEW="${major}.${minor}.$((patch + 1))"
 
-          # Double-check: if remote already has this tag, skip
+          # Check if tag already exists
           if git rev-parse "v$NEW" >/dev/null 2>&1; then
-            echo "Tag v$NEW already exists on remote, skipping"
+            echo "Tag v$NEW already exists, skipping"
             echo "version=skip" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -44,18 +41,35 @@ jobs:
           echo "version=$NEW" >> $GITHUB_OUTPUT
           echo "Bumping $CURRENT -> $NEW"
 
-      - name: Commit and push tag
+      - name: Create commit and tag via API
+        if: steps.version.outputs.version != 'skip'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if [ "$VERSION" == "skip" ]; then
-            echo "Version bump skipped, no changes needed"
-            exit 0
-          fi
+          # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage and commit
           git add pubspec.yaml
           git commit -m "chore: bump version to $VERSION"
-          git tag "v$VERSION"
-          # Use force-with-lease to safely handle race conditions
-          git push origin main --tags --force-with-lease
+
+          # Get the commit SHA we just created
+          COMMIT_SHA=$(git rev-parse HEAD)
+
+          # Create tag via GitHub API so it registers as a user-created ref
+          # This ensures release workflow is triggered (unlike GITHUB_TOKEN pushes)
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs \
+            -d "{
+              \"ref\": \"refs/tags/v$VERSION\",
+              \"sha\": \"$COMMIT_SHA\"
+            }"
+
+          echo "Created tag v$VERSION at $COMMIT_SHA"
+
+          # Push the commit (not the tag) to main
+          # The tag push via API will trigger release workflow
+          git push origin main
