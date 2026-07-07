@@ -66,6 +66,10 @@ settings.local.json
 .omc/
 .omc/**/*
 
+# Claude-flow AI agent runtime state
+.claude-flow/
+.claude-flow/**/*
+
 # AgentDB / RuVector - AI vector databases
 *.rvf
 *.rvf.lock
@@ -77,6 +81,12 @@ ruvector.db-wal
 # Docs (keep docs/ but ignore generated)
 /docs/.omc/
 /docs/*.local.md
+# Sprint planning docs (kept local, regenerated as needed)
+/docs/P0_P1_IMPLEMENTATION_PLAN.md
+/docs/TDD_BDD_ROADMAP.md
+/docs/P0_*.md
+/docs/TDD_*.md
+/docs/BDD_*.md
 
 # IDE
 .idea/
