@@ -1,8 +1,20 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
+
+class DownloadException implements Exception {
+  final String message;
+  final Object? underlyingError;
+
+  DownloadException(this.message, [this.underlyingError]);
+
+  @override
+  String toString() => 'DownloadException: $message';
+}
 
 class DownloadService {
   final Dio _dio;
@@ -16,6 +28,10 @@ class DownloadService {
     void Function(int received, int total)? onProgress,
     int maxRetries = 3,
   }) async {
+    if (maxRetries < 1) {
+      throw DownloadException('maxRetries must be at least 1, got $maxRetries');
+    }
+
     final dir = await getApplicationDocumentsDirectory();
     final downloadsDir = Directory('${dir.path}/downloads');
     if (!await downloadsDir.exists()) {
@@ -50,19 +66,31 @@ class DownloadService {
         return filePath;
       } on DioException catch (e) {
         lastError = e;
-        // Only retry on connection errors, not on 4xx client errors
-        if (e.type != DioExceptionType.connectionError &&
-            e.type != DioExceptionType.connectionTimeout &&
-            e.type != DioExceptionType.receiveTimeout) {
+        final isRetryable = e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout;
+
+        if (!isRetryable) {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$maxRetries failed with non-retryable error: ${e.type}. Will not retry.');
           break;
         }
-      } on FileSystemException {
-        rethrow;
+
+        if (attempt < maxRetries - 1) {
+          final delay = Duration(milliseconds: (100 * pow(2, attempt)).toInt());
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$maxRetries failed with retryable error: ${e.type}. Retrying after ${delay.inMilliseconds}ms...');
+          await Future.delayed(delay);
+        } else {
+          debugPrint('DownloadService: Attempt ${attempt + 1}/$maxRetries failed with retryable error: ${e.type}. All retry attempts exhausted.');
+        }
+      } on FileSystemException catch (e) {
+        throw DownloadException('File system error during download', e);
       }
     }
 
-    // All retries exhausted — rethrow as DioException for store to handle
-    if (lastError != null) throw lastError;
+    if (lastError != null) {
+      debugPrint('DownloadService: Download failed after all retry attempts. Last error: ${lastError.type}');
+      throw lastError;
+    }
     return null;
   }
 
