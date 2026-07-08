@@ -200,7 +200,6 @@ jobs:
         with:
           name: ios-build-log
           path: build_ios.log
-          path: build/ios/whitetv-v*.zip
 
   publish:
     name: Publish Release
