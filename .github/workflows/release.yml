@@ -111,14 +111,29 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          set -x
-          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer || true
-          flutter doctor -v
-          flutter build macos --release -v 2>&1
-          cd build/macos/Release
-          zip -r "../whitetv-${VERSION}-macos.zip" .
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          flutter build macos --release > build_macos.log 2>&1; CODE=$?
+          echo "Exit code: $CODE"
+          cat build_macos.log | tail -50
+          if [ -d build/macos/Release ]; then
+            cd build/macos/Release
+            zip -r "../whitetv-${VERSION}-macos.zip" .
+          fi
+          exit $CODE
 
       - name: Upload macOS artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifact
+          path: build/macos/whitetv-v*.zip
+
+      - name: Upload macOS build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-log
+          path: build_macos.log
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifact
@@ -161,16 +176,30 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          flutter build ios --release --no-codesign || { echo "BUILD FAILED"; exit 1; }
-          mkdir -p build/ios/whitetv-${VERSION}-ios
-          cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
-          cd build/ios
-          zip -r "whitetv-${VERSION}-ios.zip" whitetv-${VERSION}-ios
+          flutter build ios --release --no-codesign > build_ios.log 2>&1; CODE=$?
+          echo "Exit code: $CODE"
+          cat build_ios.log | tail -50
+          if [ -d build/ios/iphonesimulator ]; then
+            mkdir -p build/ios/whitetv-${VERSION}-ios
+            cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
+            cd build/ios
+            zip -r "whitetv-${VERSION}-ios.zip" whitetv-${VERSION}-ios
+          fi
+          exit $CODE
 
       - name: Upload iOS artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
+          path: build/ios/whitetv-v*.zip
+
+      - name: Upload iOS build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-log
+          path: build_ios.log
           path: build/ios/whitetv-v*.zip
 
   publish:
