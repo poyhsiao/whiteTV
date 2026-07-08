@@ -83,7 +83,6 @@ jobs:
   macos:
     name: Build macOS
     runs-on: macos-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -113,7 +112,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          flutter build macos --release
+          flutter build macos --release || { echo "BUILD FAILED"; exit 1; }
           cd build/macos/Release
           zip -r "../whitetv-${VERSION}-macos.zip" .
 
@@ -126,7 +125,6 @@ jobs:
   ios:
     name: Build iOS
     runs-on: macos-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,7 +159,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign || { echo "BUILD FAILED"; exit 1; }
           mkdir -p build/ios/whitetv-${VERSION}-ios
           cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
           cd build/ios
