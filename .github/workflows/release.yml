@@ -112,7 +112,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          flutter build macos --release || { echo "BUILD FAILED"; exit 1; }
+          flutter build macos --release --verbose 2>&1 | tee build.log || { echo "BUILD FAILED"; cat build.log; exit 1; }
           cd build/macos/Release
           zip -r "../whitetv-${VERSION}-macos.zip" .
 
