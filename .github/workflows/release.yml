@@ -134,10 +134,6 @@ jobs:
         with:
           name: macos-build-log
           path: build_macos.log
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-artifact
-          path: build/macos/whitetv-v*.zip
 
   ios:
     name: Build iOS
