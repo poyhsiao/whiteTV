@@ -24,10 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag_name }}
+          ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -87,10 +87,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag_name }}
+          ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -130,10 +130,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag_name }}
+          ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -198,4 +198,4 @@ jobs:
           draft: false
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ inputs.tag_name }}
+          tag_name: ${{ inputs.tag_name || github.ref }}
