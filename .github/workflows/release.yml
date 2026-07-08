@@ -111,7 +111,6 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
           flutter build macos --release > build_macos.log 2>&1; CODE=$?
           echo "Exit code: $CODE"
           cat build_macos.log | tail -50
