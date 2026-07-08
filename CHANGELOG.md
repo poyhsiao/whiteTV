@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **LunaClient API contract tests** (2026-07-08)
+  - `test/core/api/luna_client_test.dart` — 7 個測試驗證 `getCategories`、`getVideosByCategory`、`getVideoDetail`、`getSources`、`search`、`testSourceLatency` API 合約
+
+### Changed
 - **TV 全域 Back 鍵確認** (Sprint 1.1 / ROADMAP §2.2)
   - `BackConfirmation` widget (lib/shared/widgets/back_confirmation.dart)
   - TV 平台首頁按 Back → SnackBar「再按一次退出 whiteTV」;2 秒內再按觸發退出
