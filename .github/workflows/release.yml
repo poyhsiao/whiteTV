@@ -112,6 +112,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
           flutter build macos --release
           cd build/macos/Release
           zip -r "../whitetv-${VERSION}-macos.zip" .
@@ -159,6 +160,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
           flutter build ios --release --no-codesign
           mkdir -p build/ios/whitetv-${VERSION}-ios
           cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
