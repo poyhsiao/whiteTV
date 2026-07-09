@@ -262,6 +262,7 @@ jobs:
           mv artifacts/android-web-artifacts/*.apk artifacts/ 2>/dev/null || true
           mv artifacts/android-web-artifacts/*.tgz artifacts/ 2>/dev/null || true
           mv artifacts/windows-artifact/*.zip artifacts/ 2>/dev/null || true
+          mv artifacts/ios-artifact/*.zip artifacts/ 2>/dev/null || true
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
