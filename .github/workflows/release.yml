@@ -125,9 +125,15 @@ jobs:
           fi
           exit $CODE
 
+      - name: Debug macOS artifact paths
+        run: |
+          echo "=== Listing build/macos ==="
+          ls -la build/macos/ 2>/dev/null || echo "No build/macos dir"
+          find . -name "whitetv-*.zip" -type f 2>/dev/null
+
       - name: Upload macOS artifact
-        if: success()
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: macos-artifact
           path: build/macos/whitetv-v*.zip
