@@ -240,7 +240,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter doctor
+          flutter doctor || true
           flutter build windows --release > build_windows.log 2>&1; $CODE=$LASTEXITCODE
           Write-Host "Exit code: $CODE"
           Get-Content build_windows.log | Select-Object -Last 50
