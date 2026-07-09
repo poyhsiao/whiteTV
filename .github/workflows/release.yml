@@ -87,8 +87,6 @@ jobs:
   macos:
     name: Build macOS
     runs-on: macos-latest
-    # FIXME: macOS build fails on GitHub Actions with no error output - investigate later
-    if: false  # TEMPORARILY DISABLED
     steps:
       - uses: actions/checkout@v4
         with:
