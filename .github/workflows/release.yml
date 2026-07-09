@@ -296,12 +296,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
       - name: Build Linux
         env:
           VERSION: ${{ env.VERSION }}
         run: |
+          flutter config --enable-linux-desktop
           flutter build linux --release > build_linux.log 2>&1; CODE=$?
-          echo "Exit code: $CODE"
+          echo "=== Flutter build exit code: $CODE ==="
+          cat build_linux.log | tail -50
+          ls -la build/ 2>/dev/null || echo "No build dir"
           if [ -d build/linux/x64/release/bundle ]; then
             cd build/linux/x64/release/bundle
             tar -czf "../../../../whitetv-${VERSION}-linux.tar.gz" .
