@@ -186,8 +186,8 @@ jobs:
           exit $CODE
 
       - name: Upload iOS artifact
-        if: success()
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: ios-artifact
           path: build/ios/whitetv-${{ env.VERSION }}-ios.zip
