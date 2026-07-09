@@ -230,10 +230,14 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build windows --release 2>&1
+          flutter doctor
+          flutter build windows --release > build_windows.log 2>&1; $CODE=$LASTEXITCODE
+          Write-Host "Exit code: $CODE"
+          Get-Content build_windows.log | Select-Object -Last 50
           if (Test-Path build/windows/runner/Release) {
             Compress-Archive -Path build/windows/runner/Release/* -DestinationPath "build/whitetv-${VERSION}-windows.zip" -Force
           }
+          exit $CODE
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
