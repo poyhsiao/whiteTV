@@ -1,6 +1,6 @@
 name: Build Release
 
-'on':
+on:
   push:
     tags:
       - 'v*'
@@ -10,6 +10,10 @@ name: Build Release
         description: 'Tag to build (e.g. v0.10.17)'
         required: true
         type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
