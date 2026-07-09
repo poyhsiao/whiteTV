@@ -58,7 +58,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build apk --release -v 2>&1 | tail -20
+          flutter build apk --release
           mkdir -p build
           cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-mobile.apk
 
@@ -66,8 +66,8 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build apk --release --target-platform android-arm64 -v 2>&1 | tail -20 || true
-          cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-tv.apk 2>/dev/null || cp build/whitetv-${VERSION}-mobile.apk build/whitetv-${VERSION}-tv.apk
+          flutter build apk --release --target-platform android-arm64 || cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-tv.apk
+          cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-tv.apk
 
       - name: Build Web
         env:
@@ -190,8 +190,10 @@ jobs:
         run: |
           if [ -d build/macos/Build/Products/Release ]; then
             cd build/macos/Build/Products/Release
-            # Create a DMG from the built app
-            hdiutil create -volname "whiteTV-${VERSION}" -srcfolder . -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg" 2>/dev/null || true
+            APP_NAME=$(ls *.app 2>/dev/null | head -1 || echo "")
+            if [ -n "$APP_NAME" ]; then
+              hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "./$APP_NAME" -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg" 2>/dev/null || true
+            fi
           fi
 
       - name: Upload macOS artifact
@@ -247,13 +249,11 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           if (Test-Path build/windows/runner/Release) {
-            # Download and use candle to create MSI
-            choco install wixtoolset -y 2>/dev/null || true
-            $WIX="C:\Program Files (x86)\WiX Toolset v3.11\bin"
-            if (Test-Path $WIX) {
-              $env:PATH="$WIX;$env:PATH"
-              & candle -nologo -ext WixUIExtension -ext WixUtilExtension -dVersion="${VERSION}" -dSourceDir="build/windows/runner/Release" -out "build/whitetv-${VERSION}-windows.msi" "windows-installer\Product.wxs" 2>/dev/null || true
-            }
+            Write-Host "Installing WiX..."
+            choco install wixtoolset -y --no-progress 2>&1 | Out-Null
+            Start-Sleep -Seconds 15
+            $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
+            pwsh -File $script -Version "$env:VERSION" -SourceDir "build/windows/runner/Release" -OutputPath "build/whitetv-$env:VERSION-windows.msi"
           }
 
       - name: Upload Windows artifact
@@ -291,7 +291,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq cmake ninja-build clang pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev rpm fakeroot
+          sudo apt-get install -y -qq cmake ninja-build clang pkg-config libgtk-3-dev liblzma-dev rpm fakeroot dpkg-dev
 
       - name: Install dependencies
         run: flutter pub get
@@ -312,63 +312,48 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          if [ -d build/linux/x64/release/bundle ]; then
-            mkdir -p /tmp/deb-pkg/DEBIAN
-            mkdir -p /tmp/deb-pkg/usr/local/bin
-            cp -r build/linux/x64/release/bundle/* /tmp/deb-pkg/usr/local/bin/
-            cat > /tmp/deb-pkg/DEBIAN/control << EOF
-Package: whitetv
-Version: ${VERSION}
-Section: multimedia
-Priority: optional
-Architecture: amd64
-Maintainer: whiteTV
-Description: whiteTV App
-EOF
-            dpkg-deb --build /tmp/deb-pkg build/whitetv-${VERSION}-linux.deb 2>/dev/null || true
-          fi
+          if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
+          BUNDLE=build/linux/x64/release/bundle
+          DEB_PKG=/tmp/deb-pkg
+          rm -rf $DEB_PKG
+          mkdir -p $DEB_PKG/DEBIAN
+          mkdir -p $DEB_PKG/usr/local/bin
+          cp -r $BUNDLE/* $DEB_PKG/usr/local/bin/
+          printf "Package: whitetv\nVersion: %s\nSection: multimedia\nPriority: optional\nArchitecture: amd64\nMaintainer: whiteTV\nDescription: whiteTV App\n" "$VERSION" > $DEB_PKG/DEBIAN/control
+          chmod 755 $DEB_PKG/DEBIAN/control
+          dpkg-deb --build $DEB_PKG build/whitetv-${VERSION}-linux.deb
 
       - name: Create Linux RPM
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          if [ -d build/linux/x64/release/bundle ]; then
-            mkdir -p /tmp/rpm-pkg/BUILD
-            mkdir -p /tmp/rpm-pkg/RPMS
-            mkdir -p /tmp/rpm-pkg/SPECS
-            cp -r build/linux/x64/release/bundle/* /tmp/rpm-pkg/BUILD/whitetv/
-            cat > /tmp/rpm-pkg/SPECS/whitetv.spec << EOF
-Name: whitetv
-Version: ${VERSION}
-Release: 1
-Summary: whiteTV App
-License: MIT
-%description
-whiteTV App
-%install
-mkdir -p %{buildroot}/usr/local/bin
-cp -r /tmp/rpm-pkg/BUILD/whitetv/* %{buildroot}/usr/local/bin/
-EOF
-            rpmbuild --define "_topdir /tmp/rpm-pkg" -bb /tmp/rpm-pkg/SPECS/whitetv.spec 2>/dev/null || true
-            cp /tmp/rpm-pkg/RPMS/x86_64/whitetv-*.rpm build/whitetv-${VERSION}-linux.rpm 2>/dev/null || true
-          fi
+          if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
+          BUNDLE=build/linux/x64/release/bundle
+          RPM_PKG=/tmp/rpm-pkg
+          rm -rf $RPM_PKG
+          mkdir -p $RPM_PKG/BUILD
+          mkdir -p $RPM_PKG/RPMS
+          mkdir -p $RPM_PKG/SPECS
+          mkdir -p $RPM_PKG/SOURCES
+          cp -r $BUNDLE $RPM_PKG/SOURCES/whitetv
+          printf 'Name: whitetv\nVersion: %s\nRelease: 1\nSummary: whiteTV App\nLicense: MIT\n\n' "$VERSION" > $RPM_PKG/SPECS/whitetv.spec
+          printf '%%description\nwhiteTV App\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp -r %%{_topdir}/SOURCES/whitetv/* %%{buildroot}/usr/local/bin/\n' >> $RPM_PKG/SPECS/whitetv.spec
+          HOME=/tmp rpmbuild --define "_topdir $RPM_PKG" -bb $RPM_PKG/SPECS/whitetv.spec 2>&1 | tail -5
+          ls $RPM_PKG/RPMS/x86_64/*.rpm 2>/dev/null && cp $RPM_PKG/RPMS/x86_64/*.rpm build/whitetv-${VERSION}-linux.rpm || echo "RPM build may have failed"
 
       - name: Create Linux AppImage
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          if [ -d build/linux/x64/release/bundle ]; then
-            # Download appimagetool if not cached
-            if [ ! -f ~/appimagetool ]; then
-              wget -q -O ~/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-              chmod +x ~/appimagetool
-            fi
-            mkdir -p /tmp/appimage/bundle
-            cp -r build/linux/x64/release/bundle/* /tmp/appimage/bundle/
-            cd /tmp/appimage
-            VERSION=${VERSION} ~/appimagetool --appimage-extract-and-run bundle -w -s -n > /dev/null 2>&1 && \
-              cp squashfs-root/whitetv*.AppImage build/whitetv-${VERSION}-linux.AppImage || true
+          if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
+          if [ ! -f ~/appimagetool ]; then
+            wget -q -O ~/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+            chmod +x ~/appimagetool
           fi
+          mkdir -p /tmp/appdir/usr/local/bin
+          cp -r build/linux/x64/release/bundle/* /tmp/appdir/usr/local/bin/
+          cd /tmp
+          VERSION=$VERSION ~/appimagetool /tmp/appdir build/whitetv-${VERSION}-linux.AppImage 2>&1 | tail -5 || echo "AppImage build may have failed"
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -387,25 +372,17 @@ EOF
     needs: [android, ios, macos, windows, linux]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
 
-      - name: Flatten artifacts
-        run: |
-          set -e
-          mkdir -p artifacts
-          # Move all artifact files to a flat artifacts/ directory
-          for dir in artifacts/*/; do
-            [ -d "$dir" ] || continue
-            for file in "$dir"*; do
-              [ -f "$file" ] && mv "$file" artifacts/
-            done
-          done
-          rm -rf artifacts/*/
-          ls -la artifacts/
+      - name: List artifacts
+        run: ls -la artifacts/
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
