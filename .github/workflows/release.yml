@@ -116,7 +116,7 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           flutter doctor || true
-          flutter build macos --release --no-codesign --simulator 2>&1 | tee build_macos.log; CODE=${PIPESTATUS[0]}
+          flutter build macos --release 2>&1 | tee build_macos.log; CODE=${PIPESTATUS[0]}
           echo "PIPESTATUS: $CODE"
           ls -la build/macos/ 2>/dev/null || echo "No build/macos directory"
           if [ -d build/macos/Release ]; then
