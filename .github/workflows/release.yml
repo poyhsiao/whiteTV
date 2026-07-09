@@ -177,9 +177,9 @@ jobs:
           flutter build ios --release --no-codesign > build_ios.log 2>&1; CODE=$?
           echo "Exit code: $CODE"
           cat build_ios.log | tail -50
-          if [ -d build/ios/iphonesimulator ]; then
+          if [ -d build/ios/iphoneos ]; then
             mkdir -p build/ios/whitetv-${VERSION}-ios
-            cp -r build/ios/iphonesimulator/* build/ios/whitetv-${VERSION}-ios/
+            cp -r build/ios/iphoneos/* build/ios/whitetv-${VERSION}-ios/
             cd build/ios
             zip -r "whitetv-${VERSION}-ios.zip" whitetv-${VERSION}-ios
           fi
