@@ -190,7 +190,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
-          path: build/ios/whitetv-*-ios.zip
+          path: build/ios/whitetv-${VERSION}-ios.zip
 
       - name: Upload iOS build log
         if: failure()
