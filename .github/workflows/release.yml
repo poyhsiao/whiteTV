@@ -136,7 +136,7 @@ jobs:
         continue-on-error: true
         with:
           name: macos-artifact
-          path: build/macos/whitetv-v*.zip
+          path: build/whitetv-v*.zip
 
       - name: Upload macOS build log
         if: failure()
