@@ -185,12 +185,14 @@ jobs:
           fi
           exit $CODE
 
-      - name: Upload iOS artifact
+      - name: Debug iOS artifact paths
         run: |
           echo "=== Listing build/ios ==="
           ls -la build/ios/ 2>/dev/null || echo "build/ios not found"
           echo "=== Finding all zip files ==="
           find . -name "*.zip" -type f 2>/dev/null
+
+      - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-artifact
