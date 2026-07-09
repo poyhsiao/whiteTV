@@ -110,13 +110,11 @@ jobs:
       - name: Build macOS
         env:
           VERSION: ${{ env.VERSION }}
-          FLUTTER_SUPPRESS_ANALYTICS: "true"
-          XCODEBUILD_PARALLELIZABLE: "false"
-          XCODEBUILD_MAXIMUM_JOBS: "2"
         run: |
-          flutter build macos --release --suppress-analytics > build_macos.log 2>&1; CODE=$?
-          echo "Exit code: $CODE"
-          cat build_macos.log
+          flutter doctor
+          flutter build macos --release -v 2>&1 | tee build_macos.log; CODE=${PIPESTATUS[0]}
+          echo "PIPESTATUS: $CODE"
+          ls -la build/macos/ 2>/dev/null || echo "No build/macos directory"
           if [ -d build/macos/Release ]; then
             cd build/macos/Release
             zip -r "../whitetv-${VERSION}-macos.zip" .
