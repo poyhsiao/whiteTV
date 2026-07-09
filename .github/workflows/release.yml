@@ -31,7 +31,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -95,7 +95,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -150,7 +150,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -218,7 +218,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
