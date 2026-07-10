@@ -5,85 +5,57 @@ if (-not (Test-Path $SourceDir)) {
     exit 1
 }
 
-# Find or install WiX candle.exe
+# Install WiX via chocolatey if not present
 $CandleExe = $null
 
-# Check standard install locations
-$StandardPaths = @(
-    "C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe",
-    "C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe",
-    "C:\Program Files (x86)\WiX Toolset\bin\candle.exe"
-)
-foreach ($p in $StandardPaths) {
-    if (Test-Path $p) { $CandleExe = $p }
-}
-
-# Try chocolatey location
-if (-not $CandleExe) {
-    $chocoCandle = "C:\ProgramData\chocolatey\lib\wixtoolset\tools\bin\candle.exe"
-    if (Test-Path $chocoCandle) { $CandleExe = $chocoCandle }
-}
-
-# Download WiX v3.11 portable if not found
-if (-not $CandleExe) {
-    Write-Host "Downloading WiX v3.11..."
-    $wixDir = "$env:TEMP\wix311"
-    $zipUrl = "https://github.com/wixtoolset/wix3/releases/download/wix311rtm/wix311.zip"
-    $zipPath = "$env:TEMP\wix311.zip"
-    New-Item -ItemType Directory -Force -Path $wixDir | Out-Null
-    try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -TimeoutSec 120 -UseBasicParsing
-        Expand-Archive -Path $zipPath -DestinationPath $wixDir -Force
-        $CandleExe = "$wixDir\bin\candle.exe"
-        Write-Host "WiX downloaded to: $CandleExe"
-    } catch {
-        Write-Host "ERROR: Failed to download WiX: $_"
-        exit 1
+# Search everywhere for candle.exe
+$AllDrives = @("C:\", "D:\")
+foreach ($drive in $AllDrives) {
+    if (Test-Path $drive) {
+        $found = Get-ChildItem $drive -Recurse -Filter "candle.exe" -ErrorAction SilentlyContinue -Depth 6 |
+            Where-Object { $_.DirectoryName -like "*wix*" } |
+            Select-Object -First 1 -ExpandProperty FullName
+        if ($found) { $CandleExe = $found; break }
     }
 }
 
-if (-not (Test-Path $CandleExe)) {
-    Write-Host "ERROR: candle.exe not found"
+if (-not $CandleExe) {
+    Write-Host "Installing WiX via chocolatey..."
+    choco install wixtoolset -y --no-progress
+    Start-Sleep -Seconds 30
+    # Search again after install
+    foreach ($drive in $AllDrives) {
+        if (Test-Path $drive) {
+            $found = Get-ChildItem $drive -Recurse -Filter "candle.exe" -ErrorAction SilentlyContinue -Depth 6 |
+                Where-Object { $_.DirectoryName -like "*wix*" } |
+                Select-Object -First 1 -ExpandProperty FullName
+            if ($found) { $CandleExe = $found; break }
+        }
+    }
+}
+
+if (-not $CandleExe) {
+    Write-Host "ERROR: candle.exe not found after exhaustive search"
     exit 1
 }
-Write-Host "Using candle.exe: $CandleExe"
+Write-Host "Found candle.exe: $CandleExe"
 $env:PATH = "$(Split-Path $CandleExe);$env:PATH"
 
-# List source files
+# Build MSI
 $files = Get-ChildItem $SourceDir -Recurse -File
-Write-Host "Found $($files.Count) files in $SourceDir"
-
-# Build WiX XML
+Write-Host "Found $($files.Count) files"
 $fileRefs = ""
 foreach ($f in $files) {
     $rel = $f.FullName.Substring($SourceDir.Length + 1).Replace("\", "/")
     $fileRefs += "        <File Name='$($f.Name)' Source='$rel' />`n"
 }
 
-$xmlContent = "<?xml version=""1.0""?>`n" +
-"<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n" +
-"  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n" +
-"    <Package InstallerVersion=""200"" Compressed=""yes"" />`n" +
-"    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n" +
-"    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n" +
-"      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n" +
-"$fileRefs" +
-"      </Directory>`n" +
-"    </Directory>`n" +
-"  </Product>`n" +
-"</Wix>"
+$xmlContent = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n    <Package InstallerVersion=""200"" Compressed=""yes"" />`n    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n$fileRefs      </Directory>`n    </Directory>`n  </Product>`n</Wix>"
 
 $wxsPath = Join-Path $PWD "Product.wxs"
 $xmlContent | Out-File -FilePath $wxsPath -Encoding UTF8NoBOM
-Write-Host "WXS written to: $wxsPath"
-
-# Build MSI
 Write-Host "Running candle..."
 & $CandleExe -nologo -out "$OutputPath" $wxsPath
-Write-Host "candle exit code: $LASTEXITCODE"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: candle failed with code $LASTEXITCODE"
-    exit 1
-}
-Write-Host "SUCCESS: MSI created at $OutputPath"
+Write-Host "Exit code: $LASTEXITCODE"
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $OutputPath)) { exit 1 }
+Write-Host "SUCCESS: $OutputPath"

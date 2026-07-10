@@ -246,7 +246,8 @@ jobs:
           if (-not (Test-Path $msiPath)) { Write-Host "ERROR: MSI not created"; exit 1 }
           Write-Host "SUCCESS: MSI at $msiPath"
 
-      - name: Upload Windows artifact
+      - name: Upload Windows MSI
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifact
