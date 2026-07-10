@@ -239,21 +239,29 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Build Windows
+        shell: pwsh
         env:
           VERSION: ${{ env.VERSION }}
         run: |
           flutter build windows --release > build_windows.log 2>&1
-          CODE=$?
-          echo "Exit code: $CODE"
+          $CODE = $LASTEXITCODE
+          Write-Host "Exit code: $CODE"
           Get-Content build_windows.log -Tail 10
-          exit $CODE
+          if ($CODE -ne 0) { Write-Host "Flutter build failed"; exit $CODE }
 
       - name: Package Windows
+        shell: pwsh
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          $src = "$PWD\build\windows\x64\runner\Release"
-          $out = "$PWD\build\whitetv-$env:VERSION-windows.zip"
+          $src = Join-Path $PWD "build\windows\x64\runner\Release"
+          $out = Join-Path $PWD "build\whitetv-$env:VERSION-windows.zip"
+          Write-Host "Source: $src"
+          Write-Host "Output: $out"
+          if (-not (Test-Path $src)) {
+            Write-Host "ERROR: Source not found"
+            exit 1
+          }
           Compress-Archive -Path "$src\*" -DestinationPath $out -Force
           $size = [math]::Round((Get-Item $out).Length / 1KB)
           Write-Host "Created: $out (${size} KB)"
