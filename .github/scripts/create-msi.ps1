@@ -6,17 +6,23 @@ if (-not (Test-Path $SourceDir)) {
     exit 1
 }
 
-# Install wix dotnet tool
-Write-Host "Installing WiX dotnet tool..."
-dotnet tool install --global wix --version 3.0.0 2>&1 | Out-Null
-$wixPath = dotnet tool path --global wix 2>$null
-$CandleExe = Join-Path $wixPath "candle.exe"
-Write-Host "WiX path: $CandleExe"
+# Install WiX v3 via chocolatey with verbose output
+Write-Host "Installing WiX..."
+$install = choco install wixtoolset -y --no-progress 2>&1 | Out-String
+Write-Host $install
 
-if (-not (Test-Path $CandleExe)) {
+# Find candle.exe
+$CandleExe = $null
+Get-ChildItem "C:\" -Recurse -Filter "candle.exe" -ErrorAction SilentlyContinue -Depth 5 |
+    Where-Object { $_.DirectoryName -like "*wix*" } |
+    Select-Object -First 1 -ExpandProperty FullName |
+    ForEach-Object { $CandleExe = $_ }
+
+if (-not $CandleExe) {
     Write-Host "ERROR: candle.exe not found"
     exit 1
 }
+Write-Host "Found: $CandleExe"
 
 $files = Get-ChildItem $SourceDir -Recurse -File
 Write-Host "Files: $($files.Count)"
@@ -32,8 +38,8 @@ $xml = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2
 $wxs = Join-Path $env:TEMP "Product.wxs"
 $xml | Out-File -FilePath $wxs -Encoding UTF8
 
-Write-Host "Building MSI..."
-& $CandleExe -nologo -out $OutputPath $wxs 2>&1
+Write-Host "Building..."
+& $CandleExe -nologo -out $OutputPath $wxs 2>&1 | Write-Host
 Write-Host "Exit: $LASTEXITCODE"
 if ($LASTEXITCODE -ne 0) { exit 1 }
-Write-Host "SUCCESS"
+Write-Host "SUCCESS: $OutputPath"
