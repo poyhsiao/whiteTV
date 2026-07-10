@@ -227,44 +227,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build Windows
+      - name: Build Windows and MSI
         env:
           VERSION: ${{ env.VERSION }}
         run: |
           flutter doctor || true
-          flutter build windows --release > build_windows.log 2>&1; $CODE=$LASTEXITCODE
-          Write-Host "Exit code: $CODE"
-          exit $CODE
-
-      - name: Create Windows MSI
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          Write-Host "PWD: $PWD"
-          $buildDir = Join-Path $PWD "build"
-          Write-Host "Build dir: $buildDir"
-          Write-Host "Build dir exists: $(Test-Path $buildDir)"
-          if (Test-Path $buildDir) {
-            Write-Host "Build dir contents:"
-            Get-ChildItem $buildDir -ErrorAction SilentlyContinue | Out-String | Write-Host
-          }
-          $msiPath = Join-Path $buildDir "whitetv-$env:VERSION-windows.msi"
-          $exe = Get-ChildItem $buildDir -Filter "white_tv.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $exe) {
-            Write-Host "ERROR: white_tv.exe not found"
-            exit 1
-          }
-          $src = $exe.Directory.FullName
-          Write-Host "Found source at: $src"
+          flutter build windows --release
+          Write-Host "Build complete, locating exe..."
+          Get-ChildItem . -Recurse -Filter "white_tv.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | Write-Host
           $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
-          pwsh -File $script -Version "$env:VERSION" -SourceDir $src -OutputPath $msiPath
-          if (-not (Test-Path $msiPath)) {
-            Write-Host "ERROR: MSI was not created"
-            exit 1
-          }
+          $exePath = Get-ChildItem . -Filter "white_tv.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | ForEach-Object { $_.DirectoryName }
+          if (-not $exePath) { Write-Host "ERROR: exe not found"; exit 1 }
+          Write-Host "Found exe at: $exePath"
+          $msiDir = Join-Path $PWD "build"
+          New-Item -ItemType Directory -Force -Path $msiDir | Out-Null
+          $msiPath = Join-Path $msiDir "whitetv-$env:VERSION-windows.msi"
+          pwsh -File $script -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
+          if (-not (Test-Path $msiPath)) { Write-Host "ERROR: MSI not created"; exit 1 }
+          Write-Host "SUCCESS: MSI at $msiPath"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
