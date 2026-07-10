@@ -233,26 +233,26 @@ jobs:
         run: |
           flutter doctor || true
           flutter build windows --release
-          Write-Host "Build complete, checking exe..."
           $exePath = Join-Path $PWD "build\windows\x64\runner\Release"
-          Write-Host "exePath: $exePath"
-          Write-Host "PWD: $PWD"
+          "exePath=$exePath" | Out-File -FilePath debug.txt
+          "PWD=$PWD" | Out-File -FilePath debug.txt -Append
+          "exePath exists=$(Test-Path $exePath)" | Out-File -FilePath debug.txt -Append
           if (Test-Path $exePath) {
-            Write-Host "exePath exists, listing contents:"
-            Get-ChildItem $exePath | Out-String | Write-Host
+            Get-ChildItem $exePath | Out-File -FilePath debug.txt -Append
           } else {
-            Write-Host "exePath does NOT exist, listing parent:"
-            Get-ChildItem (Join-Path $PWD "build\windows") -Recurse -Depth 2 | Out-String | Write-Host
+            "exePath missing, listing parents" | Out-File -FilePath debug.txt -Append
+            Get-ChildItem (Join-Path $PWD "build") -Recurse -Depth 3 | Out-File -FilePath debug.txt -Append
           }
           $exe = Get-ChildItem $exePath -Filter "white_tv.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $exe) { Write-Host "ERROR: exe not found"; exit 1 }
-          Write-Host "Found: $($exe.FullName)"
+          if (-not $exe) { "ERROR: exe not found" | Out-File -FilePath debug.txt -Append; exit 1 }
+          "Found exe=$($exe.FullName)" | Out-File -FilePath debug.txt -Append
           $msiDir = Join-Path $PWD "build"
           New-Item -ItemType Directory -Force -Path $msiDir | Out-Null
           $msiPath = Join-Path $msiDir "whitetv-$env:VERSION-windows.msi"
           pwsh -File (Join-Path $PWD ".github/scripts/create-msi.ps1") -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
-          if (-not (Test-Path $msiPath)) { Write-Host "ERROR: MSI not created"; exit 1 }
-          Write-Host "SUCCESS: MSI at $msiPath"
+          if (-not (Test-Path $msiPath)) { "ERROR: MSI not created" | Out-File -FilePath debug.txt -Append; exit 1 }
+          "SUCCESS: MSI at $msiPath" | Out-File -FilePath debug.txt -Append
+          Get-Content debug.txt
 
       - name: Upload Windows MSI
         if: success()
@@ -260,6 +260,13 @@ jobs:
         with:
           name: windows-artifact
           path: build/whitetv-${{ env.VERSION }}-windows.msi
+
+      - name: Upload Windows debug
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-debug
+          path: debug.txt
 
       - name: Upload Windows build log
         if: failure()
