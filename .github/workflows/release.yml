@@ -237,7 +237,8 @@ jobs:
           $src = "$PWD\build\windows\x64\runner\Release"
           $out = "$PWD\build\whitetv-$env:VERSION-windows.zip"
           Compress-Archive -Path "$src\*" -DestinationPath $out -Force
-          Write-Host "Created: $out ($(int.KB) KB)"
+          $size = [math]::Round((Get-Item $out).Length / 1KB)
+          Write-Host "Created: $out (${size} KB)"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
