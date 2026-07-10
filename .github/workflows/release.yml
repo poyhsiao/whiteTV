@@ -55,35 +55,20 @@ jobs:
         run: flutter pub get
 
       - name: Build Android APK
-        env:
-          VERSION: ${{ env.VERSION }}
         run: |
-          flutter build apk --release
-          mkdir -p build
-          cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-mobile.apk
-
-      - name: Build Android TV APK
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          flutter build apk --release --target-platform android-arm64 || cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-tv.apk
-          cp build/app/outputs/flutter-apk/app-release.apk build/whitetv-${VERSION}-tv.apk
+          flutter build apk --release --target-platform android-arm64 || flutter build apk --release
 
       - name: Build Web
-        env:
-          VERSION: ${{ env.VERSION }}
         run: |
-          flutter build web
-          tar -czf build/whitetv-${VERSION}-web.tgz -C build/web .
+          flutter build web --release
 
       - name: Upload Android/Web artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-web-artifacts
           path: |
-            build/whitetv-${{ env.VERSION }}-mobile.apk
-            build/whitetv-${{ env.VERSION }}-tv.apk
-            build/whitetv-${{ env.VERSION }}-web.tgz
+            build/app/outputs/flutter-apk/*.apk
+            build/web/**
 
   ios:
     name: Build iOS
@@ -125,10 +110,8 @@ jobs:
           flutter build ios --release --no-codesign > build_ios.log 2>&1; CODE=$?
           echo "Exit code: $CODE"
           if [ -d build/ios/iphoneos ]; then
-            mkdir -p build/ios/whitetv-${VERSION}-ios
-            cp -r build/ios/iphoneos/* build/ios/whitetv-${VERSION}-ios/
             cd build/ios
-            zip -r "whitetv-${VERSION}-ios.zip" whitetv-${VERSION}-ios
+            zip -r "whitetv-${VERSION}-ios.zip" iphoneos
           fi
           exit $CODE
 
@@ -178,10 +161,6 @@ jobs:
         run: |
           flutter build macos --release > build_macos.log 2>&1; CODE=$?
           echo "Exit code: $CODE"
-          if [ -d build/macos/Build/Products/Release ]; then
-            cd build/macos/Build/Products/Release
-            zip -r "../../../../whitetv-${VERSION}-macos.zip" . 2>/dev/null
-          fi
           exit $CODE
 
       - name: Create macOS DMG
@@ -198,12 +177,16 @@ jobs:
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
-        continue-on-error: true
         with:
           name: macos-artifact
-          path: |
-            build/whitetv-${{ env.VERSION }}-macos.dmg
-            build/whitetv-${{ env.VERSION }}-macos.zip
+          path: build/whitetv-${{ env.VERSION }}-macos.dmg
+
+      - name: Upload macOS build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-log
+          path: build_macos.log
 
   windows:
     name: Build Windows
@@ -221,8 +204,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/AppData/Local/Pub/Cache
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
@@ -239,9 +221,6 @@ jobs:
           flutter doctor || true
           flutter build windows --release > build_windows.log 2>&1; $CODE=$LASTEXITCODE
           Write-Host "Exit code: $CODE"
-          if (Test-Path build/windows/runner/Release) {
-            Compress-Archive -Path build/windows/runner/Release/* -DestinationPath "build/whitetv-${VERSION}-windows.zip" -Force
-          }
           exit $CODE
 
       - name: Create Windows MSI
@@ -260,9 +239,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifact
-          path: |
-            build/whitetv-${{ env.VERSION }}-windows.zip
-            build/whitetv-${{ env.VERSION }}-windows.msi
+          path: build/whitetv-${{ env.VERSION }}-windows.msi
+
+      - name: Upload Windows build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-log
+          path: build_windows.log
 
   linux:
     name: Build Linux
@@ -307,12 +291,15 @@ jobs:
           flutter build linux --release > build_linux.log 2>&1; CODE=$?
           echo "=== Flutter build exit code: $CODE ==="
           cat build_linux.log | tail -50
-          ls -la build/ 2>/dev/null || echo "No build dir"
-          if [ -d build/linux/x64/release/bundle ]; then
-            cd build/linux/x64/release/bundle
-            tar -czf "../../../../whitetv-${VERSION}-linux.tar.gz" .
-          fi
           exit $CODE
+
+      - name: Create Linux tar.gz
+        env:
+          VERSION: ${{ env.VERSION }}
+        run: |
+          if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
+          cd build/linux/x64/release/bundle
+          tar -czf "../../../../whitetv-${VERSION}-linux.tar.gz" .
 
       - name: Create Linux DEB
         env:
@@ -325,7 +312,7 @@ jobs:
           mkdir -p $DEB_PKG/DEBIAN
           mkdir -p $DEB_PKG/usr/local/bin
           cp -r $BUNDLE/* $DEB_PKG/usr/local/bin/
-          printf "Package: whitetv\nVersion: %s\nSection: multimedia\nPriority: optional\nArchitecture: amd64\nMaintainer: whiteTV\nDescription: whiteTV App\n" "$VERSION" > $DEB_PKG/DEBIAN/control
+          printf 'Package: whitetv\nVersion: %s\nSection: multimedia\nPriority: optional\nArchitecture: amd64\nMaintainer: whiteTV\nDescription: whiteTV App\n' "$VERSION" > $DEB_PKG/DEBIAN/control
           chmod 755 $DEB_PKG/DEBIAN/control
           dpkg-deb --build $DEB_PKG build/whitetv-${VERSION}-linux.deb
 
@@ -338,32 +325,39 @@ jobs:
           RPM_PKG=/tmp/rpm-pkg
           rm -rf $RPM_PKG
           mkdir -p $RPM_PKG/BUILD
-          mkdir -p $RPM_PKG/RPMS
+          mkdir -p $RPM_PKG/RPMS/x86_64
           mkdir -p $RPM_PKG/SPECS
           mkdir -p $RPM_PKG/SOURCES
-          cp -r $BUNDLE $RPM_PKG/SOURCES/whitetv
-          printf 'Name: whitetv\nVersion: %s\nRelease: 1\nSummary: whiteTV App\nLicense: MIT\n\n' "$VERSION" > $RPM_PKG/SPECS/whitetv.spec
-          printf '%%description\nwhiteTV App\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp -r %%{_topdir}/SOURCES/whitetv/* %%{buildroot}/usr/local/bin/\n' >> $RPM_PKG/SPECS/whitetv.spec
-          HOME=/tmp rpmbuild --define "_topdir $RPM_PKG" -bb $RPM_PKG/SPECS/whitetv.spec 2>&1 | tail -5
-          ls $RPM_PKG/RPMS/x86_64/*.rpm 2>/dev/null && cp $RPM_PKG/RPMS/x86_64/*.rpm build/whitetv-${VERSION}-linux.rpm || echo "RPM build may have failed"
+          VER=${VERSION#v}
+          ARCHIVE_NAME="whitetv-${VERSION}"
+          mkdir -p $RPM_PKG/SOURCES/$ARCHIVE_NAME
+          cp -r $BUNDLE/* $RPM_PKG/SOURCES/$ARCHIVE_NAME/
+          printf 'Name: whitetv\nVersion: %s\nRelease: 1\nSummary: whiteTV App\nLicense: MIT\nURL: https://github.com/kimhsiao/whitetv\nBuildArch: x86_64\n\n' "$VER" > $RPM_PKG/SPECS/whitetv.spec
+          printf '%%description\nwhiteTV App\n\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp -r %%{_builddir}/%s/* %%{buildroot}/usr/local/bin/\n\n%%files\n%%defattr(-,root,root)\n/usr/local/bin/*\n' "$ARCHIVE_NAME" >> $RPM_PKG/SPECS/whitetv.spec
+          HOME=/tmp rpmbuild --define "_topdir $RPM_PKG" -bb $RPM_PKG/SPECS/whitetv.spec 2>&1 | tail -10
+          ls $RPM_PKG/RPMS/x86_64/*.rpm 2>/dev/null && cp $RPM_PKG/RPMS/x86_64/*.rpm "build/whitetv-${VERSION}-linux.rpm" || echo "RPM may have failed"
 
       - name: Create Linux AppImage
         env:
           VERSION: ${{ env.VERSION }}
         run: |
           if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
+          BUNDLE=build/linux/x64/release/bundle
+          mkdir -p /tmp/appdir/usr/bin
+          cp -r $BUNDLE/* /tmp/appdir/usr/bin/
+          printf '[Desktop Entry]\nName=whiteTV\nExec=whitetv\nType=Application\n' > /tmp/appdir/whitetv.desktop
+          printf '#!/bin/bash\nexec "${APPDIR}/usr/bin/whitetv" "$@"\n' > /tmp/appdir/AppRun
+          chmod +x /tmp/appdir/AppRun
           if [ ! -f ~/appimagetool ]; then
-            wget -q -O ~/appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-            chmod +x ~/appimagetool
+            wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O ~/appimagetool 2>/dev/null || true
+            chmod +x ~/appimagetool 2>/dev/null || true
           fi
-          mkdir -p /tmp/appdir/usr/local/bin
-          cp -r build/linux/x64/release/bundle/* /tmp/appdir/usr/local/bin/
-          cd /tmp
-          VERSION=$VERSION ~/appimagetool /tmp/appdir build/whitetv-${VERSION}-linux.AppImage 2>&1 | tail -5 || echo "AppImage build may have failed"
+          if [ -f ~/appimagetool ]; then
+            VERSION=$VERSION ~/appimagetool /tmp/appdir build/whitetv-${VERSION}-linux.AppImage 2>&1 | tail -5
+          fi
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
-        continue-on-error: true
         with:
           name: linux-artifact
           path: |
@@ -372,29 +366,41 @@ jobs:
             build/whitetv-${{ env.VERSION }}-linux.rpm
             build/whitetv-${{ env.VERSION }}-linux.AppImage
 
-  publish:
-    name: Publish Release
-    runs-on: ubuntu-latest
-    needs: [android, ios, macos, windows, linux]
-    steps:
-      - uses: actions/checkout@v4
+      - name: Upload Linux build log
+        if: failure()
+        uses: actions/upload-artifact@v4
         with:
-          ref: ${{ inputs.tag_name || github.ref }}
+          name: linux-build-log
+          path: build_linux.log
 
+  release:
+    name: Create Release
+    needs: [android, ios, macos, windows, linux]
+    runs-on: ubuntu-latest
+    steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: true
 
-      - name: List artifacts
-        run: ls -la artifacts/
+      - name: Display structure
+        run: find artifacts -type f | head -50
 
-      - name: Upload to GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
           draft: false
           generate_release_notes: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            artifacts/android-web-artifacts/**/*.apk
+            artifacts/android-web-artifacts/web/**
+            artifacts/ios-artifact/*.zip
+            artifacts/macos-artifact/*.dmg
+            artifacts/windows-artifact/*.msi
+            artifacts/linux-artifact/*.tar.gz
+            artifacts/linux-artifact/*.deb
+            artifacts/linux-artifact/*.rpm
+            artifacts/linux-artifact/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ inputs.tag_name || github.ref }}
