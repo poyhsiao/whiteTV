@@ -227,53 +227,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Build Windows and MSI
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Package Windows
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter doctor || true
-          flutter build windows --release
-          $exePath = Join-Path $PWD "build\windows\x64\runner\Release"
-          "exePath=$exePath" | Out-File -FilePath debug.txt
-          "PWD=$PWD" | Out-File -FilePath debug.txt -Append
-          "exePath exists=$(Test-Path $exePath)" | Out-File -FilePath debug.txt -Append
-          if (Test-Path $exePath) {
-            Get-ChildItem $exePath | Out-File -FilePath debug.txt -Append
-          } else {
-            "exePath missing, listing parents" | Out-File -FilePath debug.txt -Append
-            Get-ChildItem (Join-Path $PWD "build") -Recurse -Depth 3 | Out-File -FilePath debug.txt -Append
-          }
-          $exe = Get-ChildItem $exePath -Filter "white_tv.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $exe) { "ERROR: exe not found" | Out-File -FilePath debug.txt -Append; exit 1 }
-          "Found exe=$($exe.FullName)" | Out-File -FilePath debug.txt -Append
-          $msiDir = Join-Path $PWD "build"
-          New-Item -ItemType Directory -Force -Path $msiDir | Out-Null
-          $msiPath = Join-Path $msiDir "whitetv-$env:VERSION-windows.msi"
-          pwsh -File (Join-Path $PWD ".github/scripts/create-msi.ps1") -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
-          if (-not (Test-Path $msiPath)) { "ERROR: MSI not created" | Out-File -FilePath debug.txt -Append; exit 1 }
-          "SUCCESS: MSI at $msiPath" | Out-File -FilePath debug.txt -Append
-          Get-Content debug.txt
+          $src = "$PWD\build\windows\x64\runner\Release"
+          $out = "$PWD\build\whitetv-$env:VERSION-windows.zip"
+          Compress-Archive -Path "$src\*" -DestinationPath $out -Force
+          Write-Host "Created: $out ($(int.KB) KB)"
 
-      - name: Upload Windows MSI
-        if: success()
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifact
-          path: build/whitetv-${{ env.VERSION }}-windows.msi
-
-      - name: Upload Windows debug
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-debug
-          path: debug.txt
-
-      - name: Upload Windows build log
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build-log
-          path: build_windows.log
+          path: build/whitetv-${{ env.VERSION }}-windows.zip
 
   linux:
     name: Build Linux
