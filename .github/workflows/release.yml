@@ -31,7 +31,10 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+        run: |
+          RAW="${{ inputs.tag_name || github.ref_name }}"
+          VER="${RAW#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -79,7 +82,10 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+        run: |
+          RAW="${{ inputs.tag_name || github.ref_name }}"
+          VER="${RAW#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -137,7 +143,10 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+        run: |
+          RAW="${{ inputs.tag_name || github.ref_name }}"
+          VER="${RAW#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -197,7 +206,10 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+        run: |
+          RAW="${{ inputs.tag_name || github.ref_name }}"
+          VER="${RAW#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -257,7 +269,10 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
+        run: |
+          RAW="${{ inputs.tag_name || github.ref_name }}"
+          VER="${RAW#v}"
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
