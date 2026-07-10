@@ -243,10 +243,10 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          $src = "build/windows/runner/Release"
+          $src = "build/windows/x64/runner/Release"
           Write-Host "Testing: $src"
           if (-not (Test-Path $src)) {
-            Get-ChildItem "build/windows/runner/" -Recurse -Depth 2 | Select-Object FullName | Out-Host
+            Get-ChildItem "build/windows/" -Recurse -Depth 3 | Select-Object FullName | Out-Host
             Write-Host "ERROR: SourceDir not found"
             exit 1
           }
