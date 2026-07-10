@@ -174,11 +174,11 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build macos --release --no-pub > build_macos.log 2>&1
-          CODE=$?
+          flutter build macos --release --no-pub 2>&1 | head -5000 > build_macos.log
+          CODE=${PIPESTATUS[0]}
           echo "Exit code: $CODE"
-          if [ -f build_macos.log ]; then tail -30 build_macos.log; else echo "No log file"; fi
-          if [ $CODE -ne 0 ]; then echo "Flutter build failed"; exit $CODE; fi
+          tail -30 build_macos.log
+          if [ $CODE -ne 0 ]; then exit $CODE; fi
 
       - name: Create macOS ZIP
         env:
