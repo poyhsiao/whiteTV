@@ -399,7 +399,7 @@ jobs:
             artifacts/android-web-artifacts/web/**
             artifacts/ios-artifact/*.zip
             artifacts/macos-artifact/*.dmg
-            artifacts/windows-artifact/*.msi
+            artifacts/windows-artifact/*.zip
             artifacts/linux-artifact/*.tar.gz
             artifacts/linux-artifact/*.deb
             artifacts/linux-artifact/*.rpm
