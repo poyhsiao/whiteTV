@@ -186,26 +186,14 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          echo "=== Disk space ==="
-          df -h .
-          echo "=== Check .app ==="
-          RELEASE_DIR="$PWD/build/macos/Build/Products/Release"
-          if [ -d "$RELEASE_DIR" ]; then
-            find "$RELEASE_DIR" -name "*.app" -type d 2>/dev/null
-          else
-            echo "Release dir missing"
-            ls -la "$PWD/build/macos/Build/Products/" 2>/dev/null
-          fi
-          APP_NAME=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" -type d 2>/dev/null | head -1)
+          APP_NAME=$(find "$PWD/build/macos/Build/Products/Release" -maxdepth 1 -name "*.app" -type d 2>/dev/null | head -1)
           if [ -z "$APP_NAME" ]; then
-            echo "WARNING: No .app found in Release dir"
-            find /Users/runner/work -name "*.app" -type d 2>/dev/null | head -5
-          else
-            echo "Found: $APP_NAME"
-            cd "$RELEASE_DIR"
-            zip -r "$PWD/build/whitetv-${VERSION}-macos.zip" "./$(basename "$APP_NAME")"
-            ls -la "$PWD/build/whitetv-${VERSION}-macos.zip"
+            echo "ERROR: No .app found"
+            exit 1
           fi
+          echo "Found: $APP_NAME"
+          zip -r "$PWD/build/whitetv-${VERSION}-macos.zip" "$APP_NAME"
+          ls -la "$PWD/build/whitetv-${VERSION}-macos.zip"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
