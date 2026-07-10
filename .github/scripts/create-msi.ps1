@@ -1,97 +1,79 @@
 param([string]$Version, [string]$SourceDir, [string]$OutputPath)
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Stop"
 $debug = @()
+$failed = $false
 
-function Add-Debug($msg) {
+function D($msg) {
     $debug += $msg
-    Write-Host $msg
+    Write-Host "[DBG] $msg"
 }
 
-Add-Debug "SourceDir: $SourceDir"
-Add-Debug "OutputPath: $OutputPath"
-if (-not (Test-Path $SourceDir)) {
-    Add-Debug "ERROR: SourceDir not found"
-    $debug | Out-File -FilePath "$env:TEMP\msi_debug.txt"
-    exit 1
-}
+D "=== MSI Build Started ==="
+D "SourceDir: $SourceDir"
+D "OutputPath: $OutputPath"
 
-# Find WiX candle.exe
-$CandleExe = $null
-$searchPaths = @(
-    "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin\candle.exe",
-    "${env:ProgramFiles(x86)}\WiX Toolset v3.10\bin\candle.exe",
-    "C:\ProgramData\chocolatey\bin\candle.exe",
-    "C:\ProgramData\chocolatey\lib\wix\tools\bin\candle.exe"
-)
-foreach ($p in $searchPaths) {
-    if (Test-Path $p) {
-        $CandleExe = $p
-        Add-Debug "Found candle at: $CandleExe"
-        break
-    }
-}
-
-if (-not $CandleExe) {
-    Add-Debug "Installing WiX via chocolatey..."
-    choco install wixtoolset -y --no-progress 2>&1 | ForEach-Object { Add-Debug "choco: $_" }
-    Start-Sleep -Seconds 30
-    foreach ($p in $searchPaths) {
-        if (Test-Path $p) {
-            $CandleExe = $p
-            Add-Debug "Found candle after install: $CandleExe"
-            break
-        }
-    }
-}
-
-if (-not $CandleExe) {
-    Add-Debug "Searching for candle.exe in C:\ProgramData..."
-    $candidates = Get-ChildItem "C:\ProgramData" -Filter "candle.exe" -Recurse -ErrorAction SilentlyContinue -Depth 4 | Select-Object -First 5
-    foreach ($c in $candidates) {
-        Add-Debug "  Candidate: $($c.FullName)"
-    }
-    $CandleExe = $candidates | Select-Object -First 1 -ExpandProperty FullName
-}
-
-if (-not $CandleExe) {
-    Add-Debug "ERROR: candle.exe not found"
-    $debug | Out-File -FilePath "$env:TEMP\msi_debug.txt"
-    exit 1
-}
-
-# Build WXS
-$files = Get-ChildItem $SourceDir -Recurse -File
-Add-Debug "Files to package: $($files.Count)"
-$fileRefs = ""
-foreach ($f in $files) {
-    $rel = $f.FullName.Substring($SourceDir.Length + 1).Replace("\", "/")
-    $fileRefs += "        <File Name='$($f.Name)' Source='$rel' />`n"
-}
-
-$xmlContent = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n    <Package InstallerVersion=""200"" Compressed=""yes"" />`n    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n$fileRefs      </Directory>`n    </Directory>`n  </Product>`n</Wix>"
-
-$wxsPath = Join-Path $env:TEMP "Product.wxs"
-$xmlContent | Out-File -FilePath $wxsPath -Encoding UTF8NoBOM
-Add-Debug "WXS written: $wxsPath"
-
-# Run candle
-$env:PATH = "$(Split-Path $CandleExe);$env:PATH"
-Add-Debug "Running candle from: $CandleExe"
 try {
-    $result = & $CandleExe -nologo -out $OutputPath $wxsPath 2>&1
-    foreach ($line in $result) {
-        Add-Debug "candle: $line"
+    if (-not (Test-Path $SourceDir)) {
+        throw "SourceDir not found: $SourceDir"
     }
-    Add-Debug "candle exit: $LASTEXITCODE"
+
+    # Install wix CLI if not present
+    D "Checking for wix CLI..."
+    $wixCmd = Get-Command wix -ErrorAction SilentlyContinue
+    if (-not $wixCmd) {
+        D "Installing wix CLI..."
+        dotnet tool install --global wix 2>&1 | ForEach-Object { D "dotnet: $_" }
+        $env:PATH = "$env:PATH;$env:USERPROFILE\.dotnet\tools"
+        $wixCmd = Get-Command wix -ErrorAction SilentlyContinue
+    }
+    if (-not $wixCmd) {
+        throw "wix CLI not found after install"
+    }
+    D "Found wix: $($wixCmd.Source)"
+
+    # Build WXS
+    $files = Get-ChildItem $SourceDir -Recurse -File
+    D "Files: $($files.Count)"
+    $fileRefs = ""
+    foreach ($f in $files) {
+        $rel = $f.FullName.Substring($SourceDir.Length + 1).Replace("\", "/")
+        $fileRefs += "        <File Name='$($f.Name)' Source='$rel' />`n"
+    }
+
+    $xml = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n    <Package InstallerVersion=""200"" Compressed=""yes"" />`n    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n$fileRefs      </Directory>`n    </Directory>`n  </Product>`n</Wix>"
+
+    $wxsPath = Join-Path $env:TEMP "Product_$PID.wxs"
+    D "Writing WXS to: $wxsPath"
+    $xml | Out-File -FilePath $wxsPath -Encoding UTF8
+
+    # Build MSI
+    D "Building MSI..."
+    D "Command: wix build -nologo -out $OutputPath $wxsPath"
+    $errFile = Join-Path $env:TEMP "wix_err_$PID.txt"
+    $outFile = Join-Path $env:TEMP "wix_out_$PID.txt"
+
+    $proc = Start-Process -FilePath $wixCmd.Source -ArgumentList "build", "-nologo", "-out", $OutputPath, $wxsPath -NoNewWindow -Wait -PassThru -RedirectStandardError $errFile -RedirectStandardOutput $outFile
+    D "Exit code: $($proc.ExitCode)"
+
+    if ((Test-Path $outFile) -and (Get-Content $outFile -Raw)) {
+        Get-Content $outFile | ForEach-Object { D "OUT: $_" }
+    }
+    if ((Test-Path $errFile) -and (Get-Content $errFile -Raw)) {
+        Get-Content $errFile | ForEach-Object { D "ERR: $_" }
+    }
+
+    if ((Test-Path $OutputPath) -and (Get-Item $OutputPath).Length -gt 0) {
+        D "SUCCESS: $OutputPath ($(int.KB) KB)"
+    } else {
+        throw "MSI not created"
+    }
+
 } catch {
-    Add-Debug "ERROR running candle: $_"
+    D "FATAL ERROR: $_"
+    $failed = $true
+} finally {
+    $debugPath = Join-Path $env:TEMP "msi_debug.txt"
+    $debug | Out-File -FilePath $debugPath -Encoding UTF8
+    D "Debug log: $debugPath"
+    if ($failed) { exit 1 }
 }
-
-if ((Test-Path $OutputPath) -and (Get-Item $OutputPath).Length -gt 0) {
-    Add-Debug "SUCCESS: $OutputPath ($(int.KB) KB)"
-} else {
-    Add-Debug "ERROR: MSI not created"
-}
-
-$debug | Out-File -FilePath "$env:TEMP\msi_debug.txt"
-if ((Test-Path $OutputPath) -ne $true) { exit 1 }
