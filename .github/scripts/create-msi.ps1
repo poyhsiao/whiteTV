@@ -1,61 +1,39 @@
 param([string]$Version, [string]$SourceDir, [string]$OutputPath)
 $ErrorActionPreference = "Continue"
+Write-Host "SourceDir: $SourceDir"
 if (-not (Test-Path $SourceDir)) {
-    Write-Host "ERROR: SourceDir not found: $SourceDir"
+    Write-Host "ERROR: SourceDir not found"
     exit 1
 }
 
-# Install WiX via chocolatey if not present
-$CandleExe = $null
+# Install wix dotnet tool
+Write-Host "Installing WiX dotnet tool..."
+dotnet tool install --global wix --version 3.0.0 2>&1 | Out-Null
+$wixPath = dotnet tool path --global wix 2>$null
+$CandleExe = Join-Path $wixPath "candle.exe"
+Write-Host "WiX path: $CandleExe"
 
-# Search everywhere for candle.exe
-$AllDrives = @("C:\", "D:\")
-foreach ($drive in $AllDrives) {
-    if (Test-Path $drive) {
-        $found = Get-ChildItem $drive -Recurse -Filter "candle.exe" -ErrorAction SilentlyContinue -Depth 6 |
-            Where-Object { $_.DirectoryName -like "*wix*" } |
-            Select-Object -First 1 -ExpandProperty FullName
-        if ($found) { $CandleExe = $found; break }
-    }
-}
-
-if (-not $CandleExe) {
-    Write-Host "Installing WiX via chocolatey..."
-    choco install wixtoolset -y --no-progress
-    Start-Sleep -Seconds 30
-    # Search again after install
-    foreach ($drive in $AllDrives) {
-        if (Test-Path $drive) {
-            $found = Get-ChildItem $drive -Recurse -Filter "candle.exe" -ErrorAction SilentlyContinue -Depth 6 |
-                Where-Object { $_.DirectoryName -like "*wix*" } |
-                Select-Object -First 1 -ExpandProperty FullName
-            if ($found) { $CandleExe = $found; break }
-        }
-    }
-}
-
-if (-not $CandleExe) {
-    Write-Host "ERROR: candle.exe not found after exhaustive search"
+if (-not (Test-Path $CandleExe)) {
+    Write-Host "ERROR: candle.exe not found"
     exit 1
 }
-Write-Host "Found candle.exe: $CandleExe"
-$env:PATH = "$(Split-Path $CandleExe);$env:PATH"
 
-# Build MSI
 $files = Get-ChildItem $SourceDir -Recurse -File
-Write-Host "Found $($files.Count) files"
+Write-Host "Files: $($files.Count)"
+
 $fileRefs = ""
 foreach ($f in $files) {
     $rel = $f.FullName.Substring($SourceDir.Length + 1).Replace("\", "/")
     $fileRefs += "        <File Name='$($f.Name)' Source='$rel' />`n"
 }
 
-$xmlContent = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n    <Package InstallerVersion=""200"" Compressed=""yes"" />`n    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n$fileRefs      </Directory>`n    </Directory>`n  </Product>`n</Wix>"
+$xml = "<?xml version=""1.0""?>`n<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">`n  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">`n    <Package InstallerVersion=""200"" Compressed=""yes"" />`n    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />`n    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">`n      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">`n$fileRefs      </Directory>`n    </Directory>`n  </Product>`n</Wix>"
 
-$wxsPath = Join-Path $PWD "Product.wxs"
-$xmlContent | Out-File -FilePath $wxsPath -Encoding UTF8NoBOM
-Write-Host "Running candle..."
-& $CandleExe -nologo -out "$OutputPath" $wxsPath
-Write-Host "Exit code: $LASTEXITCODE"
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path $OutputPath)) { exit 1 }
-Write-Host "SUCCESS: $OutputPath"
+$wxs = Join-Path $env:TEMP "Product.wxs"
+$xml | Out-File -FilePath $wxs -Encoding UTF8
+
+Write-Host "Building MSI..."
+& $CandleExe -nologo -out $OutputPath $wxs 2>&1
+Write-Host "Exit: $LASTEXITCODE"
+if ($LASTEXITCODE -ne 0) { exit 1 }
+Write-Host "SUCCESS"
