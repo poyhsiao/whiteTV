@@ -31,7 +31,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v4
         with:
@@ -79,7 +79,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -137,7 +137,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -197,7 +197,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -257,7 +257,7 @@ jobs:
           ref: ${{ inputs.tag_name || github.ref }}
 
       - name: Extract version
-        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ inputs.tag_name || github.ref_name }}" >> $GITHUB_ENV && echo "VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
         with:
@@ -299,7 +299,7 @@ jobs:
         run: |
           if [ ! -d build/linux/x64/release/bundle ]; then exit 0; fi
           cd build/linux/x64/release/bundle
-          tar -czf "../../../../whitetv-${VERSION}-linux.tar.gz" .
+          tar -czf "../../../../whitetv-${VER}-linux.tar.gz" .
 
       - name: Create Linux DEB
         env:
@@ -312,7 +312,8 @@ jobs:
           mkdir -p $DEB_PKG/DEBIAN
           mkdir -p $DEB_PKG/usr/local/bin
           cp -r $BUNDLE/* $DEB_PKG/usr/local/bin/
-          printf 'Package: whitetv\nVersion: %s\nSection: multimedia\nPriority: optional\nArchitecture: amd64\nMaintainer: whiteTV\nDescription: whiteTV App\n' "$VERSION" > $DEB_PKG/DEBIAN/control
+          VER=${VERSION#v}
+          printf 'Package: whitetv\nVersion: %s\nSection: multimedia\nPriority: optional\nArchitecture: amd64\nMaintainer: whiteTV\nDescription: whiteTV App\n' "$VER" > $DEB_PKG/DEBIAN/control
           chmod 755 $DEB_PKG/DEBIAN/control
           dpkg-deb --build $DEB_PKG build/whitetv-${VERSION}-linux.deb
 
@@ -335,7 +336,7 @@ jobs:
           printf 'Name: whitetv\nVersion: %s\nRelease: 1\nSummary: whiteTV App\nLicense: MIT\nURL: https://github.com/kimhsiao/whitetv\nBuildArch: x86_64\n\n' "$VER" > $RPM_PKG/SPECS/whitetv.spec
           printf '%%description\nwhiteTV App\n\n%%install\nmkdir -p %%{buildroot}/usr/local/bin\ncp -r %%{_builddir}/%s/* %%{buildroot}/usr/local/bin/\n\n%%files\n%%defattr(-,root,root)\n/usr/local/bin/*\n' "$ARCHIVE_NAME" >> $RPM_PKG/SPECS/whitetv.spec
           HOME=/tmp rpmbuild --define "_topdir $RPM_PKG" -bb $RPM_PKG/SPECS/whitetv.spec 2>&1 | tail -10
-          ls $RPM_PKG/RPMS/x86_64/*.rpm 2>/dev/null && cp $RPM_PKG/RPMS/x86_64/*.rpm "build/whitetv-${VERSION}-linux.rpm" || echo "RPM may have failed"
+          ls $RPM_PKG/RPMS/x86_64/*.rpm 2>/dev/null && cp $RPM_PKG/RPMS/x86_64/*.rpm "build/whitetv-${VER}-linux.rpm" || echo "RPM may have failed"
 
       - name: Create Linux AppImage
         env:
@@ -353,7 +354,7 @@ jobs:
             chmod +x ~/appimagetool 2>/dev/null || true
           fi
           if [ -f ~/appimagetool ]; then
-            VERSION=$VERSION ~/appimagetool /tmp/appdir build/whitetv-${VERSION}-linux.AppImage 2>&1 | tail -5
+            VERSION=$VERSION ~/appimagetool /tmp/appdir build/whitetv-${VER}-linux.AppImage 2>&1 | tail -5
           fi
 
       - name: Upload Linux artifact
