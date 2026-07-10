@@ -115,12 +115,15 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          flutter build ios --release --no-codesign > build_ios.log 2>&1; CODE=$?
+          flutter build ios --release --no-codesign > build_ios.log 2>&1
+          CODE=$?
           echo "Exit code: $CODE"
+          cat build_ios.log | tail -20
           if [ -d build/ios/iphoneos ]; then
             cd build/ios
             zip -r "whitetv-${VERSION}-ios.zip" iphoneos
           fi
+          if [ $CODE -ne 0 ]; then echo "Flutter build failed"; fi
           exit $CODE
 
       - name: Upload iOS artifact
@@ -171,8 +174,11 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          flutter build macos --release > build_macos.log 2>&1; CODE=$?
+          flutter build macos --release > build_macos.log 2>&1
+          CODE=$?
           echo "Exit code: $CODE"
+          cat build_macos.log | tail -20
+          if [ $CODE -ne 0 ]; then echo "Flutter build failed"; fi
           exit $CODE
 
       - name: Create macOS DMG
@@ -183,8 +189,15 @@ jobs:
             cd build/macos/Build/Products/Release
             APP_NAME=$(ls *.app 2>/dev/null | head -1 || echo "")
             if [ -n "$APP_NAME" ]; then
-              hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "./$APP_NAME" -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg" 2>/dev/null || true
+              echo "Creating DMG from $APP_NAME"
+              hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "./$APP_NAME" -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg"
+            else
+              echo "No .app found in Release folder"
+              ls -la
             fi
+          else
+            echo "Release folder not found"
+            ls -la build/macos/Build/Products/ 2>/dev/null || echo "Products folder missing"
           fi
 
       - name: Upload macOS artifact
@@ -228,7 +241,12 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Build Windows
-        run: flutter build windows --release
+        run: |
+          flutter build windows --release > build_windows.log 2>&1
+          CODE=$?
+          echo "Exit code: $CODE"
+          cat build_windows.log | tail -10
+          exit $CODE
 
       - name: Package Windows
         env:
@@ -290,7 +308,8 @@ jobs:
           VERSION: ${{ env.VERSION }}
         run: |
           flutter config --enable-linux-desktop
-          flutter build linux --release > build_linux.log 2>&1; CODE=$?
+          flutter build linux --release > build_linux.log 2>&1
+          CODE=$?
           echo "=== Flutter build exit code: $CODE ==="
           cat build_linux.log | tail -50
           exit $CODE
