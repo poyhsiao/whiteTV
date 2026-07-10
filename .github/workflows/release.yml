@@ -233,17 +233,24 @@ jobs:
         run: |
           flutter doctor || true
           flutter build windows --release
-          Write-Host "Build complete"
-          $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
-          $exePath = "build\windows\x64\runner\Release"
-          Write-Host "Checking: $exePath"
+          Write-Host "Build complete, checking exe..."
+          $exePath = Join-Path $PWD "build\windows\x64\runner\Release"
+          Write-Host "exePath: $exePath"
+          Write-Host "PWD: $PWD"
+          if (Test-Path $exePath) {
+            Write-Host "exePath exists, listing contents:"
+            Get-ChildItem $exePath | Out-String | Write-Host
+          } else {
+            Write-Host "exePath does NOT exist, listing parent:"
+            Get-ChildItem (Join-Path $PWD "build\windows") -Recurse -Depth 2 | Out-String | Write-Host
+          }
           $exe = Get-ChildItem $exePath -Filter "white_tv.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $exe) { Write-Host "ERROR: exe not found"; exit 1 }
           Write-Host "Found: $($exe.FullName)"
           $msiDir = Join-Path $PWD "build"
           New-Item -ItemType Directory -Force -Path $msiDir | Out-Null
           $msiPath = Join-Path $msiDir "whitetv-$env:VERSION-windows.msi"
-          pwsh -File $script -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
+          pwsh -File (Join-Path $PWD ".github/scripts/create-msi.ps1") -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
           if (-not (Test-Path $msiPath)) { Write-Host "ERROR: MSI not created"; exit 1 }
           Write-Host "SUCCESS: MSI at $msiPath"
 
