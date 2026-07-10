@@ -12,12 +12,23 @@ $SearchPaths = @(
     "C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe",
     "C:\Program Files (x86)\WiX Toolset\bin\candle.exe",
     "C:\ProgramData\chocolatey\lib\wixtoolset\tools\bin\candle.exe",
-    "C:\ProgramData\chocolatey\lib\wix\tools\bin\candle.exe"
+    "C:\ProgramData\chocolatey\lib\wix\tools\bin\candle.exe",
+    "C:\ProgramData\chocolatey\bin\candle.exe"
 )
 foreach ($path in $SearchPaths) {
     if (Test-Path $path) {
         $CandleExe = $path
         break
+    }
+}
+
+# Search broader chocolatey directory
+if (-not $CandleExe) {
+    $chocoPaths = Get-ChildItem "C:\ProgramData\chocolatey\lib" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        Get-ChildItem $_.FullName -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq "candle.exe" } | ForEach-Object { $_.FullName }
+    }
+    if ($chocoPaths) {
+        $CandleExe = $chocoPaths[0]
     }
 }
 
