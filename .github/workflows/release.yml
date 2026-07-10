@@ -185,21 +185,28 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          set -x
-          RELEASE_DIR="build/macos/Build/Products/Release"
-          PWD_DIR="$PWD"
-          echo "PWD=$PWD_DIR"
+          RELEASE_DIR="$PWD/build/macos/Build/Products/Release"
+          echo "PWD=$PWD"
           echo "RELEASE_DIR=$RELEASE_DIR"
-          ls -la "$RELEASE_DIR" 2>/dev/null || echo "Release dir missing"
+          if [ -d "$RELEASE_DIR" ]; then
+            echo "Release dir exists"
+            ls -la "$RELEASE_DIR"
+          else
+            echo "ERROR: Release dir missing"
+            ls -la "$PWD/build/macos/Build/Products/"
+            exit 1
+          fi
           APP_NAME=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" -type d 2>/dev/null | head -1)
           echo "APP_NAME=$APP_NAME"
           if [ -z "$APP_NAME" ]; then
-            echo "No .app found in Release"
-            find . -name "*.app" -type d 2>/dev/null | head -10
-          else
-            echo "Creating DMG from $APP_NAME"
-            hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "$APP_NAME" -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg"
+            echo "ERROR: No .app found"
+            exit 1
           fi
+          echo "Creating DMG from $APP_NAME"
+          cd "$RELEASE_DIR"
+          hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "./$(basename "$APP_NAME")" -ov -format UDZO "$PWD/build/whitetv-${VERSION}-macos.dmg"
+          echo "DMG created"
+          ls -la "$PWD/build/whitetv-${VERSION}-macos.dmg"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
