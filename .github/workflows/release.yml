@@ -227,38 +227,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Build Windows and MSI
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          flutter doctor || true
-          flutter build windows --release
-          Write-Host "Build complete, locating exe..."
-          Get-ChildItem . -Recurse -Filter "white_tv.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | Write-Host
-          $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
-          $exePath = Get-ChildItem . -Filter "white_tv.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | ForEach-Object { $_.DirectoryName }
-          if (-not $exePath) { Write-Host "ERROR: exe not found"; exit 1 }
-          Write-Host "Found exe at: $exePath"
-          $msiDir = Join-Path $PWD "build"
-          New-Item -ItemType Directory -Force -Path $msiDir | Out-Null
-          $msiPath = Join-Path $msiDir "whitetv-$env:VERSION-windows.msi"
-          pwsh -File $script -Version "$env:VERSION" -SourceDir $exePath -OutputPath $msiPath
-          if (-not (Test-Path $msiPath)) { Write-Host "ERROR: MSI not created"; exit 1 }
-          Write-Host "SUCCESS: MSI at $msiPath"
+      - name: Build Windows
+        run: flutter build windows --release
 
-      - name: Upload Windows MSI
-        if: success()
+      - name: Upload Windows build
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifact
-          path: build/whitetv-${{ env.VERSION }}-windows.msi
-
-      - name: Upload Windows build log
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build-log
-          path: build_windows.log
+          path: build/windows/x64/runner/Release
+          if-no-files-found: error
 
   linux:
     name: Build Linux
