@@ -243,13 +243,18 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
+          Write-Host "PWD: $PWD"
           $buildDir = Join-Path $PWD "build"
+          Write-Host "Build dir: $buildDir"
+          Write-Host "Build dir exists: $(Test-Path $buildDir)"
+          if (Test-Path $buildDir) {
+            Write-Host "Build dir contents:"
+            Get-ChildItem $buildDir -ErrorAction SilentlyContinue | Out-String | Write-Host
+          }
           $msiPath = Join-Path $buildDir "whitetv-$env:VERSION-windows.msi"
-          Write-Host "Searching for white_tv.exe in build directory..."
           $exe = Get-ChildItem $buildDir -Filter "white_tv.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $exe) {
-            Write-Host "ERROR: white_tv.exe not found in build directory"
-            Get-ChildItem $buildDir -Recurse -Depth 4 -ErrorAction SilentlyContinue | Select-Object FullName | Out-String | Out-Host
+            Write-Host "ERROR: white_tv.exe not found"
             exit 1
           }
           $src = $exe.Directory.FullName
