@@ -181,38 +181,24 @@ jobs:
           if [ $CODE -ne 0 ]; then echo "Flutter build failed"; fi
           exit $CODE
 
-      - name: Create macOS DMG
+      - name: Create macOS ZIP
         env:
           VERSION: ${{ env.VERSION }}
         run: |
           RELEASE_DIR="$PWD/build/macos/Build/Products/Release"
-          echo "PWD=$PWD"
-          echo "RELEASE_DIR=$RELEASE_DIR"
-          if [ -d "$RELEASE_DIR" ]; then
-            echo "Release dir exists"
-            ls -la "$RELEASE_DIR"
-          else
-            echo "ERROR: Release dir missing"
-            ls -la "$PWD/build/macos/Build/Products/"
-            exit 1
-          fi
           APP_NAME=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" -type d 2>/dev/null | head -1)
-          echo "APP_NAME=$APP_NAME"
           if [ -z "$APP_NAME" ]; then
             echo "ERROR: No .app found"
             exit 1
           fi
-          echo "Creating DMG from $APP_NAME"
           cd "$RELEASE_DIR"
-          hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "./$(basename "$APP_NAME")" -ov -format UDZO "$PWD/build/whitetv-${VERSION}-macos.dmg"
-          echo "DMG created"
-          ls -la "$PWD/build/whitetv-${VERSION}-macos.dmg"
+          zip -r "$PWD/build/whitetv-${VERSION}-macos.zip" "./$(basename "$APP_NAME")"
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-artifact
-          path: build/whitetv-${{ env.VERSION }}-macos.dmg
+          path: build/whitetv-${{ env.VERSION }}-macos.zip
 
       - name: Upload macOS build log
         if: failure()
@@ -443,7 +429,7 @@ jobs:
             artifacts/android-web-artifacts/**/*.apk
             artifacts/android-web-artifacts/web/**
             artifacts/ios-artifact/*.zip
-            artifacts/macos-artifact/*.dmg
+            artifacts/macos-artifact/*.zip
             artifacts/windows-artifact/*.zip
             artifacts/linux-artifact/*.tar.gz
             artifacts/linux-artifact/*.deb
