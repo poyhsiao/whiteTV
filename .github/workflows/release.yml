@@ -243,14 +243,17 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          $src = Join-Path $PWD "build\windows\x64\runner\Release"
-          $msiPath = Join-Path $PWD "build\whitetv-$env:VERSION-windows.msi"
-          Write-Host "Testing: $src"
-          if (-not (Test-Path $src)) {
-            Write-Host "ERROR: SourceDir not found, listing entire build:"
-            Get-ChildItem (Join-Path $PWD "build") -Recurse -Depth 4 -ErrorAction SilentlyContinue | Select-Object FullName | Out-String | Out-Host
+          $buildDir = Join-Path $PWD "build"
+          $msiPath = Join-Path $buildDir "whitetv-$env:VERSION-windows.msi"
+          Write-Host "Searching for white_tv.exe in build directory..."
+          $exe = Get-ChildItem $buildDir -Filter "white_tv.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) {
+            Write-Host "ERROR: white_tv.exe not found in build directory"
+            Get-ChildItem $buildDir -Recurse -Depth 4 -ErrorAction SilentlyContinue | Select-Object FullName | Out-String | Out-Host
             exit 1
           }
+          $src = $exe.Directory.FullName
+          Write-Host "Found source at: $src"
           $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
           pwsh -File $script -Version "$env:VERSION" -SourceDir $src -OutputPath $msiPath
           if (-not (Test-Path $msiPath)) {
