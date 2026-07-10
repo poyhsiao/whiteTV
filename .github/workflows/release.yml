@@ -239,11 +239,13 @@ jobs:
             ${{ runner.os }}-flutter-
 
       - name: Build Windows
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
           flutter build windows --release > build_windows.log 2>&1
           CODE=$?
           echo "Exit code: $CODE"
-          cat build_windows.log | tail -10
+          Get-Content build_windows.log -Tail 10
           exit $CODE
 
       - name: Package Windows
@@ -257,10 +259,18 @@ jobs:
           Write-Host "Created: $out (${size} KB)"
 
       - name: Upload Windows artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifact
           path: build/whitetv-${{ env.VERSION }}-windows.zip
+
+      - name: Upload Windows build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-log
+          path: build_windows.log
 
   linux:
     name: Build Linux
