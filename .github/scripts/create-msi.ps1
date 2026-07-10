@@ -2,49 +2,42 @@ param([string]$Version, [string]$SourceDir, [string]$OutputPath)
 $ErrorActionPreference = "Continue"
 if (-not (Test-Path $SourceDir)) {
     Write-Host "ERROR: SourceDir not found: $SourceDir"
-    Get-ChildItem . -Depth 3 | Select-Object FullName | Out-Host
     exit 1
 }
 
-# Find or install WiX
+# Find or install WiX candle.exe
 $CandleExe = $null
+$WixDir = "$env:TEMP\wix311"
+$ZipUrl = "https://github.com/wixtoolset/wix3/releases/download/wix311rtm/wix311.zip"
+$ZipPath = "$env:TEMP\wix311.zip"
 
-# Try dotnet tool first
-$dotnetWix = dotnet tool path --global wix 2>$null
-if ($dotnetWix -and (Test-Path "$dotnetWix\candle.exe")) {
-    $CandleExe = "$dotnetWix\candle.exe"
-    Write-Host "Found WiX dotnet tool at: $CandleExe"
-}
-
-# Try common install paths
-if (-not $CandleExe) {
-    $SearchPaths = @(
-        "C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe",
-        "C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe",
-        "C:\Program Files (x86)\WiX Toolset\bin\candle.exe",
-        "C:\ProgramData\chocolatey\lib\wixtoolset\tools\bin\candle.exe",
-        "C:\ProgramData\chocolatey\lib\wix\tools\bin\candle.exe"
-    )
-    foreach ($path in $SearchPaths) {
-        if (Test-Path $path) {
-            $CandleExe = $path
-            Write-Host "Found WiX at: $CandleExe"
-            break
-        }
+# Check if already downloaded
+$SearchPaths = @(
+    "C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe",
+    "C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe",
+    "$WixDir\bin\candle.exe"
+)
+foreach ($path in $SearchPaths) {
+    if (Test-Path $path) {
+        $CandleExe = $path
+        Write-Host "Found WiX at: $CandleExe"
+        break
     }
 }
 
-# Install WiX dotnet tool if not found
+# Download WiX v3.11 if not found
 if (-not $CandleExe) {
-    Write-Host "Installing WiX dotnet tool..."
-    dotnet tool install --global wix 2>$null
-    $CandleExe = dotnet tool path --global wix
-    $CandleExe = "$CandleExe\candle.exe"
-    Write-Host "Installed WiX at: $CandleExe"
+    Write-Host "Downloading WiX v3.11..."
+    New-Item -ItemType Directory -Force -Path $WixDir | Out-Null
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath -TimeoutSec 60 -UseBasicParsing
+    Expand-Archive -Path $ZipPath -DestinationPath $WixDir -Force
+    $CandleExe = "$WixDir\bin\candle.exe"
+    Write-Host "Downloaded WiX to: $CandleExe"
 }
 
 if (-not (Test-Path $CandleExe)) {
-    Write-Host "ERROR: candle.exe not found after all attempts"
+    Write-Host "ERROR: candle.exe not found at: $CandleExe"
     exit 1
 }
 
@@ -71,8 +64,8 @@ $xmlContent = "<?xml version=""1.0""?>" + "`n" +
 "</Wix>"
 
 $xmlContent | Out-File -FilePath "Product.wxs" -Encoding UTF8
-Write-Host "Building MSI with candle.exe from: $CandleExe"
-candle -nologo -out "$OutputPath" "Product.wxs"
-Write-Host "MSI candle exit code: $LASTEXITCODE"
+Write-Host "Building MSI with: $CandleExe"
+& $CandleExe -nologo -out "$OutputPath" "Product.wxs"
+Write-Host "MSI exit code: $LASTEXITCODE"
 if ($LASTEXITCODE -ne 0) { exit 1 }
 Write-Host "MSI created: $OutputPath"
