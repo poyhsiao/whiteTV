@@ -36,21 +36,20 @@ $fileRefs = ($files | ForEach-Object {
     "        <File Name='$($_.Name)' Source='$rel' />"
 }) -join "`n"
 
-$WXS = @"<?xml version="1.0"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Name="whiteTV" Id="*" UpgradeCode="*" Language="1033" Version="$Version" Manufacturer="whiteTV">
-    <Package InstallerVersion="200" Compressed="yes" />
-    <Media Id="1" Cabinet="whiteTV.cab" EmbedCab="yes" />
-    <Directory Id="ProgramFilesFolder" Name="PFiles">
-      <Directory Id="INSTALLFOLDER" Name="whiteTV">
-$fileRefs
-      </Directory>
-    </Directory>
-  </Product>
-</Wix>
-"@
+$xmlContent = "<?xml version=""1.0""?>" + "`n" +
+"<Wix xmlns=""http://schemas.microsoft.com/wix/2006/wi"">" + "`n" +
+"  <Product Name=""whiteTV"" Id=""*"" UpgradeCode=""*"" Language=""1033"" Version=""$Version"" Manufacturer=""whiteTV"">" + "`n" +
+"    <Package InstallerVersion=""200"" Compressed=""yes"" />" + "`n" +
+"    <Media Id=""1"" Cabinet=""whiteTV.cab"" EmbedCab=""yes"" />" + "`n" +
+"    <Directory Id=""ProgramFilesFolder"" Name=""PFiles"">" + "`n" +
+"      <Directory Id=""INSTALLFOLDER"" Name=""whiteTV"">" + "`n" +
+"$fileRefs" + "`n" +
+"      </Directory>" + "`n" +
+"    </Directory>" + "`n" +
+"  </Product>" + "`n" +
+"</Wix>"
 
-$WXS | Out-File -FilePath "Product.wxs" -Encoding UTF8
+$xmlContent | Out-File -FilePath "Product.wxs" -Encoding UTF8
 Write-Host "Building MSI..."
 candle -nologo -out "$OutputPath" "Product.wxs"
 Write-Host "MSI exit code: $LASTEXITCODE"
