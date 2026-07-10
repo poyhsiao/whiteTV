@@ -243,10 +243,10 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
-          $src = "build/windows/x64/runner/Release"
+          $src = "build\windows\x64\runner\Release"
           Write-Host "Testing: $src"
           if (-not (Test-Path $src)) {
-            Get-ChildItem "build/windows/" -Recurse -Depth 3 | Select-Object FullName | Out-Host
+            Get-ChildItem "build\windows\" -Recurse -Depth 3 | Select-Object FullName | Out-Host
             Write-Host "ERROR: SourceDir not found"
             exit 1
           }
@@ -254,8 +254,8 @@ jobs:
           choco install wixtoolset -y --no-progress 2>&1 | Out-Null
           Start-Sleep -Seconds 15
           $script = Join-Path $PWD ".github/scripts/create-msi.ps1"
-          pwsh -File $script -Version "$env:VERSION" -SourceDir $src -OutputPath "build/whitetv-$env:VERSION-windows.msi"
-          if (-not (Test-Path "build/whitetv-$env:VERSION-windows.msi")) {
+          pwsh -File $script -Version "$env:VERSION" -SourceDir "$PWD\$src" -OutputPath "$PWD\build\whitetv-$env:VERSION-windows.msi"
+          if (-not (Test-Path "$PWD\build\whitetv-$env:VERSION-windows.msi")) {
             Write-Host "ERROR: MSI was not created"
             exit 1
           }
