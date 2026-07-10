@@ -185,14 +185,17 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         run: |
+          set -x
           RELEASE_DIR="build/macos/Build/Products/Release"
-          echo "Checking: $RELEASE_DIR"
+          PWD_DIR="$PWD"
+          echo "PWD=$PWD_DIR"
+          echo "RELEASE_DIR=$RELEASE_DIR"
           ls -la "$RELEASE_DIR" 2>/dev/null || echo "Release dir missing"
           APP_NAME=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" -type d 2>/dev/null | head -1)
           echo "APP_NAME=$APP_NAME"
           if [ -z "$APP_NAME" ]; then
-            echo "No .app found"
-            find "$RELEASE_DIR" -maxdepth 2 -name "*.app" -type d 2>/dev/null | head -5
+            echo "No .app found in Release"
+            find . -name "*.app" -type d 2>/dev/null | head -10
           else
             echo "Creating DMG from $APP_NAME"
             hdiutil create -volname "whiteTV-${VERSION}" -srcfolder "$APP_NAME" -ov -format UDZO "../../../../whitetv-${VERSION}-macos.dmg"
