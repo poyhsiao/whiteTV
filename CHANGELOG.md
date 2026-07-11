@@ -30,6 +30,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 7 個 test 驗證 loadRecommend/loadCategories/selectCategory/clear 的 success/error
   - 覆蓋率 91% (LF:34 / LH:31)
 
+## v0.12.0 (2026-07-11)
+
+### Changed
+- Remove unused `dio_provider` import from `main.dart`
+- Clean up `handoff_service`, `detail_screen`, `home_screen`
+- Refactor search: `search_screen`, `search_state`, `voice_input_button` - fix TV remote key handling
+- Simplify `parental_control_card`, `playback_settings_card`
+- Improve `focus_manager`, `remote_handler`
+- Update iOS/macOS Flutter config files
+
+### Added
+- `test/features/login/login_bdd_test.dart` - Login BDD integration test
+- `test/platform/tv/focus_manager_test.dart` - Focus manager unit test
+- `test/platform/tv/remote_handler_test.dart` - Remote handler unit test
+- `ios/Podfile` - iOS CocoaPods configuration
+
+### Fixed
+- TV remote `audioVolumeMute` key handling in `voice_input_button.dart`
+
 ### Changed
 - `HomeScreen` (lib/features/home/home_screen.dart) 包 `BackConfirmation` widget (僅 TV)
 - `RecommendationReasonSheet` 加上 `recommendation.title` 顯示
