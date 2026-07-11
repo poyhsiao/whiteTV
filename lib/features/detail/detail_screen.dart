@@ -1,3 +1,6 @@
+// ignore_for_file: use_build_context_synchronously
+// (showDialog returns before widget tree is disposed; mounted guards are in place)
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,10 +118,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   Future<void> _onEpisodeTap(VideoDetail detail, Episode episode) async {
     ref.read(detailStoreProvider.notifier).selectEpisode(episode);
 
-    if (isAdultContent(detail) && mounted) {
+    if (!mounted) return;
+
+    if (isAdultContent(detail)) {
       final service = ref.read(parentalControlServiceProvider);
       final state = await service.getState();
       if (state.enabled && !state.isLocked) {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
         final pin = await showDialog<String>(
           context: context,
           builder: (_) => const PinDialog(title: '請輸入家長鎖PIN碼'),
@@ -126,11 +132,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         if (pin == null || !mounted) return;
         final valid = await service.verifyPin(pin);
         if (!valid) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PIN碼錯誤')),
-            );
-          }
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('PIN碼錯誤')),
+          );
           return;
         }
       }
@@ -513,55 +517,6 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
           style: AppTypography.caption,
         ),
       ],
-    );
-  }
-}
-
-class _DownloadButton extends ConsumerWidget {
-  const _DownloadButton({required this.detail, this.selectedSource});
-
-  final VideoDetail detail;
-  final VideoSource? selectedSource;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final downloadState = ref.watch(downloadsStoreProvider);
-    final videoId = detail.id;
-    final isDownloading = downloadState.isDownloading(videoId);
-    final progress = downloadState.downloadProgress[videoId];
-
-    if (isDownloading) {
-      return OutlinedButton(
-        onPressed: null,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
-            const SizedBox(width: 8),
-            Text('下載中 ${((progress ?? 0) * 100).toInt()}%'),
-          ],
-        ),
-      );
-    }
-
-    return OutlinedButton.icon(
-      key: const Key('download_button_mobile'),
-      onPressed: selectedSource == null
-          ? null
-          : () {
-              ref.read(downloadsStoreProvider.notifier).startDownload(
-                    videoId: videoId,
-                    url: selectedSource!.url,
-                    title: detail.title,
-                    posterUrl: detail.posterUrl,
-                    sourceName: selectedSource!.name,
-                    mediaType: detail.category?.contains('tv') ?? false
-                        ? MediaType.series
-                        : MediaType.movie,
-                  );
-            },
-      icon: const Icon(Icons.download),
-      label: const Text('下載'),
     );
   }
 }

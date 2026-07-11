@@ -46,23 +46,42 @@ class PlaybackSettingsCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            RadioListTile<int>(
-              title: const Text('15 分鐘', style: TextStyle(color: Colors.white)),
-              value: 15,
+            RadioGroup<int>(
               groupValue: settings.timeshiftBufferDuration,
-              onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
-            ),
-            RadioListTile<int>(
-              title: const Text('30 分鐘', style: TextStyle(color: Colors.white)),
-              value: 30,
-              groupValue: settings.timeshiftBufferDuration,
-              onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
-            ),
-            RadioListTile<int>(
-              title: const Text('60 分鐘', style: TextStyle(color: Colors.white)),
-              value: 60,
-              groupValue: settings.timeshiftBufferDuration,
-              onChanged: (v) => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v!),
+              onChanged: (v) {
+                if (v != null) ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(v);
+              },
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Radio<int>(value: 15),
+                      ListTile(
+                        title: const Text('15 分鐘', style: TextStyle(color: Colors.white)),
+                        onTap: () => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(15),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<int>(value: 30),
+                      ListTile(
+                        title: const Text('30 分鐘', style: TextStyle(color: Colors.white)),
+                        onTap: () => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(30),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<int>(value: 60),
+                      ListTile(
+                        title: const Text('60 分鐘', style: TextStyle(color: Colors.white)),
+                        onTap: () => ref.read(settingsStoreProvider.notifier).updateTimeshiftBufferDuration(60),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

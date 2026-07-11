@@ -74,9 +74,6 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   IOSink? _bufferSink;
   Timer? _segmentTimer;
   String? _currentChannelId;
-  Duration? _maxDuration;
-  DateTime? _recordingStartTime;
-
   final List<_SegmentMetadata> _segments = [];
 
   static const _maxTimeshiftDuration = Duration(days: 7);
@@ -175,8 +172,6 @@ class TimeshiftManagerImpl implements TimeshiftManager {
   @override
   Future<void> startClientBuffer(String channelId, Duration duration) async {
     _currentChannelId = channelId;
-    _maxDuration = duration;
-    _recordingStartTime = DateTime.now();
     _isClientBufferActive = true;
     _segments.clear();
 
@@ -263,8 +258,6 @@ class TimeshiftManagerImpl implements TimeshiftManager {
     _bufferFile = null;
 
     _currentChannelId = null;
-    _maxDuration = null;
-    _recordingStartTime = null;
     _isClientBufferActive = false;
   }
 

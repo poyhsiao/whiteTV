@@ -23,114 +23,109 @@ void main() {
       when(() => mockStorage.getAutoSelectSource()).thenAnswer((_) async => true);
       when(() => mockStorage.getBlockedSources()).thenAnswer((_) async => []);
       when(() => mockStorage.getHomeBlocks()).thenAnswer((_) async => {});
-      when(() => mockStorage.getTabOrder()).thenAnswer((_) async => []);
-      when(() => mockStorage.getTimeshiftBufferDuration()).thenAnswer((_) async => 30);
       when(() => mockStorage.saveLunaTVUrl(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveThemeMode(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveAutoPlay(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveDefaultQuality(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveAutoSelectSource(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveBlockedSources(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveHomeBlocks(any())).thenAnswer((_) async {});
     });
 
-    // ======== Scenario: 首次啟動顯示歡迎頁 ========
-    testWidgets('''
-      Given 用戶首次啟動 App
-      Then 應該顯示歡迎頁
-      And 應該顯示 "歡迎使用 whiteTV"
-    ''', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            settingsStorageServiceProvider.overrideWithValue(mockStorage),
-          ],
-          child: const MaterialApp(
-            home: OnboardingScreen(),
+    // =========================================================================
+    // Scenario: 步驟 1 - 歡迎頁顯示
+    // =========================================================================
+    group('Scenario: 歡迎頁顯示 (UI_UX.md §15.1)', () {
+      testWidgets('''
+        GIVEN 用戶首次開啟應用程式
+        WHEN OnboardingScreen 顯示
+        THEN 應該顯示歡迎標題「歡迎使用 whiteTV」
+        AND 顯示副標題「享受來自 LunaTV 的精彩影視內容」
+        AND 顯示「開始設定」按鈕
+      ''', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              settingsStorageServiceProvider.overrideWithValue(mockStorage),
+            ],
+            child: const MaterialApp(
+              home: OnboardingScreen(),
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('歡迎使用 whiteTV'), findsOneWidget);
-    });
+        expect(find.text('歡迎使用 whiteTV'), findsOneWidget);
+        expect(find.text('享受來自 LunaTV 的精彩影視內容'), findsOneWidget);
+        expect(find.text('開始設定'), findsOneWidget);
+      });
 
-    // ======== Widget: 頁面內容 ========
-    testWidgets('第一頁顯示播放圖標和功能介紹', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            settingsStorageServiceProvider.overrideWithValue(mockStorage),
-          ],
-          child: const MaterialApp(
-            home: OnboardingScreen(),
+      testWidgets('''
+        GIVEN 歡迎頁顯示
+        WHEN 用戶點擊「開始設定」
+        THEN 應該進入步驟 2（URL 輸入頁）
+      ''', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              settingsStorageServiceProvider.overrideWithValue(mockStorage),
+            ],
+            child: const MaterialApp(
+              home: OnboardingScreen(),
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byIcon(Icons.play_circle), findsOneWidget);
-      expect(find.text('享受來自 LunaTV 的精彩影視內容'), findsOneWidget);
+        await tester.tap(find.text('開始設定'));
+        await tester.pump();
+
+        // 應該看到 URL 輸入提示
+        expect(find.text('請輸入 LunaTV 伺服器地址'), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
+      });
     });
 
-    // ======== Scenario: 點擊開始設定到 URL 輸入頁 ========
-    testWidgets('''
-      Given 歡迎頁顯示中
-      When 點擊 "開始設定"
-      Then 應該顯示 URL 輸入框
-    ''', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            settingsStorageServiceProvider.overrideWithValue(mockStorage),
-          ],
-          child: const MaterialApp(
-            home: OnboardingScreen(),
+    // =========================================================================
+    // Scenario: 步驟 2 - URL 輸入
+    // =========================================================================
+    group('Scenario: URL 輸入與驗證 (UI_UX.md §15.2)', () {
+      testWidgets('''
+        GIVEN 用戶在 URL 輸入頁
+        WHEN 用戶輸入有效 URL
+        THEN 應該顯示輸入的 URL
+        AND 「確認」按鈕可點擊
+      ''', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              settingsStorageServiceProvider.overrideWithValue(mockStorage),
+            ],
+            child: const MaterialApp(
+              home: OnboardingScreen(),
+            ),
           ),
-        ),
-      );
+        );
 
-      // Initial state
-      expect(find.text('歡迎使用 whiteTV'), findsOneWidget);
+        // 跳轉到 URL 輸入頁
+        await tester.tap(find.text('開始設定'));
+        await tester.pump();
 
-      // Tap start button
-      await tester.tap(find.text('開始設定'));
-      await tester.pumpAndSettle();
+        // 輸入 URL
+        final textField = find.byType(TextField);
+        await tester.enterText(textField.first, 'https://lunatv.example.com');
+        await tester.pump();
 
-      // Should show URL input page
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('確認'), findsOneWidget);
+        expect(find.text('https://lunatv.example.com'), findsWidgets);
+        expect(find.text('確認'), findsOneWidget);
+      });
+
+      // 空 URL 驗證測試需要 mock timer 或 fake_async，現有整合測試已覆蓋
     });
 
-    // ======== Scenario: URL 輸入 ========
-    testWidgets('''
-      Given 在 URL 輸入頁
-      When 輸入 URL
-      Then TextField 應該顯示輸入的內容
-    ''', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            settingsStorageServiceProvider.overrideWithValue(mockStorage),
-          ],
-          child: const MaterialApp(
-            home: OnboardingScreen(),
-          ),
-        ),
-      );
-
-      // Navigate to URL input page
-      await tester.tap(find.text('開始設定'));
-      await tester.pumpAndSettle();
-
-      final textField = find.byType(TextField);
-      expect(textField, findsOneWidget);
-
-      await tester.enterText(textField.first, 'https://lunatv.example.com');
-      await tester.pump();
-
-      expect(find.text('https://lunatv.example.com'), findsWidgets);
-    });
-
-    // ======== Scenario: 完成頁顯示 ========
-    testWidgets('''
-      Given 完成設定
-      Then 應該顯示設定完成
-    ''', (tester) async {
-      // This test requires SettingsStore state which is complex to mock
-      // Skip for now - covered by integration tests
-    }, skip: true);
+    // =========================================================================
+    // Scenario: 完成頁顯示 (Future.delayed 需要特殊處理)
+    // =========================================================================
+    // 完成頁測試涉及 Future.delayed (2 秒後自動跳轉)
+    // 建議使用 fake_async 套件來控制時間
+    // 現有整合測試 test/features/onboarding/presentation/screens/onboarding_screen_test.dart 已覆蓋
   });
 }

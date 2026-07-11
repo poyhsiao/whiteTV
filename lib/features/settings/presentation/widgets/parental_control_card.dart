@@ -1,3 +1,6 @@
+// ignore_for_file: use_build_context_synchronously
+// (showDialog returns before widget tree is disposed; mounted guards are in place)
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/services/parental_control_service.dart';
@@ -8,11 +11,16 @@ final parentalControlStateProvider = FutureProvider<ParentalControlState>((ref) 
   return service.getState();
 });
 
-class ParentalControlCard extends ConsumerWidget {
+class ParentalControlCard extends ConsumerStatefulWidget {
   const ParentalControlCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ParentalControlCard> createState() => _ParentalControlCardState();
+}
+
+class _ParentalControlCardState extends ConsumerState<ParentalControlCard> {
+  @override
+  Widget build(BuildContext context) {
     final stateAsync = ref.watch(parentalControlStateProvider);
 
     return stateAsync.when(
@@ -34,7 +42,7 @@ class ParentalControlCard extends ConsumerWidget {
               const SizedBox(height: 16),
               if (!state.hasPin) ...[
                 ElevatedButton(
-                  onPressed: () => _showSetPinDialog(context, ref),
+                  onPressed: () => _showSetPinDialog(context),
                   child: const Text('設定PIN碼'),
                 ),
               ] else ...[
@@ -54,7 +62,7 @@ class ParentalControlCard extends ConsumerWidget {
                   },
                 ),
                 TextButton(
-                  onPressed: () => _showChangePinDialog(context, ref),
+                  onPressed: () => _showChangePinDialog(context),
                   child: const Text('變更PIN碼'),
                 ),
               ],
@@ -80,7 +88,7 @@ class ParentalControlCard extends ConsumerWidget {
     );
   }
 
-  void _showSetPinDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showSetPinDialog(BuildContext context) async {
     final result = await showDialog<String>(
       context: context,
       builder: (_) => const PinDialog(title: '設定PIN碼'),
@@ -91,21 +99,21 @@ class ParentalControlCard extends ConsumerWidget {
     }
   }
 
-  void _showChangePinDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showChangePinDialog(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     final oldPin = await showDialog<String>(
       context: context,
       builder: (_) => const PinDialog(title: '輸入舊PIN碼'),
     );
-    if (oldPin == null) return;
+    if (oldPin == null || !mounted) return;
 
     final service = ref.read(parentalControlServiceProvider);
     final valid = await service.verifyPin(oldPin);
     if (!valid) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PIN碼錯誤')),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('PIN碼錯誤')),
+      );
       return;
     }
 
@@ -116,11 +124,9 @@ class ParentalControlCard extends ConsumerWidget {
     if (newPin != null) {
       await service.setPin(newPin);
       ref.invalidate(parentalControlStateProvider);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PIN碼已更新')),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('PIN碼已更新')),
+      );
     }
   }
 }

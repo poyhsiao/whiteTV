@@ -129,9 +129,6 @@ class HandoffService implements IHandoffService {
   /// macOS override for testing (null means use platform detection)
   final bool? _isMacosOverride;
 
-  /// 當前活動的用戶信息緩存
-  Map<String, dynamic>? _currentActivityUserInfo;
-
   final DeviceType deviceType;
 
   /// Whether running on iOS (with optional override for testing)
@@ -159,7 +156,6 @@ class HandoffService implements IHandoffService {
     if (_isIos) {
       await _platformChannel.startHandoff(activityType, userInfo);
     }
-    _currentActivityUserInfo = userInfo;
   }
 
   @override
@@ -169,7 +165,6 @@ class HandoffService implements IHandoffService {
     if (_isIos) {
       await _platformChannel.updateHandoff(userInfo);
     }
-    _currentActivityUserInfo = userInfo;
   }
 
   @override
@@ -177,7 +172,6 @@ class HandoffService implements IHandoffService {
     if (_isIos) {
       await _platformChannel.endHandoff();
     }
-    _currentActivityUserInfo = null;
   }
 
   @override

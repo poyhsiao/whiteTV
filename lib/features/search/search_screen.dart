@@ -8,6 +8,7 @@ import 'package:white_tv/shared/widgets/empty_state.dart';
 import 'package:white_tv/features/search/widgets/search_results.dart';
 
 /// SearchScreen - 搜尋頁面
+/// TV 遙控器麥克風鍵整合在 VoiceInputButton 內（UI_UX.md §16）
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
 
@@ -46,8 +47,9 @@ class SearchScreen extends ConsumerWidget {
               ),
 
               // Category filter
+              // 40dp 符合 TV UI touch-target 最小高度（UI_UX.md §8）
               SizedBox(
-                height: 48,
+                height: 40,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -58,12 +60,9 @@ class SearchScreen extends ConsumerWidget {
                       child: ChoiceChip(
                         label: Text(_getCategoryLabel(category)),
                         selected: isSelected,
-                        onSelected: (selected) {
-                          if (selected) {
-                            ref
-                                .read(searchStoreProvider.notifier)
-                                .setCategory(category);
-                          }
+                        onSelected: (_) {
+                          ref.read(searchStoreProvider.notifier)
+                              .setCategory(category);
                         },
                       ),
                     );
@@ -71,21 +70,19 @@ class SearchScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Search results placeholder
+              const SizedBox(height: 16),
+
+              // Search results
               Expanded(
-                child: searchState.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : searchState.query.isEmpty
-                    ? const EmptyStateWidget(
-                        icon: Icons.search,
-                        title: '輸入關鍵字搜尋',
-                      )
-                    : searchState.results.isEmpty
+                child: searchState.results.isEmpty && !searchState.isLoading
                     ? const EmptyStateWidget(
                         icon: Icons.search_off,
-                        title: '無搜尋結果',
+                        title: '找不到符合的內容',
                       )
-                    : SearchResults(results: searchState.results, isLoading: searchState.isLoading),
+                    : SearchResults(
+                        results: searchState.results,
+                        isLoading: searchState.isLoading,
+                      ),
               ),
             ],
           ),
@@ -99,17 +96,11 @@ class SearchScreen extends ConsumerWidget {
   }
 
   String _getCategoryLabel(SearchCategory category) {
-    switch (category) {
-      case SearchCategory.all:
-        return '全部';
-      case SearchCategory.movie:
-        return '電影';
-      case SearchCategory.series:
-        return '劇集';
-      case SearchCategory.anime:
-        return '動漫';
-      case SearchCategory.variety:
-        return '綜藝';
-    }
+    if (category == SearchCategory.all) return '全部';
+    if (category == SearchCategory.movie) return '電影';
+    if (category == SearchCategory.series) return '劇集';
+    if (category == SearchCategory.anime) return '動漫';
+    if (category == SearchCategory.variety) return '綜藝';
+    return category.apiValue; // 防御未知類別
   }
 }
