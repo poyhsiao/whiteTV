@@ -62,17 +62,12 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm64 || flutter build apk --release
 
-      - name: Build Web
-        run: |
-          flutter build web --release
-
-      - name: Upload Android/Web artifact
+      - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-web-artifacts
+          name: android-artifacts
           path: |
             build/app/outputs/flutter-apk/*.apk
-            build/web/**
 
   ios:
     name: Build iOS
@@ -427,8 +422,7 @@ jobs:
           draft: false
           generate_release_notes: true
           files: |
-            artifacts/android-web-artifacts/**/*.apk
-            artifacts/android-web-artifacts/web/**
+            artifacts/android-artifacts/**/*.apk
             artifacts/ios-artifact/*.zip
             artifacts/macos-artifact/*.zip
             artifacts/windows-artifact/*.zip
