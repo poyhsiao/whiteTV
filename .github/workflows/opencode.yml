@@ -21,13 +21,13 @@ jobs:
       issues: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Run opencode
-        uses: docker://anomalyco/opencode-github-action:latest
-        with:
-          args: --model ${{ secrets.LLM_MODEL_NAME }}
+        uses: anomalyco/opencode/github@latest
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ${{ secrets.LLM_SERVICE_PROVIDER }}: ${{ secrets.LLM_API_KEY }}
+        with:
+          model: ${{ secrets.LLM_MODEL_NAME }}
