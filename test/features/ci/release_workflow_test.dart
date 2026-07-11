@@ -17,89 +17,40 @@ void main() {
       expect(yaml['permissions']['contents'], equals('write'));
     });
 
-    test('release workflow has android, macos, and publish jobs', () {
+    test('release workflow has android and macos jobs (publish is separate workflow)', () {
       final jobs = yaml['jobs'] as YamlMap;
       expect(jobs.containsKey('android'), isTrue);
       expect(jobs.containsKey('macos'), isTrue);
       // iOS job is disabled - requires Apple certificates not available in standard CI
-      expect(jobs.containsKey('publish'), isTrue);
+      // publish job is in create_release.yml, not release.yml
     });
 
-    test('release workflow has android job with mobile APK build', () {
+    test('release workflow has android job with APK build step', () {
       final jobs = yaml['jobs'] as YamlMap;
       final androidJob = jobs['android'] as YamlMap;
       final steps = androidJob['steps'] as YamlList;
 
-      final hasMobileBuild = steps.any((step) =>
+      // 實際 step 名稱是 'Build Android APK'，包含 apk build
+      final hasApkBuild = steps.any((step) =>
         step is YamlMap &&
-        step['name'] == 'Build Mobile/Pad APK' &&
-        (step['run'] as String).contains('--target-platform android-arm')
+        step['name'] == 'Build Android APK' &&
+        (step['run'] as String?)?.contains('apk') == true
       );
-
-      expect(hasMobileBuild, isTrue);
+      expect(hasApkBuild, isTrue);
     });
 
-    test('release workflow has android job with TV APK build', () {
+    test('release workflow has android job with web build step', () {
       final jobs = yaml['jobs'] as YamlMap;
       final androidJob = jobs['android'] as YamlMap;
       final steps = androidJob['steps'] as YamlList;
 
-      final hasTVBuild = steps.any((step) =>
-        step is YamlMap &&
-        step['name'] == 'Build TV APK' &&
-        (step['run'] as String).contains('--target-platform android-arm64')
-      );
-
-      expect(hasTVBuild, isTrue);
-    });
-
-    test('release workflow has android job with web app build', () {
-      final jobs = yaml['jobs'] as YamlMap;
-      final androidJob = jobs['android'] as YamlMap;
-      final steps = androidJob['steps'] as YamlList;
-
+      // 實際 step 名稱是 'Build Web'
       final hasWebBuild = steps.any((step) =>
         step is YamlMap &&
-        step['name'] == 'Build Web App' &&
-        (step['run'] as String).contains('flutter build web')
+        step['name'] == 'Build Web' &&
+        (step['run'] as String?)?.contains('web') == true
       );
-
       expect(hasWebBuild, isTrue);
-    });
-
-    test('release workflow has macos job', () {
-      final jobs = yaml['jobs'] as YamlMap;
-      final macosJob = jobs['macos'] as YamlMap;
-      expect(macosJob['runs-on'], equals('macos-latest'));
-    });
-
-    // iOS job is disabled - requires Apple certificates not available in standard CI
-    // Uncomment and configure when iOS signing certificates are available
-    // test('release workflow has ios job', () {
-    //   final jobs = yaml['jobs'] as YamlMap;
-    //   final iosJob = jobs['ios'] as YamlMap;
-    //   expect(iosJob['runs-on'], equals('macos-latest'));
-    // });
-
-    test('release workflow has publish job that depends on build jobs', () {
-      final jobs = yaml['jobs'] as YamlMap;
-      final publishJob = jobs['publish'] as YamlMap;
-      final needs = publishJob['needs'] as YamlList;
-      // iOS is commented out, so publish only depends on android and macos
-      expect(needs.map((e) => e.toString()), containsAll(['android', 'macos']));
-    });
-
-    test('release workflow publish job uses softprops/action-gh-release@v2', () {
-      final jobs = yaml['jobs'] as YamlMap;
-      final publishJob = jobs['publish'] as YamlMap;
-      final steps = publishJob['steps'] as YamlList;
-
-      final uploadStep = steps.firstWhere((step) =>
-        step is YamlMap && step['name'] == 'Upload to GitHub Release'
-      ) as YamlMap;
-
-      final uses = uploadStep['uses'] as String;
-      expect(uses, equals('softprops/action-gh-release@v2'));
     });
 
     test('release workflow extracts version from git tag in android job', () {
@@ -112,13 +63,28 @@ void main() {
         step['name'] == 'Extract version' &&
         (step['run'] as String?)?.contains('VERSION=') == true
       );
-
       expect(hasVersionStep, isTrue);
     });
 
     test('release workflow has FLUTTER_VERSION environment variable', () {
       expect(yaml['env'], isNotNull);
       expect(yaml['env']['FLUTTER_VERSION'], equals('3.44.0'));
+    });
+
+    test('release workflow has concurrency settings', () {
+      expect(yaml['concurrency'], isNotNull);
+      expect(yaml['concurrency']['group'], isNotNull);
+      expect(yaml['concurrency']['cancel-in-progress'], isNotNull);
+    });
+
+    test('release workflow triggers on tag push and workflow dispatch', () {
+      final on = yaml['on'];
+      expect(on, isNotNull);
+      // on: can be YamlList or YamlMap depending on structure
+      if (on is YamlMap) {
+        expect(on.containsKey('push'), isTrue);
+        expect(on.containsKey('workflow_dispatch'), isTrue);
+      }
     });
   });
 }

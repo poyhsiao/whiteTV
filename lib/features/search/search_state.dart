@@ -1,13 +1,35 @@
-import "package:white_tv/core/api/models.dart";
-enum SearchCategory {
-  all('all'),
-  movie('movie'),
-  series('series'),
-  anime('anime'),
-  variety('variety');
-
+import 'package:white_tv/core/api/models.dart';
+sealed class SearchCategory {
   const SearchCategory(this.apiValue);
   final String apiValue;
+
+  static const all = _All();
+  static const movie = _Movie();
+  static const series = _Series();
+  static const anime = _Anime();
+  static const variety = _Variety();
+
+  static const values = [all, movie, series, anime, variety];
+}
+
+final class _All extends SearchCategory {
+  const _All() : super('all');
+}
+
+final class _Movie extends SearchCategory {
+  const _Movie() : super('movie');
+}
+
+final class _Series extends SearchCategory {
+  const _Series() : super('series');
+}
+
+final class _Anime extends SearchCategory {
+  const _Anime() : super('anime');
+}
+
+final class _Variety extends SearchCategory {
+  const _Variety() : super('variety');
 }
 
 class SearchState {

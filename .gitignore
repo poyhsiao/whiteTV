@@ -105,6 +105,9 @@ ruvector.db-wal
 coverage/
 lcov.info
 
+# Codebase Memory (team-shared index - regenerated on first run)
+.codebase-memory/
+
 # Build artifacts
 *.apk
 *.aab

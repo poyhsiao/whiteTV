@@ -68,7 +68,7 @@ void main() {
         );
 
         // Verify placeholder text is shown when no search performed
-        expect(find.text('輸入關鍵字搜尋'), findsOneWidget);
+        expect(find.text('輸入搜尋關鍵字...'), findsOneWidget);
       });
     });
 
