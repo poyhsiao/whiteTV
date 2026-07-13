@@ -118,9 +118,9 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              _buildFilterChip('全部地區', Icons.public),
+              _buildRegionFilterRow(state),
               const SizedBox(width: 12),
-              _buildFilterChip('全部年份', Icons.date_range),
+              _buildYearFilterRow(state),
               const SizedBox(width: 12),
               _buildSortDropdown(state),
             ],
@@ -219,11 +219,59 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, IconData icon) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
-      onPressed: () {},
+  Widget _buildRegionFilterRow(CategoryContentState state) {
+    return PopupMenuButton<String>(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.public, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            state.region != null
+                ? CategoryConstants.regionLabel(state.region!)
+                : '全部地區',
+            style: const TextStyle(fontSize: 12),
+          ),
+          const Icon(Icons.arrow_drop_down, size: 16),
+        ],
+      ),
+      onSelected: (region) => ref
+          .read(categoryContentStoreProvider.notifier)
+          .setRegion(region == 'all' ? null : region),
+      itemBuilder: (context) => CategoryConstants.regions
+          .map((r) => PopupMenuItem(
+                value: r,
+                child: Text(CategoryConstants.regionLabel(r)),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildYearFilterRow(CategoryContentState state) {
+    return PopupMenuButton<String>(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.date_range, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            state.year != null
+                ? CategoryConstants.yearLabel(state.year!)
+                : '全部年份',
+            style: const TextStyle(fontSize: 12),
+          ),
+          const Icon(Icons.arrow_drop_down, size: 16),
+        ],
+      ),
+      onSelected: (year) => ref
+          .read(categoryContentStoreProvider.notifier)
+          .setYear(year == 'all' ? null : year),
+      itemBuilder: (context) => CategoryConstants.years
+          .map((y) => PopupMenuItem(
+                value: y,
+                child: Text(CategoryConstants.yearLabel(y)),
+              ))
+          .toList(),
     );
   }
 

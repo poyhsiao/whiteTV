@@ -1,8 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:white_tv/core/device/device_type.dart';
+import 'package:white_tv/core/device/device_utils.dart';
 import 'package:white_tv/features/category/category_screen.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
 import 'package:white_tv/features/history/history_screen.dart';
 import 'package:white_tv/features/home/home_screen.dart';
+import 'package:white_tv/features/home/home_screen.desktop.dart';
 import 'package:white_tv/features/live/presentation/screens/live_player_screen.dart';
 import 'package:white_tv/features/live/presentation/screens/live_screen.dart';
 import 'package:white_tv/features/login/presentation/screens/login_screen.dart';
@@ -15,14 +19,23 @@ import 'package:white_tv/features/youtube/presentation/screens/youtube_category_
 import 'package:white_tv/features/downloads/presentation/screens/downloads_screen.dart';
 import 'package:white_tv/features/youtube/presentation/screens/youtube_player_screen.dart';
 
+/// 設備感知首頁構建器
+/// 根據設備類型分發到對應的首頁實現
+Widget _buildHomeScreen(BuildContext context, GoRouterState state) {
+  final deviceType = DeviceUtils.getDeviceType(context);
+  if (deviceType == DeviceType.desktop) {
+    return const HomeScreenDesktop();
+  }
+  return const HomeScreen();
+}
+
 /// GoRouter configuration
 /// Routes: / (home), /detail/:id, /player/:id/:episodeId
-
 final _routeList = <GoRoute>[
   GoRoute(
     path: '/',
     name: 'home',
-    builder: (context, state) => const HomeScreen(),
+    builder: (context, state) => _buildHomeScreen(context, state),
   ),
   GoRoute(
     path: '/detail/:id',
@@ -105,7 +118,6 @@ final _routeList = <GoRoute>[
       return CategoryScreen(categoryId: id);
     },
   ),
-  // YouTube Player Screen (Task14 completed)
   GoRoute(
     path: '/youtube/:id',
     name: 'youtube-player',

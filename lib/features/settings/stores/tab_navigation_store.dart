@@ -22,12 +22,10 @@ class TabNavigationState {
 class TabNavigationStore extends StateNotifier<TabNavigationState> {
   TabNavigationStore()
       : super(
-          const TabNavigationState(tabs: []),
-        ) {
-    state = TabNavigationState(
-      tabs: List<TabConfig>.from(defaultTabs),
-    );
-  }
+          TabNavigationState(
+            tabs: List<TabConfig>.from(defaultTabs),
+          ),
+        );
 
   /// Returns true if the tab with the given [id] is currently visible.
   bool isVisible(String id) {
@@ -73,7 +71,6 @@ class TabNavigationStore extends StateNotifier<TabNavigationState> {
 
   /// Resets all tabs to the [defaultTabs] configuration.
   void restoreDefaults() {
-    state = const TabNavigationState(tabs: []);
     state = TabNavigationState(
       tabs: List<TabConfig>.from(defaultTabs),
     );

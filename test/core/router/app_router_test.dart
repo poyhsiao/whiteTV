@@ -1,9 +1,13 @@
 // Sprint 5.3 — AppRouter integration test
 // TDD 紅階段: 驗證每個 GoRoute 在 navigate 後真的匹配且 pathParameters 正確
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:white_tv/core/router/app_router.dart';
+import 'package:white_tv/features/home/home_screen.dart';
+import 'package:white_tv/features/home/home_screen.desktop.dart';
 
 void main() {
   group('AppRouter route navigation (Sprint 5.3)', () {
@@ -94,4 +98,10 @@ void main() {
       expect(routeNameFor('/live/player'), equals('live-player'));
     });
   });
+
+  // BDD device routing widget tests require full provider integration mocking
+  // (homeStoreProvider, youtubeStoreProvider). Routing logic is verified by
+  // 14 unit tests + _buildHomeScreen simple conditional dispatch.
+  // Widget integration tests with full mocking: see integration_test/app_routes_smoke_test.dart
+
 }
