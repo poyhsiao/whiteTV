@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.12.2** - Test fixes for provider overrides
+**v0.12.3** - Live TV BDD steps test fixes
 
 ## Features
 
