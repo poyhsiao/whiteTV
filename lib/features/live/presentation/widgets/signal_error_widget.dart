@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class SignalErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
+  final String retryLabel;
 
   const SignalErrorWidget({
     super.key,
     required this.message,
     this.onRetry,
+    this.retryLabel = '重新整理',
   });
 
   @override
@@ -33,7 +35,7 @@ class SignalErrorWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Please check your connection',
+              '訊號異常，請稍後重試',
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
@@ -44,7 +46,7 @@ class SignalErrorWidget extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(retryLabel),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,

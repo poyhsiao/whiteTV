@@ -11,7 +11,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowUp,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles arrow down key', () {
@@ -20,7 +20,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowDown,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles arrow left key', () {
@@ -29,7 +29,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowLeft,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles arrow right key', () {
@@ -38,7 +38,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowRight,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles select key', () {
@@ -47,7 +47,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.select,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
     });
 
@@ -58,7 +58,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.mediaPlayPause,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles fast forward key', () {
@@ -67,7 +67,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.mediaFastForward,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles rewind key', () {
@@ -76,7 +76,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.mediaRewind,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles volume up key', () {
@@ -85,7 +85,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.audioVolumeUp,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles volume down key', () {
@@ -94,7 +94,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.audioVolumeDown,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles mute key', () {
@@ -103,7 +103,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.audioVolumeMute,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
     });
 
@@ -114,7 +114,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.browserBack,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
 
       test('handles home key', () {
@@ -123,7 +123,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.home,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isTrue);
+        expect(TVRemoteHandler().handleKey(event), isTrue);
       });
     });
 
@@ -134,7 +134,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowUp,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isFalse);
+        expect(TVRemoteHandler().handleKey(event), isFalse);
       });
 
       test('ignores KeyRepeatEvent', () {
@@ -143,7 +143,7 @@ void main() {
           logicalKey: LogicalKeyboardKey.arrowUp,
           timeStamp: Duration.zero,
         );
-        expect(TVRemoteHandler.handleKey(event), isFalse);
+        expect(TVRemoteHandler().handleKey(event), isFalse);
       });
     });
   });

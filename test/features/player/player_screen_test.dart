@@ -24,6 +24,9 @@ class FakeVideoPlayerController implements VideoPlayerController {
   void setRate(double rate) {}
 
   @override
+  Stream<bool> get onCompleted => const Stream.empty(); // no auto-complete in tests
+
+  @override
   void dispose() {}
 }
 

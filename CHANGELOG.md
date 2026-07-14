@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **LunaClient API contract tests** (2026-07-08)
   - `test/core/api/luna_client_test.dart` — 7 個測試驗證 `getCategories`、`getVideosByCategory`、`getVideoDetail`、`getSources`、`search`、`testSourceLatency` API 合約
 
+## v0.12.2 (2026-07-14)
+
+### Fixed
+- Test fixes: `tab_order_home_bdd_test.dart`, `widget_test.dart`, E2E flow tests — 加入缺失的 provider overrides 和 imports，測試全部通過 (1371 tests)
+
 ### Changed
 - **TV 全域 Back 鍵確認** (Sprint 1.1 / ROADMAP §2.2)
   - `BackConfirmation` widget (lib/shared/widgets/back_confirmation.dart)

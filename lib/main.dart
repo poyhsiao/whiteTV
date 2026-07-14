@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'features/settings/services/settings_storage_service.dart';
+import 'features/settings/settings_store.dart';
 import 'providers/downloads_providers.dart';
 
 void main() async {
@@ -26,6 +28,9 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         dioProvider.overrideWithValue(dio),
+        settingsStorageServiceProvider.overrideWithValue(
+          SettingsStorageService(prefs),
+        ),
       ],
       child: WhiteTVApp(
         router: createAppRouter(
@@ -36,16 +41,21 @@ void main() async {
   );
 }
 
-class WhiteTVApp extends StatelessWidget {
+class WhiteTVApp extends ConsumerWidget {
   final GoRouter router;
 
   const WhiteTVApp({super.key, required this.router});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsStoreProvider);
+    final theme = settings.themeModeEnum == ThemeMode.light
+        ? AppTheme.lightTheme
+        : AppTheme.darkTheme;
     return MaterialApp.router(
       title: 'whiteTV',
-      theme: AppTheme.darkTheme,
+      theme: theme,
+      themeMode: settings.themeModeEnum, // UI_UX.md §13.1
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

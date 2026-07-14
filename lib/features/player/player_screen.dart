@@ -13,6 +13,7 @@ import 'package:white_tv/features/player/widgets/fullscreen_toggle.dart';
 import 'package:white_tv/features/player/widgets/settings_panel.dart';
 import 'package:white_tv/features/player/widgets/source_switcher.dart';
 import 'package:white_tv/features/player/widgets/volume_control.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
 
 /// Abstract interface for video playback control
 abstract class VideoPlayerController {
@@ -21,6 +22,7 @@ abstract class VideoPlayerController {
   void pause();
   void play();
   void setRate(double rate);
+  Stream<bool> get onCompleted; // true when current media finishes
   void dispose();
 }
 
@@ -33,6 +35,9 @@ class MediaKitPlayerController implements VideoPlayerController {
   bool get initialized => true;
 
   mkv.VideoController get videoController => _videoController;
+
+  @override
+  Stream<bool> get onCompleted => _player.stream.completed;
 
   MediaKitPlayerController() {
     _player = Player();
@@ -85,6 +90,7 @@ class PlayerScreen extends ConsumerStatefulWidget {
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Timer? _controlsHideTimer;
   bool _controlsLocked = false;
+  StreamSubscription<bool>? _completedSubscription;
 
   void _resetControlsTimer() {
     _controlsHideTimer?.cancel();
@@ -115,6 +121,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (state.source != null) {
       await controller.open(state.source!.url);
     }
+
+    // ponytail: listen for episode completion → auto-play next if enabled
+    _completedSubscription = controller.onCompleted.listen((completed) {
+      if (completed) {
+        final settings = ref.read(settingsStoreProvider);
+        ref.read(player.playerStoreProvider.notifier).handleEpisodeComplete(
+          autoPlay: settings.autoPlay,
+        );
+      }
+    });
   }
 
   @override
@@ -126,6 +142,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   @override
   void dispose() {
     _controlsHideTimer?.cancel();
+    _completedSubscription?.cancel();
     super.dispose();
   }
 

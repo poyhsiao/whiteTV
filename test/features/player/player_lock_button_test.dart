@@ -19,6 +19,8 @@ class _FakeVideoPlayerController implements VideoPlayerController {
   @override
   void setRate(double rate) {}
   @override
+  Stream<bool> get onCompleted => const Stream.empty();
+  @override
   void dispose() {}
 }
 

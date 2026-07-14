@@ -254,6 +254,24 @@ void main() {
       expect(store.state.timeshiftBufferDuration, 60);
       expect(storage._timeshiftBufferDuration, 60);
     });
+
+    group('Tab Order — UI_UX.md §13.1', () {
+      test('default tabOrder is empty', () {
+        expect(store.state.tabOrder, isEmpty);
+      });
+
+      test('updateTabOrder persists to storage', () async {
+        const newOrder = ['live', 'search', 'home', 'favorites', 'categories', 'settings'];
+        await store.updateTabOrder(newOrder);
+        expect(storage._tabOrder, newOrder);
+      });
+
+      test('updateTabOrder updates state', () async {
+        const newOrder = ['search', 'live'];
+        await store.updateTabOrder(newOrder);
+        expect(store.state.tabOrder, newOrder);
+      });
+    });
   });
 
   group('settingsStoreProvider', () {

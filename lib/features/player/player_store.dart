@@ -210,6 +210,22 @@ class PlayerStore extends StateNotifier<PlayerState> {
     state = state.copyWith(currentPosition: position);
   }
 
+  void seekForward(Duration duration) {
+    final newPos = state.currentPosition + duration;
+    // ponytail: cannot exceed duration — clamp
+    state = state.copyWith(
+      currentPosition: newPos > state.duration ? state.duration : newPos,
+    );
+  }
+
+  void seekBackward(Duration duration) {
+    final newPos = state.currentPosition - duration;
+    // ponytail: cannot go below zero
+    state = state.copyWith(
+      currentPosition: newPos < Duration.zero ? Duration.zero : newPos,
+    );
+  }
+
   void setPlaybackSpeed(double speed) {
     state = state.copyWith(playbackSpeed: speed);
   }
@@ -358,6 +374,15 @@ class PlayerStore extends StateNotifier<PlayerState> {
     if (state.currentEpisode > 1) {
       state = state.copyWith(currentEpisode: state.currentEpisode - 1);
     }
+  }
+
+  /// Called when the current episode finishes playing.
+  /// If autoPlay is enabled and there's a next episode, auto-advances and resumes playback.
+  void handleEpisodeComplete({required bool autoPlay}) {
+    if (!autoPlay) return;
+    if (state.currentEpisode >= state.totalEpisodes) return; // last episode
+    nextEpisode();
+    play(); // auto-resume next episode
   }
 
   /// Save current progress - persists position to HistoryService

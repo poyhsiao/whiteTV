@@ -46,7 +46,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('重新整理'), findsOneWidget);
     });
 
     testWidgets('calls onRetry when retry button is tapped', (tester) async {
@@ -63,7 +63,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Retry'));
+      await tester.tap(find.text('重新整理'));
       expect(retryCalled, isTrue);
     });
 
@@ -79,7 +79,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Retry'), findsNothing);
+      expect(find.text('重新整理'), findsNothing);
     });
 
     testWidgets('has semi-transparent overlay background', (tester) async {
