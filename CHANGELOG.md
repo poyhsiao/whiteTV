@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v0.12.3 (2026-07-15)
+
+### Fixed
+- **Live TV BDD steps test fixes** — `FakeSettingsStore` 使用 `super.state` 直接設定狀態，移除不可靠的 500ms delay hack，簡化 mock storage service 樣板代码
+
 ### Added
 - **LunaClient API contract tests** (2026-07-08)
   - `test/core/api/luna_client_test.dart` — 7 個測試驗證 `getCategories`、`getVideosByCategory`、`getVideoDetail`、`getSources`、`search`、`testSourceLatency` API 合約

@@ -3,6 +3,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/live/presentation/providers/live_store.dart';
 import 'package:white_tv/features/live/domain/models/live_state.dart';
 import 'package:white_tv/features/live/data/models/m3u_channel.dart';
+import 'package:white_tv/features/settings/services/settings_storage_service.dart';
+import 'package:white_tv/features/settings/settings_store.dart';
+
+// ponytail: FakeSettingsStore sets state synchronously, bypassing _loadSettings.
+// Storage service methods are never called, so we use a minimal const stub.
+class FakeSettingsStore extends SettingsStore {
+  FakeSettingsStore() : super(const _FakeStorageService()) {
+    super.state = const SettingsState(
+      timeshiftBufferDuration: 30,
+      homeBlocks: {
+        'showRecentWatch': true,
+        'showLive': true,
+        'showCategories': true,
+        'showAIRecommend': true,
+        'showHotMovies': true,
+      },
+    );
+  }
+}
+
+// Methods are never invoked — state is set synchronously in FakeSettingsStore.
+// Kept minimal to satisfy interface without 80 lines of boilerplate.
+class _FakeStorageService implements SettingsStorageService {
+  const _FakeStorageService();
+  @override Future<String?> getLunaTVUrl() async => null;
+  @override Future<void> saveLunaTVUrl(String url) async {}
+  @override Future<String> getThemeMode() async => 'dark';
+  @override Future<void> saveThemeMode(String mode) async {}
+  @override Future<bool> getAutoPlay() async => true;
+  @override Future<void> saveAutoPlay(bool enabled) async {}
+  @override Future<String> getDefaultQuality() async => 'auto';
+  @override Future<void> saveDefaultQuality(String quality) async {}
+  @override Future<bool> getAutoSelectSource() async => true;
+  @override Future<void> saveAutoSelectSource(bool enabled) async {}
+  @override Future<List<String>> getBlockedSources() async => [];
+  @override Future<void> saveBlockedSources(List<String> sources) async {}
+  @override Future<Map<String, bool>> getHomeBlocks() async =>
+      {'showRecentWatch': true, 'showLive': true, 'showCategories': true,
+       'showAIRecommend': true, 'showHotMovies': true};
+  @override Future<void> saveHomeBlocks(Map<String, bool> blocks) async {}
+  @override Future<List<String>> getTabOrder() async => [];
+  @override Future<void> saveTabOrder(List<String> order) async {}
+  @override Future<int> getTimeshiftBufferDuration() async => 30;
+  @override Future<void> saveTimeshiftBufferDuration(int minutes) async {}
+  @override Future<String?> getUsername() async => null;
+  @override Future<void> saveUsername(String? username) async {}
+  @override Future<String?> getAuthCookie() async => null;
+  @override Future<void> saveAuthCookie(String cookie) async {}
+  @override Future<void> clearAuthCookie() async {}
+  @override Future<bool> getOnboardingComplete() async => false;
+  @override Future<void> saveOnboardingComplete(bool complete) async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -10,8 +62,15 @@ void main() {
   group('Live TV BDD', () {
     late ProviderContainer container;
 
-    setUp(() {
-      container = ProviderContainer();
+    setUp(() async {
+      final fakeStore = FakeSettingsStore();
+      container = ProviderContainer(
+        overrides: [
+          settingsStoreProvider.overrideWith((ref) => fakeStore),
+        ],
+      );
+      // Wait for async _loadSettings to finish — use addTearDown-resilient approach
+      await Future.delayed(const Duration(milliseconds: 0));
     });
 
     tearDown(() {
