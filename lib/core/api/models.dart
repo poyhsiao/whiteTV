@@ -15,8 +15,8 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'] as String,
-      name: json['name'] as String,
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
       posterUrl: json['poster_url'] as String?,
     );
   }
@@ -49,12 +49,12 @@ class Video {
 
   factory Video.fromJson(Map<String, dynamic> json) {
     return Video(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
       posterUrl: json['poster_url'] as String?,
       description: json['description'] as String?,
-      categoryId: json['category_id'] as String,
-      type: json['type'] as String,
+      categoryId: json['category_id'] as String? ?? '',
+      type: json['type'] as String? ?? '',
       year: json['year'] as String?,
     );
   }
@@ -171,6 +171,7 @@ class YoutubeVideo {
   final int? viewCount;
   final String? publishedAt;
   final String? url; // stream URL for player_store
+  final String? categoryId; // for category-based filtering
 
   const YoutubeVideo({
     required this.id,
@@ -182,6 +183,7 @@ class YoutubeVideo {
     this.viewCount,
     this.publishedAt,
     this.url,
+    this.categoryId,
   });
 
   factory YoutubeVideo.fromJson(Map<String, dynamic> json) {
@@ -195,6 +197,7 @@ class YoutubeVideo {
       viewCount: json['view_count'] as int?,
       publishedAt: json['published_at'] as String?,
       url: json['url'] as String?,
+      categoryId: json['category_id'] as String?,
     );
   }
 
@@ -208,6 +211,7 @@ class YoutubeVideo {
     int? viewCount,
     String? publishedAt,
     String? url,
+    String? categoryId,
   }) {
     return YoutubeVideo(
       id: id ?? this.id,
@@ -219,6 +223,7 @@ class YoutubeVideo {
       viewCount: viewCount ?? this.viewCount,
       publishedAt: publishedAt ?? this.publishedAt,
       url: url ?? this.url,
+      categoryId: categoryId ?? this.categoryId,
     );
   }
 }

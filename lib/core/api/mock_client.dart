@@ -11,12 +11,25 @@ import '../../features/recommend/data/models/ai_recommendation.dart';
 class MockClient implements ApiClient {
   static const _delay = Duration(milliseconds: 300);
 
-  // Error simulation flags
+  // Error simulation flags — exposed for test convenience via [configureForError]
   bool shouldThrowGetCategories = false;
   bool shouldThrowGetVideos = false;
-  String videoToThrowOn;
+  String videoToThrowOn = '';
 
   MockClient({this.videoToThrowOn = ''});
+
+  /// Configures error simulation flags for testing.
+  /// Mutates and returns `this` for chaining.
+  MockClient configureForError({
+    bool throwOnGetCategories = false,
+    bool throwOnGetVideos = false,
+    String? videoToThrowOn,
+  }) {
+    shouldThrowGetCategories = throwOnGetCategories;
+    shouldThrowGetVideos = throwOnGetVideos;
+    if (videoToThrowOn != null) this.videoToThrowOn = videoToThrowOn;
+    return this;
+  }
 
   final List<Category> _categories = const [
     Category(id: 'movie', name: '電影'),
@@ -247,22 +260,20 @@ class MockClient implements ApiClient {
     return true;
   }
 
-  // IPTV Mock Data
+  // IPTV Mock Data — 10+ channels covering multiple groups
   final List<IptvChannel> _mockChannels = const [
-    IptvChannel(
-      id: 'ch1',
-      name: 'Channel 1',
-      logo: 'https://example.com/ch1.png',
-      url: 'https://example.com/ch1.m3u8',
-      group: 'Sports',
-    ),
-    IptvChannel(
-      id: 'ch2',
-      name: 'Channel 2',
-      logo: 'https://example.com/ch2.png',
-      url: 'https://example.com/ch2.m3u8',
-      group: 'News',
-    ),
+    IptvChannel(id: 'cctv1', name: 'CCTV-1 綜合', logo: 'https://example.com/cctv1.png', url: 'https://example.com/cctv1.m3u8', group: 'CCTV'),
+    IptvChannel(id: 'cctv2', name: 'CCTV-2 財經', logo: 'https://example.com/cctv2.png', url: 'https://example.com/cctv2.m3u8', group: 'CCTV'),
+    IptvChannel(id: 'cctv5', name: 'CCTV-5 體育', logo: 'https://example.com/cctv5.png', url: 'https://example.com/cctv5.m3u8', group: 'CCTV'),
+    IptvChannel(id: 'cctv6', name: 'CCTV-6 電影', logo: 'https://example.com/cctv6.png', url: 'https://example.com/cctv6.m3u8', group: 'CCTV'),
+    IptvChannel(id: 'hunan', name: '湖南衛視', logo: 'https://example.com/hunan.png', url: 'https://example.com/hunan.m3u8', group: '綜藝'),
+    IptvChannel(id: 'zhejiang', name: '浙江衛視', logo: 'https://example.com/zhejiang.png', url: 'https://example.com/zhejiang.m3u8', group: '綜藝'),
+    IptvChannel(id: 'dragon', name: '鳳凰衛視', logo: 'https://example.com/dragon.png', url: 'https://example.com/dragon.m3u8', group: '新聞'),
+    IptvChannel(id: 'bbc', name: 'BBC World', logo: 'https://example.com/bbc.png', url: 'https://example.com/bbc.m3u8', group: '國際'),
+    IptvChannel(id: 'espn', name: 'ESPN Sports', logo: 'https://example.com/espn.png', url: 'https://example.com/espn.m3u8', group: 'Sports'),
+    IptvChannel(id: 'disney', name: 'Disney Channel', logo: 'https://example.com/disney.png', url: 'https://example.com/disney.m3u8', group: '兒童'),
+    IptvChannel(id: 'nhk', name: 'NHK World', logo: 'https://example.com/nhk.png', url: 'https://example.com/nhk.m3u8', group: '國際'),
+    IptvChannel(id: 'tvbs', name: 'TVBS 新聞', logo: 'https://example.com/tvbs.png', url: 'https://example.com/tvbs.m3u8', group: '新聞'),
   ];
 
   @override
@@ -274,13 +285,13 @@ class MockClient implements ApiClient {
   @override
   Future<String?> getIptvM3U() async {
     await Future.delayed(_delay);
-    return '''
-#EXTM3U
-#EXTINF:-1 tvg-name="Channel 1" tvg-logo="https://example.com/ch1.png" group-title="Sports",Channel 1
-https://example.com/ch1.m3u8
-#EXTINF:-1 tvg-name="Channel 2" tvg-logo="https://example.com/ch2.png" group-title="News",Channel 2
-https://example.com/ch2.m3u8
-''';
+    final buffer = StringBuffer('#EXTM3U\n');
+    for (final channel in _mockChannels) {
+      buffer.writeln(
+          '#EXTINF:-1 tvg-name="${channel.name}" tvg-logo="${channel.logo}" group-title="${channel.group}",${channel.name}');
+      buffer.writeln(channel.url);
+    }
+    return buffer.toString();
   }
 
   @override
@@ -295,6 +306,15 @@ https://example.com/ch2.m3u8
     return [];
   }
 
+  // Local recommendations base pool
+  static final List<AIRecommendation> _localRecPool = [
+    AIRecommendation(id: 'mock-1', title: '星際穿越', posterUrl: 'https://picsum.photos/seed/mock1/300/450', source: 'mtzy.me', sourceName: '🎬茅台资源', reason: '根據您的觀看偏好推薦', sourceType: RecommendationSource.history, year: '2014', type: 'movie', categoryId: 'sci-fi'),
+    AIRecommendation(id: 'mock-2', title: '盜夢空間', posterUrl: 'https://picsum.photos/seed/mock2/300/450', source: 'mtzy.me', sourceName: '🎬茅台资源', reason: '同類型推薦', sourceType: RecommendationSource.history, year: '2010', type: 'movie', categoryId: 'sci-fi'),
+    AIRecommendation(id: 'mock-3', title: '魷魚遊戲', posterUrl: 'https://picsum.photos/seed/mock3/300/450', source: 'mtzy.me', sourceName: '🎬茅台资源', reason: '熱門劇集推薦', sourceType: RecommendationSource.popular, year: '2021', type: 'drama', categoryId: 'thriller'),
+    AIRecommendation(id: 'mock-4', title: '鬼滅之刃', posterUrl: 'https://picsum.photos/seed/mock4/300/450', source: 'mtzy.me', sourceName: '🎬茅台资源', reason: '動漫愛好者都在看', sourceType: RecommendationSource.history, year: '2019', type: 'anime', categoryId: 'action'),
+    AIRecommendation(id: 'mock-5', title: '月薪嬌妻', posterUrl: 'https://picsum.photos/seed/mock5/300/450', source: 'mtzy.me', sourceName: '🎬茅台资源', reason: '浪漫喜劇推薦', sourceType: RecommendationSource.search, year: '2016', type: 'drama', categoryId: 'romance'),
+  ];
+
   @override
   Future<List<AIRecommendation>> getLocalRecommendations({
     List<String>? watchHistory,
@@ -302,61 +322,37 @@ https://example.com/ch2.m3u8
     int limit = 20,
   }) async {
     await Future.delayed(_delay);
-    return [
-      AIRecommendation(
-        id: 'mock-1',
-        title: '星際穿越 (本地推薦)',
-        posterUrl: 'https://picsum.photos/seed/mock1/300/450',
-        source: 'mtzy.me',
-        sourceName: '🎬茅台资源',
-        reason: '根據您的觀看偏好推薦',
-        sourceType: RecommendationSource.history,
-        year: '2014',
-        type: 'movie',
-      ),
-      AIRecommendation(
-        id: 'mock-2',
-        title: '盜夢空間 (本地推薦)',
-        posterUrl: 'https://picsum.photos/seed/mock2/300/450',
-        source: 'mtzy.me',
-        sourceName: '🎬茅台资源',
-        reason: '同類型推薦',
-        sourceType: RecommendationSource.history,
-        year: '2010',
-        type: 'movie',
-      ),
-    ];
+    // Simple keyword-based filtering from history/search
+    final keywords = <String>[];
+    if (watchHistory != null) keywords.addAll(watchHistory.take(5));
+    if (searchHistory != null) keywords.addAll(searchHistory.take(5));
+
+    if (keywords.isEmpty) return _localRecPool.take(limit).toList();
+
+    final kw = keywords.map((e) => e.toLowerCase()).toSet();
+    final filtered = _localRecPool.where((r) {
+      final text = '${r.title} ${r.reason} ${r.type}'.toLowerCase();
+      return kw.any((k) => text.contains(k));
+    }).toList();
+
+    // Fall back to pool if filter yields too few
+    return (filtered.isEmpty ? _localRecPool : filtered).take(limit).toList();
   }
 
-  // YouTube Mock Data
+  // YouTube Mock Data — 10+ videos across categories
   final List<YoutubeVideo> _mockYoutubeVideos = const [
-    YoutubeVideo(
-      id: 'yt-1',
-      title: '熱門影片 1',
-      thumbnailUrl: 'https://picsum.photos/seed/yt1/320/180',
-      channelTitle: '頻道 A',
-      duration: '10:30',
-      viewCount: 100000,
-      publishedAt: '2024-01-15',
-    ),
-    YoutubeVideo(
-      id: 'yt-2',
-      title: '熱門影片 2',
-      thumbnailUrl: 'https://picsum.photos/seed/yt2/320/180',
-      channelTitle: '頻道 B',
-      duration: '15:45',
-      viewCount: 50000,
-      publishedAt: '2024-01-14',
-    ),
-    YoutubeVideo(
-      id: 'yt-3',
-      title: '熱門影片 3',
-      thumbnailUrl: 'https://picsum.photos/seed/yt3/320/180',
-      channelTitle: '頻道 C',
-      duration: '8:20',
-      viewCount: 75000,
-      publishedAt: '2024-01-13',
-    ),
+    YoutubeVideo(id: 'yt-1', title: '2024年度最佳音樂精選', thumbnailUrl: 'https://picsum.photos/seed/yt1/320/180', channelTitle: 'Music Hub', duration: '45:30', viewCount: 520000, publishedAt: '2024-12-01', categoryId: 'music'),
+    YoutubeVideo(id: 'yt-2', title: '最新流行音樂 MV', thumbnailUrl: 'https://picsum.photos/seed/yt2/320/180', channelTitle: 'MTV Official', duration: '3:45', viewCount: 890000, publishedAt: '2024-12-05', categoryId: 'music'),
+    YoutubeVideo(id: 'yt-3', title: '魔獸世界資料片評測', thumbnailUrl: 'https://picsum.photos/seed/yt3/320/180', channelTitle: 'Gaming Today', duration: '22:10', viewCount: 340000, publishedAt: '2024-11-28', categoryId: 'gaming'),
+    YoutubeVideo(id: 'yt-4', title: 'PS6 發表會完整版', thumbnailUrl: 'https://picsum.photos/seed/yt4/320/180', channelTitle: 'GameSpot', duration: '58:20', viewCount: 1200000, publishedAt: '2024-11-20', categoryId: 'gaming'),
+    YoutubeVideo(id: 'yt-5', title: '棟篤特工專訪', thumbnailUrl: 'https://picsum.photos/seed/yt5/320/180', channelTitle: 'HK Entertainment', duration: '35:15', viewCount: 210000, publishedAt: '2024-12-03', categoryId: 'entertainment'),
+    YoutubeVideo(id: 'yt-6', title: '搞笑合集 2024', thumbnailUrl: 'https://picsum.photos/seed/yt6/320/180', channelTitle: 'Funny Videos', duration: '12:45', viewCount: 670000, publishedAt: '2024-12-06', categoryId: 'entertainment'),
+    YoutubeVideo(id: 'yt-7', title: 'AI 發展趨勢 2025', thumbnailUrl: 'https://picsum.photos/seed/yt7/320/180', channelTitle: 'Tech Daily', duration: '18:30', viewCount: 450000, publishedAt: '2024-11-30', categoryId: 'tech'),
+    YoutubeVideo(id: 'yt-8', title: 'iPhone 17 評測', thumbnailUrl: 'https://picsum.photos/seed/yt8/320/180', channelTitle: 'MKBHD', duration: '14:20', viewCount: 980000, publishedAt: '2024-12-04', categoryId: 'tech'),
+    YoutubeVideo(id: 'yt-9', title: 'Swift 6 新功能教學', thumbnailUrl: 'https://picsum.photos/seed/yt9/320/180', channelTitle: 'Swift Dev', duration: '28:45', viewCount: 180000, publishedAt: '2024-11-25', categoryId: 'tech'),
+    YoutubeVideo(id: 'yt-10', title: 'Flutter 4.0 發表', thumbnailUrl: 'https://picsum.photos/seed/yt10/320/180', channelTitle: 'Flutter Team', duration: '42:00', viewCount: 750000, publishedAt: '2024-12-01', categoryId: 'tech'),
+    YoutubeVideo(id: 'yt-11', title: '獨立樂團現場演奏', thumbnailUrl: 'https://picsum.photos/seed/yt11/320/180', channelTitle: 'Indie Music', duration: '55:10', viewCount: 120000, publishedAt: '2024-11-15', categoryId: 'music'),
+    YoutubeVideo(id: 'yt-12', title: 'RPG 遊戲推薦 2024', thumbnailUrl: 'https://picsum.photos/seed/yt12/320/180', channelTitle: 'RPG World', duration: '33:20', viewCount: 290000, publishedAt: '2024-11-22', categoryId: 'gaming'),
   ];
 
   final List<YoutubeCategory> _mockYoutubeCategories = const [
@@ -375,9 +371,9 @@ https://example.com/ch2.m3u8
   @override
   Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page}) async {
     await Future.delayed(_delay);
-    return _mockYoutubeVideos
-        .where((v) => v.id.hashCode % 2 == categoryId.hashCode % 2)
-        .toList();
+    // Real category-based filtering — each video has a categoryId field
+    if (categoryId.isEmpty) return _mockYoutubeVideos;
+    return _mockYoutubeVideos.where((v) => v.categoryId == categoryId).toList();
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class InputSession {
   final String id;
   final DateTime createdAt;
@@ -29,11 +31,11 @@ class SessionManager {
     return session;
   }
 
+  // ponytail: cryptographically secure — Random.secure() uses system entropy
   String _generateId() {
-    // ponytail: use microsecond timestamp + random component for sufficient entropy
-    final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final random = (timestamp * 31 + timestamp.hashCode * 17) % 0xFFFFFFFF;
-    return '${timestamp.toRadixString(36)}${random.toRadixString(36)}';
+    final random = Random.secure();
+    final values = List<int>.generate(16, (_) => random.nextInt(256));
+    return values.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
   List<InputSession> get sessions => List.unmodifiable(_sessions);

@@ -14,9 +14,20 @@ class LunaClient implements ApiClient {
   final Dio _dio;
   final String _baseUrl;
 
-  LunaClient({Dio? dio})
+  static String _resolveBaseUrl() {
+    try {
+      final configuredUrl = dotenv.env['LUNATV_API_URL']?.trim();
+      return configuredUrl == null || configuredUrl.isEmpty
+          ? 'https://moon2.kimhsiao.com'
+          : configuredUrl;
+    } catch (_) {
+      return 'https://moon2.kimhsiao.com';
+    }
+  }
+
+  LunaClient({Dio? dio, String? baseUrl})
     : _dio = dio ?? Dio(),
-      _baseUrl = dotenv.env['LUNATV_API_URL'] ?? 'https://moon2.kimhsiao.com' {
+      _baseUrl = baseUrl ?? _resolveBaseUrl() {
     _dio.options.baseUrl = _baseUrl;
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 10);
@@ -37,12 +48,11 @@ class LunaClient implements ApiClient {
       }
       return null;
     } on DioException catch (e) {
-      // Distinguish auth failure from network errors for better UX
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        return null; // invalid credentials
+      if (e.type == DioExceptionType.badResponse &&
+          (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
+        return null;
       }
-      // Network-related failures: timeout, connection refused, no internet
-      return null;
+      rethrow;
     }
   }
 
@@ -52,7 +62,7 @@ class LunaClient implements ApiClient {
       final response = await _dio.get('/api/categories');
       final List<dynamic> data = response.data['categories'] ?? [];
       return data.map((json) => Category.fromJson(json)).toList();
-    } on DioException catch (e) {
+    } on DioException catch (_) {
       // Return empty on network errors; caller handles gracefully
       return [];
     }
@@ -60,12 +70,16 @@ class LunaClient implements ApiClient {
 
   @override
   Future<List<Video>> getVideosByCategory(String categoryId) async {
-    final response = await _dio.get(
-      '/api/list',
-      queryParameters: {'type': categoryId},
-    );
-    final List<dynamic> data = response.data['list'] ?? [];
-    return data.map((json) => Video.fromJson(json)).toList();
+    try {
+      final response = await _dio.get(
+        '/api/list',
+        queryParameters: {'type': categoryId},
+      );
+      final List<dynamic> data = response.data['list'] ?? [];
+      return data.map((json) => Video.fromJson(json)).toList();
+    } on DioException {
+      return [];
+    }
   }
 
   @override
@@ -100,15 +114,24 @@ class LunaClient implements ApiClient {
 
   @override
   Future<VideoDetail> getVideoDetail(String videoId) async {
-    final response = await _dio.get('/api/detail/$videoId');
-    return VideoDetail.fromJson(response.data);
+    try {
+      final response = await _dio.get('/api/detail/$videoId');
+      return VideoDetail.fromJson(response.data as Map<String, dynamic>);
+    } on DioException {
+      // Return empty detail on network errors
+      return const VideoDetail(id: '', title: '');
+    }
   }
 
   @override
   Future<List<VideoSource>> getSources(String videoId) async {
-    final response = await _dio.get('/api/sources/$videoId');
-    final List<dynamic> data = response.data['sources'] ?? [];
-    return data.map((json) => VideoSource.fromJson(json)).toList();
+    try {
+      final response = await _dio.get('/api/sources/$videoId');
+      final List<dynamic> data = response.data['sources'] ?? [];
+      return data.map((json) => VideoSource.fromJson(json)).toList();
+    } on DioException {
+      return [];
+    }
   }
 
   @override
@@ -288,7 +311,7 @@ class LunaClient implements ApiClient {
           sourceType: RecommendationSource.history,
         );
       }).toList();
-    } catch (e) {
+    } catch (_) {
       return [];
     }
   }
