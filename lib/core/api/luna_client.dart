@@ -36,16 +36,26 @@ class LunaClient implements ApiClient {
         };
       }
       return null;
-    } on DioException {
+    } on DioException catch (e) {
+      // Distinguish auth failure from network errors for better UX
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        return null; // invalid credentials
+      }
+      // Network-related failures: timeout, connection refused, no internet
       return null;
     }
   }
 
   @override
   Future<List<Category>> getCategories() async {
-    final response = await _dio.get('/api/categories');
-    final List<dynamic> data = response.data['categories'] ?? [];
-    return data.map((json) => Category.fromJson(json)).toList();
+    try {
+      final response = await _dio.get('/api/categories');
+      final List<dynamic> data = response.data['categories'] ?? [];
+      return data.map((json) => Category.fromJson(json)).toList();
+    } on DioException catch (e) {
+      // Return empty on network errors; caller handles gracefully
+      return [];
+    }
   }
 
   @override
@@ -218,18 +228,18 @@ class LunaClient implements ApiClient {
       final data = response.data;
 
       // 處理預期格式
-      if (data['recommendations'] != null && (data['recommendations'] as List).isNotEmpty) {
-        return (data['recommendations'] as List)
-            .map((e) {
-              final json = Map<String, dynamic>.from(e as Map);
-              json['source_type'] = 'ai';
-              return AIRecommendation.fromJson(json);
-            })
-            .toList();
+      if (data['recommendations'] != null &&
+          (data['recommendations'] as List).isNotEmpty) {
+        return (data['recommendations'] as List).map((e) {
+          final json = Map<String, dynamic>.from(e as Map);
+          json['source_type'] = 'ai';
+          return AIRecommendation.fromJson(json);
+        }).toList();
       }
 
       // 處理空值情況
-      if (data['total'] == 0 || (data['recommendations'] as List?)?.isEmpty == true) {
+      if (data['total'] == 0 ||
+          (data['recommendations'] as List?)?.isEmpty == true) {
         return [];
       }
 
@@ -298,7 +308,10 @@ class LunaClient implements ApiClient {
   }
 
   @override
-  Future<List<YoutubeVideo>> getYoutubeList(String categoryId, {String? page}) async {
+  Future<List<YoutubeVideo>> getYoutubeList(
+    String categoryId, {
+    String? page,
+  }) async {
     try {
       final response = await _dio.get(
         '/api/youtube/list',

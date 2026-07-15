@@ -9,7 +9,8 @@ import 'mock_client.dart';
 /// USE_MOCK=false → LunaClient
 
 ApiClient createApiClient() {
-  final useMock = const bool.fromEnvironment('USE_MOCK', defaultValue: true);
+  // ponytail: default false so production builds use real API; tests override with true
+  final useMock = const bool.fromEnvironment('USE_MOCK', defaultValue: false);
 
   if (useMock) {
     return MockClient();

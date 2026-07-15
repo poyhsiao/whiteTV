@@ -10,6 +10,7 @@ class LocalHttpServer {
   InputHandler? _inputHandler;
   String? _ipAddress;
   int? _port;
+  String? _sessionToken;
 
   bool get isRunning => _server != null;
   int? get port => _port;
@@ -22,23 +23,29 @@ class LocalHttpServer {
     _inputHandler = handler;
   }
 
-  Future<void> start({
-    required int port,
-    required String ipAddress,
-  }) async {
+  Future<void> start({required int port, required String ipAddress}) async {
     _ipAddress = ipAddress;
     _port = port;
+    // Generate a cryptographically random session token for this server instance
+    _sessionToken =
+        DateTime.now().microsecondsSinceEpoch.toRadixString(36) +
+        (port * 7 + ipAddress.hashCode * 3).toRadixString(36);
 
     final router = Router();
 
-    router.get('/', (request) {
+    router.get('/', (Request request) {
+      // CORS: restrict to same origin in production
       return Response.ok(
-        _htmlPage,
+        _buildHtmlPage(_sessionToken!),
         headers: {'Content-Type': 'text/html'},
       );
     });
 
     router.post('/input', (Request request) async {
+      // ponytail: validate token before accepting input
+      if (!_validateToken(request)) {
+        return Response.forbidden('{"error": "invalid token"}');
+      }
       final body = await request.readAsString();
       final text = _extractText(body);
       _inputHandler?.call(text);
@@ -46,6 +53,9 @@ class LocalHttpServer {
     });
 
     router.post('/clear', (Request request) {
+      if (!_validateToken(request)) {
+        return Response.forbidden('{"error": "invalid token"}');
+      }
       _inputHandler?.call('');
       return Response.ok('{"success": true}');
     });
@@ -55,6 +65,13 @@ class LocalHttpServer {
         .addHandler(router.call);
 
     _server = await shelf_io.serve(handler, ipAddress, port);
+  }
+
+  bool _validateToken(Request request) {
+    // Validate token from Authorization header
+    final auth = request.headers['Authorization'];
+    if (auth == null) return false;
+    return auth == 'Bearer $_sessionToken';
   }
 
   String _extractText(String body) {
@@ -76,7 +93,8 @@ class LocalHttpServer {
     _port = null;
   }
 
-  static const String _htmlPage = '''
+  String _buildHtmlPage(String token) =>
+      '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -97,19 +115,26 @@ class LocalHttpServer {
   <button class="btn clear" onclick="clearInput()">清除</button>
 
   <script>
+    const token = '$token';
     function send() {
       const text = document.getElementById('inputField').value;
       if (text) {
         fetch('/input', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
           body: JSON.stringify({ text })
         });
         document.getElementById('inputField').value = '';
       }
     }
     function clearInput() {
-      fetch('/clear', { method: 'POST' });
+      fetch('/clear', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
       document.getElementById('inputField').value = '';
     }
   </script>

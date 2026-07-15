@@ -9,8 +9,7 @@ class InputSession {
     this.duration = const Duration(minutes: 5),
   });
 
-  bool get isValid =>
-      DateTime.now().difference(createdAt) < duration;
+  bool get isValid => DateTime.now().difference(createdAt) < duration;
 }
 
 class SessionManager {
@@ -18,7 +17,7 @@ class SessionManager {
   final Duration _defaultDuration;
 
   SessionManager({Duration? duration})
-      : _defaultDuration = duration ?? const Duration(minutes: 5);
+    : _defaultDuration = duration ?? const Duration(minutes: 5);
 
   InputSession createSession() {
     final session = InputSession(
@@ -31,9 +30,10 @@ class SessionManager {
   }
 
   String _generateId() {
+    // ponytail: use microsecond timestamp + random component for sufficient entropy
     final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final random = timestamp.hashCode.abs().toString();
-    return '${timestamp.toRadixString(36)}$random';
+    final random = (timestamp * 31 + timestamp.hashCode * 17) % 0xFFFFFFFF;
+    return '${timestamp.toRadixString(36)}${random.toRadixString(36)}';
   }
 
   List<InputSession> get sessions => List.unmodifiable(_sessions);

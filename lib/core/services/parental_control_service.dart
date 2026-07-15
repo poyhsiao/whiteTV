@@ -17,7 +17,7 @@ class SecureStorageImpl implements SecureStorageInterface {
   final FlutterSecureStorage _storage;
 
   SecureStorageImpl({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   @override
   Future<String?> read(String key) => _storage.read(key: key);
@@ -63,15 +63,17 @@ class ParentalControlService {
   static const _lockoutUntilKey = 'parental_lockout_until';
   static const _maxAttempts = 3;
   static const _lockoutDuration = Duration(seconds: 60);
+  static const _saltKey = 'parental_pin_salt_v1';
 
   final SecureStorageInterface _secure;
   SharedPreferences? _prefs;
+  String? _deviceId; // ponytail: per-install salt for PIN hashing
 
   ParentalControlService({
     SecureStorageInterface? secure,
     SharedPreferences? prefs,
-  })  : _secure = secure ?? SecureStorageImpl(),
-        _prefs = prefs;
+  }) : _secure = secure ?? SecureStorageImpl(),
+       _prefs = prefs;
 
   Future<SharedPreferences> _getPrefs() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -102,7 +104,7 @@ class ParentalControlService {
   }
 
   Future<void> setPin(String pin) async {
-    final hash = _hashPin(pin);
+    final hash = await _hashPin(pin);
     await _secure.write(_pinHashKey, hash);
   }
 
@@ -131,7 +133,7 @@ class ParentalControlService {
     final hash = await _secure.read(_pinHashKey);
     if (hash == null) return false;
 
-    if (hash == _hashPin(pin)) {
+    if (hash == await _hashPin(pin)) {
       await prefs.setInt(_failedAttemptsKey, 0);
       return true;
     }
@@ -154,8 +156,20 @@ class ParentalControlService {
     await prefs.setBool(_enabledKey, enabled);
   }
 
-  String _hashPin(String pin) {
-    final bytes = utf8.encode(pin);
+  // ponytail: per-install salt prevents rainbow table attacks on PIN hash
+  Future<String> _getSalt() async {
+    var salt = await _secure.read(_saltKey);
+    if (salt == null) {
+      // Generate stable per-install salt using device random
+      salt = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      await _secure.write(_saltKey, salt);
+    }
+    return salt;
+  }
+
+  Future<String> _hashPin(String pin) async {
+    final salt = await _getSalt();
+    final bytes = utf8.encode('$pin:$salt');
     return sha256.convert(bytes).toString();
   }
 }

@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.12.3** - Live TV BDD steps test fixes
+**v0.12.4** - Security hardening: PIN salt, session entropy, Bearer token auth, error sanitization + YouTube BDD steps
 
 ## Features
 

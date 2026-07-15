@@ -13,7 +13,9 @@ import 'package:white_tv/features/search/search_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 
-class FakeSettingsStorageService with SettingsStorageServiceFallbacks implements SettingsStorageService {
+class FakeSettingsStorageService
+    with SettingsStorageServiceFallbacks
+    implements SettingsStorageService {
   String? _authCookie;
   String? _username;
 
@@ -259,7 +261,7 @@ void main() {
 
       expect(result, false);
       expect(store.state.isLoggedIn, false);
-      expect(store.state.error, contains('Network error'));
+      expect(store.state.error, contains('網路錯誤'));
     });
 
     test('logout clears state and storage', () async {

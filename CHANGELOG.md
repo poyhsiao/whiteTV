@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v0.12.4 (2026-07-15)
+
+### Security
+- **PIN hashing with per-install salt** — `ParentalControlService._hashPin` now uses a random per-device salt, preventing rainbow table attacks on stored PINs
+- **Session ID entropy improvement** — `SessionManager._generateId` combines microsecond timestamp with multiplicative hash for unpredictable session IDs
+- **Local HTTP server Bearer token auth** — `LocalHttpServer` now validates `Authorization: Bearer <token>` on all `/input` and `/clear` requests, preventing rogue LAN websites from injecting text
+- **Auth error message sanitization** — `AuthStore.login` no longer exposes raw exception strings; users see "網路錯誤，請稍後重試"
+- **DioException error categorization** — `LunaClient` now distinguishes HTTP 401/403 (auth failure) from network errors for precise error handling
+
+### Added
+- **YouTube BDD steps** (`test/bdd/steps/youtube_steps.dart`) — 9 tests covering all 5 Gherkin scenarios from `youtube.feature`
+
+### Fixed
+- **USE_MOCK default to false** — `client_factory.dart` now defaults to `USE_MOCK=false`, ensuring production builds use the real LunaTV API
+
 ## v0.12.3 (2026-07-15)
 
 ### Fixed

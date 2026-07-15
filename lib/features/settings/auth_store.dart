@@ -52,7 +52,8 @@ class AuthStore extends StateNotifier<AuthState> {
       state = state.copyWith(error: '登入失敗');
       return false;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      // Don't expose internal error details to UI
+      state = state.copyWith(error: '網路錯誤，請稍後重試');
       return false;
     }
   }
