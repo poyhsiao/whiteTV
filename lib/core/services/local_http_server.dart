@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
@@ -26,10 +28,8 @@ class LocalHttpServer {
   Future<void> start({required int port, required String ipAddress}) async {
     _ipAddress = ipAddress;
     _port = port;
-    // Generate a cryptographically random session token for this server instance
-    _sessionToken =
-        DateTime.now().microsecondsSinceEpoch.toRadixString(36) +
-        (port * 7 + ipAddress.hashCode * 3).toRadixString(36);
+    final random = Random.secure();
+    _sessionToken = List.generate(16, (_) => random.nextInt(36).toRadixString(36)).join();
 
     final router = Router();
 
@@ -74,13 +74,11 @@ class LocalHttpServer {
     return auth == 'Bearer $_sessionToken';
   }
 
-  // ponytail: sanitize extracted text to prevent header injection via newline chars
   String _extractText(String body) {
     try {
-      if (body.contains('"text"')) {
-        final match = RegExp(r'"text"\s*:\s*"([^"]*)"').firstMatch(body);
-        final text = match?.group(1) ?? '';
-        // Strip control chars (prevents HTTP header injection via \r\n in body)
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic> && decoded['text'] is String) {
+        final text = decoded['text'] as String;
         return text.replaceAll(RegExp(r'[\x00-\x1f\x7f]'), '');
       }
       return '';

@@ -64,6 +64,8 @@ class AIRecommendation {
         return RecommendationSource.history;
       case 'popular':
         return RecommendationSource.popular;
+      case 'search':
+        return RecommendationSource.search;
       default:
         return RecommendationSource.ai;
     }

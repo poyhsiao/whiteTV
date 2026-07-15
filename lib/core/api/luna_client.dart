@@ -16,9 +16,11 @@ class LunaClient implements ApiClient {
 
   static String _resolveBaseUrl() {
     try {
-      return dotenv.env['LUNATV_API_URL'] ?? 'https://moon2.kimhsiao.com';
+      final configuredUrl = dotenv.env['LUNATV_API_URL']?.trim();
+      return configuredUrl == null || configuredUrl.isEmpty
+          ? 'https://moon2.kimhsiao.com'
+          : configuredUrl;
     } catch (_) {
-      // dotenv not initialized (tests) — use default
       return 'https://moon2.kimhsiao.com';
     }
   }
@@ -46,13 +48,11 @@ class LunaClient implements ApiClient {
       }
       return null;
     } on DioException catch (e) {
-      // Distinguish auth failure from network errors for caller feedback
       if (e.type == DioExceptionType.badResponse &&
           (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
-        return null; // invalid credentials — caller shows appropriate message
+        return null;
       }
-      // Network-related failures — caller retries or shows offline message
-      return null;
+      rethrow;
     }
   }
 

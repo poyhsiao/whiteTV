@@ -285,23 +285,13 @@ class MockClient implements ApiClient {
   @override
   Future<String?> getIptvM3U() async {
     await Future.delayed(_delay);
-    return '''
-#EXTM3U
-#EXTINF:-1 tvg-name="CCTV-1 綜合" tvg-logo="https://example.com/cctv1.png" group-title="CCTV",CCTV-1 綜合
-https://example.com/cctv1.m3u8
-#EXTINF:-1 tvg-name="CCTV-2 財經" tvg-logo="https://example.com/cctv2.png" group-title="CCTV",CCTV-2 財經
-https://example.com/cctv2.m3u8
-#EXTINF:-1 tvg-name="CCTV-5 體育" tvg-logo="https://example.com/cctv5.png" group-title="CCTV",CCTV-5 體育
-https://example.com/cctv5.m3u8
-#EXTINF:-1 tvg-name="湖南衛視" tvg-logo="https://example.com/hunan.png" group-title="綜藝",湖南衛視
-https://example.com/hunan.m3u8
-#EXTINF:-1 tvg-name="浙江衛視" tvg-logo="https://example.com/zhejiang.png" group-title="綜藝",浙江衛視
-https://example.com/zhejiang.m3u8
-#EXTINF:-1 tvg-name="鳳凰衛視" tvg-logo="https://example.com/dragon.png" group-title="新聞",鳳凰衛視
-https://example.com/dragon.m3u8
-#EXTINF:-1 tvg-name="BBC World" tvg-logo="https://example.com/bbc.png" group-title="國際",BBC World
-https://example.com/bbc.m3u8
-''';
+    final buffer = StringBuffer('#EXTM3U\n');
+    for (final channel in _mockChannels) {
+      buffer.writeln(
+          '#EXTINF:-1 tvg-name="${channel.name}" tvg-logo="${channel.logo}" group-title="${channel.group}",${channel.name}');
+      buffer.writeln(channel.url);
+    }
+    return buffer.toString();
   }
 
   @override

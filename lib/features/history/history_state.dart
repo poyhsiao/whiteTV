@@ -35,7 +35,7 @@ class HistoryState {
   Map<HistoryGroup, List<PlayHistory>> get groupedByTime {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
 
     final todayRecords = <PlayHistory>[];
     final yesterdayRecords = <PlayHistory>[];
