@@ -6,7 +6,7 @@ A production-ready Flutter TV application for streaming video content, featuring
 
 ## Version
 
-**v0.12.4** - Security hardening: PIN salt, session entropy, Bearer token auth, error sanitization + YouTube BDD steps
+**v0.12.5** - Security: Random.secure() for session IDs, PIN salt, and HTTP header injection guard
 
 ## Features
 

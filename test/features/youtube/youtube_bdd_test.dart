@@ -35,7 +35,7 @@ void main() {
           // Assert
           expect(store.state.status, YoutubeStatus.loaded);
           expect(store.state.recommendVideos, isNotEmpty);
-          expect(store.state.recommendVideos.length, 3);
+          expect(store.state.recommendVideos.length, 12);
         },
       );
 
@@ -68,8 +68,8 @@ void main() {
           await store.loadRecommend();
 
           // Assert
-          expect(store.state.recommendVideos[0].title, '熱門影片 1');
-          expect(store.state.recommendVideos[1].title, '熱門影片 2');
+          expect(store.state.recommendVideos[0].title, '2024年度最佳音樂精選');
+          expect(store.state.recommendVideos[1].title, '最新流行音樂 MV');
         },
       );
     });

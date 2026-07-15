@@ -46,10 +46,11 @@ void main() {
     });
 
     test('RecommendationSource enum has correct values', () {
-      expect(RecommendationSource.values.length, equals(3));
+      expect(RecommendationSource.values.length, equals(4));
       expect(RecommendationSource.ai.name, equals('ai'));
       expect(RecommendationSource.history.name, equals('history'));
       expect(RecommendationSource.popular.name, equals('popular'));
+      expect(RecommendationSource.search.name, equals('search'));
     });
 
     test('toJson produces correct output', () {

@@ -106,6 +106,7 @@ class RecommendationCard extends StatelessWidget {
       RecommendationSource.ai => ('🤖', 'AI'),
       RecommendationSource.history => ('📺', '偏好'),
       RecommendationSource.popular => ('🔥', '熱門'),
+      RecommendationSource.search => ('🔍', '搜尋'),
     };
 
     return Container(
@@ -130,6 +131,7 @@ class RecommendationCard extends StatelessWidget {
       RecommendationSource.ai => const Color(0xFFB8860B), // 琥珀色
       RecommendationSource.history => const Color(0xFF4169E1), // 藍色
       RecommendationSource.popular => const Color(0xFFDC143C), // 紅色
+      RecommendationSource.search => const Color(0xFF2E8B57), // 海綠色
     };
   }
 

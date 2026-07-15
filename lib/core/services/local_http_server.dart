@@ -74,11 +74,14 @@ class LocalHttpServer {
     return auth == 'Bearer $_sessionToken';
   }
 
+  // ponytail: sanitize extracted text to prevent header injection via newline chars
   String _extractText(String body) {
     try {
       if (body.contains('"text"')) {
         final match = RegExp(r'"text"\s*:\s*"([^"]*)"').firstMatch(body);
-        return match?.group(1) ?? '';
+        final text = match?.group(1) ?? '';
+        // Strip control chars (prevents HTTP header injection via \r\n in body)
+        return text.replaceAll(RegExp(r'[\x00-\x1f\x7f]'), '');
       }
       return '';
     } catch (_) {

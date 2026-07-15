@@ -4,6 +4,7 @@ enum RecommendationSource {
   ai,
   history,
   popular,
+  search,
 }
 
 class AIRecommendation {
@@ -19,6 +20,7 @@ class AIRecommendation {
   final String? type;
   final String? doubanId;
   final int? episodeTotal;
+  final String? categoryId; // for local recommendation filtering
 
   const AIRecommendation({
     required this.id,
@@ -33,22 +35,24 @@ class AIRecommendation {
     this.type,
     this.doubanId,
     this.episodeTotal,
+    this.categoryId,
   });
 
   factory AIRecommendation.fromJson(Map<String, dynamic> json) {
     return AIRecommendation(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
       posterUrl: json['poster'] as String? ?? json['poster_url'] as String?,
       description: json['desc'] as String? ?? json['description'] as String?,
-      source: json['source'] as String,
-      sourceName: json['source_name'] as String? ?? json['sourceName'] as String,
+      source: json['source'] as String? ?? 'unknown',
+      sourceName: json['source_name'] as String? ?? json['sourceName'] as String? ?? '未知來源',
       reason: json['reason'] as String?,
       sourceType: _parseSourceType(json['source_type'] as String?),
       year: (json['year'] ?? json['release_year'])?.toString(),
       type: json['type'] as String? ?? json['type_name'] as String?,
       doubanId: json['douban_id']?.toString(),
       episodeTotal: json['total_episodes'] as int? ?? json['episodeTotal'] as int?,
+      categoryId: json['category_id'] as String?,
     );
   }
 
@@ -78,5 +82,6 @@ class AIRecommendation {
         'type': type,
         'douban_id': doubanId,
         'total_episodes': episodeTotal,
+        'category_id': categoryId,
       };
 }

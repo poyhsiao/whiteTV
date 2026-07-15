@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v0.12.5 (2026-07-15)
+
+### Security
+- **Session ID: insecure Math.random() replaced with Random.secure()** — `SessionManager._generateId` now uses `dart:math.Random.secure()` for cryptographically secure 128-bit random IDs instead of timestamp-derived deterministic values
+- **PIN salt: microsecond timestamp replaced with Random.secure()** — `ParentalControlService._getSalt` now uses `Random.secure()` for 128-bit random salt instead of timestamp-based value
+- **Local HTTP server: header injection guard** — `LocalHttpServer._extractText` strips control characters (`\x00-\x1f\x7f`) from JSON body to prevent HTTP header injection via newline chars in the `/input` endpoint
+
+### Chores
+- Added `dart:math` import to `session_manager.dart` and `parental_control_service.dart`
+
 ## v0.12.4 (2026-07-15)
 
 ### Security

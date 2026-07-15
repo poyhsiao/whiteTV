@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -160,8 +161,11 @@ class ParentalControlService {
   Future<String> _getSalt() async {
     var salt = await _secure.read(_saltKey);
     if (salt == null) {
-      // Generate stable per-install salt using device random
-      salt = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      // Generate stable per-install salt using cryptographically secure random
+      final random = Random.secure();
+      salt = List.generate(16, (_) => random.nextInt(256))
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join();
       await _secure.write(_saltKey, salt);
     }
     return salt;

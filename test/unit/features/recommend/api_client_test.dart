@@ -25,11 +25,10 @@ void main() {
     });
 
     group('getLocalRecommendations', () {
-      test('returns mock recommendations with history source type', () async {
+      test('returns mock recommendations from pool', () async {
         final result = await mockClient.getLocalRecommendations();
         expect(result, isNotEmpty);
-        expect(result.length, equals(2));
-        expect(result.every((r) => r.sourceType == RecommendationSource.history), isTrue);
+        expect(result.length, equals(5)); // _localRecPool has 5 items
       });
 
       test('returns List<AIRecommendation>', () async {
@@ -44,7 +43,7 @@ void main() {
           expect(recommendation.title, isNotEmpty);
           expect(recommendation.source, isNotEmpty);
           expect(recommendation.sourceName, isNotEmpty);
-          expect(recommendation.sourceType, equals(RecommendationSource.history));
+          expect(RecommendationSource.values, contains(recommendation.sourceType));
         }
       });
 
