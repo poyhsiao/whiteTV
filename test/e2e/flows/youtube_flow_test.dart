@@ -15,7 +15,6 @@ import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/youtube/presentation/providers/youtube_store.dart';
 import 'package:white_tv/features/home/home_store.dart';
 import 'package:white_tv/features/settings/settings_store.dart';
-import 'package:white_tv/features/settings/services/settings_storage_service.dart';
 import '../e2e_test_helpers.dart';
 import '../pages/youtube_page.dart';
 

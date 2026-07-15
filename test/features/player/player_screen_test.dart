@@ -58,7 +58,6 @@ void main() {
     });
 
 
-    ;
 
     testWidgets('renders video player container', (tester) async {
       final mockClient = MockClient();

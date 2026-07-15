@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/api_client_fallbacks.dart';
 import 'package:white_tv/core/api/models.dart';
-import 'package:white_tv/features/youtube/presentation/providers/youtube_store.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
 import 'package:white_tv/features/live/data/models/ipvt_channel.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';

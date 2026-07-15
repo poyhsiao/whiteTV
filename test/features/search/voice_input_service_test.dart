@@ -2,7 +2,6 @@
 // TDD 紅階段: 驗證 SpeechController 應為可注入 interface
 // 規範: Sprint 4 限制:SpeechToText 硬編碼,純 mock 不可替換
 
-import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/features/search/services/voice_input_service.dart';

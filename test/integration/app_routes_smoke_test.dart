@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:white_tv/core/api/dio_provider.dart';
 import 'package:white_tv/core/router/app_router.dart';
 import 'package:white_tv/features/downloads/presentation/screens/downloads_screen.dart';
 import 'package:white_tv/features/favorites/services/favorites_remote_service.dart';

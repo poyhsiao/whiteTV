@@ -2,7 +2,6 @@
 // Verifies SourceSelector accepts an HttpClient factory so tests can avoid
 // touching dart:io's real HttpClient.
 
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/models.dart';

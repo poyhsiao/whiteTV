@@ -68,7 +68,6 @@ class ParentalControlService {
 
   final SecureStorageInterface _secure;
   SharedPreferences? _prefs;
-  String? _deviceId; // ponytail: per-install salt for PIN hashing
 
   ParentalControlService({
     SecureStorageInterface? secure,

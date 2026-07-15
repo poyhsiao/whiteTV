@@ -1,7 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/core/api/mock_client.dart';
-import 'package:white_tv/features/category/category_content_state.dart';
 import 'package:white_tv/features/category/category_content_store.dart';
 import 'package:white_tv/features/category/category_constants.dart';
 
@@ -71,7 +69,6 @@ void main() {
 
     test('refresh resets and reloads', () async {
       await store.loadContent();
-      final videosBefore = store.state.videos;
       store.refresh();
       expect(store.state.isLoading, isTrue);
       // After refresh completes

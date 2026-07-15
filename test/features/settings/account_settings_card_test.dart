@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/settings/widgets/account_settings_card.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
 import 'package:white_tv/features/settings/services/settings_storage_service.dart';
-import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/mock_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,11 +64,8 @@ void main() {
       );
 
       // Add listener to wait for state changes
-      var stateChanged = false;
       container.listen(authStoreProvider, (previous, next) {
-        if (next.isLoggedIn == true && next.username == 'testuser') {
-          stateChanged = true;
-        }
+        // Just observe state changes without using the result
       });
 
       await tester.pumpWidget(

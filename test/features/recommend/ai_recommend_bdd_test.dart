@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:white_tv/core/api/api_client.dart';
 import 'package:white_tv/core/api/api_client_fallbacks.dart';
 import 'package:white_tv/core/api/client_factory.dart';
 import 'package:white_tv/features/recommend/data/models/ai_recommendation.dart';
 import 'package:white_tv/features/recommend/presentation/pages/ai_recommend_page.dart';
 import 'package:white_tv/features/recommend/presentation/providers/ai_recommend_store.dart';
-import 'package:white_tv/features/recommend/presentation/widgets/recommendation_carousel.dart';
 import 'package:white_tv/features/recommend/presentation/widgets/recommendation_reason_sheet.dart';
 import 'package:white_tv/shared/widgets/empty_state.dart';
 

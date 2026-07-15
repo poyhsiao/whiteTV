@@ -1,9 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:white_tv/features/downloads/downloads_store.dart';
-import 'package:white_tv/features/downloads/downloads_state.dart';
 import 'package:white_tv/features/history/models/play_history.dart';
-import 'package:white_tv/features/history/models/media_type.dart';
 import 'package:white_tv/features/history/services/history_local_service.dart';
 import 'package:white_tv/features/player/services/download_service.dart';
 

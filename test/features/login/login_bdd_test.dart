@@ -5,8 +5,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:white_tv/core/services/input_service_provider.dart';
 import 'package:white_tv/features/login/presentation/screens/login_screen.dart';
 import 'package:white_tv/features/settings/auth_store.dart';
-import 'package:white_tv/shared/widgets/qr_input_widget.dart';
-import 'package:white_tv/core/services/input_service.dart';
 import '../../helpers/spy_input_service.dart';
 
 class MockAuthStore extends Mock implements AuthStore {}
@@ -15,10 +13,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Login Feature (BDD)', () {
-    late MockAuthStore mockAuthStore;
-
     setUp(() {
-      mockAuthStore = MockAuthStore();
+      // Mock store setup if needed
     });
 
     // =========================================================================

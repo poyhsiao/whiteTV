@@ -6,7 +6,6 @@ import 'package:white_tv/core/api/mock_client.dart';
 import 'package:white_tv/core/source/source_selector.dart';
 import 'package:white_tv/core/source/source_selector_provider.dart';
 import 'package:white_tv/features/detail/detail_screen.dart';
-import 'package:white_tv/features/detail/detail_store.dart';
 import 'package:white_tv/features/home/home_store.dart';
 
 void main() {

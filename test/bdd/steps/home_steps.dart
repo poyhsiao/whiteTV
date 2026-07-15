@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:white_tv/features/home/home_store.dart';
-import 'package:white_tv/core/api/models.dart';
 
 void main() {
   group('Home Screen BDD', () {
@@ -36,7 +35,7 @@ void main() {
       
       // Then 應該顯示 "最近觀看" 區塊
       if (state.recentHistory.isNotEmpty) {
-        expect(state.recentHistory.first.progressPercent != null, isTrue);
+        expect(state.recentHistory.first.progressPercent, isNotNull);
       }
     });
 

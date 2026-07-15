@@ -129,17 +129,14 @@ class MockTimeshiftManager with TimeshiftManagerFallbacks implements TimeshiftMa
   String? serviceSideStreamUrl;
   bool _isClientBufferActive = false;
   Duration _bufferedDuration = Duration.zero;
-  Duration _maxDuration = const Duration(days: 7);
   File? _bufferedFile;
 
   /// Enable client buffer simulation with buffered content.
   void enableClientBuffer({
     Duration bufferedDuration = const Duration(minutes: 30),
-    Duration maxDuration = const Duration(minutes: 60),
   }) {
     _isClientBufferActive = true;
     _bufferedDuration = bufferedDuration;
-    _maxDuration = maxDuration;
     _state = TimeshiftState(
       position: Duration.zero,
       bufferedDuration: bufferedDuration,
@@ -538,18 +535,17 @@ void main() {
         'WHEN user seeks beyond oldest buffered segment '
         'THEN timeline stops at the oldest available segment',
         () async {
-          // Arrange — buffer has 30 minutes of content (max 60 min)
+          // Arrange — buffer has 30 minutes of content
           final manager = MockTimeshiftManager();
           manager.enableClientBuffer(
             bufferedDuration: const Duration(minutes: 30),
-            maxDuration: const Duration(minutes: 60),
           );
           final service = _createService(timeshiftManager: manager);
           await service.startTimeshift(_testChannel, Duration.zero);
 
           // Act — seek beyond buffer range (45 minutes back, but only 30 buffered)
           final seekToOffset = const Duration(minutes: -45);
-          final state = await service.startTimeshift(_testChannel, seekToOffset);
+          await service.startTimeshift(_testChannel, seekToOffset);
 
           // Assert — manager clamped to oldest available (30 min)
           expect(manager.isClientBufferActive, true);

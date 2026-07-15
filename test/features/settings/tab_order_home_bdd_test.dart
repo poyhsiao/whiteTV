@@ -31,10 +31,10 @@ class FakeSettingsStorage implements SettingsStorageService {
   @override Future<List<String>> getTabOrder() async => _tabOrder;
   @override Future<void> saveTimeshiftBufferDuration(int v) async => _timeshiftBufferDuration = v;
   @override Future<int> getTimeshiftBufferDuration() async => _timeshiftBufferDuration;
-  @override Future<String?> getPinHash() async => null;
-  @override Future<void> savePinHash(String? hash) async {}
-  @override Future<bool> isParentalLockEnabled() async => false;
-  @override Future<void> saveParentalLockEnabled(bool v) async {}
+  Future<String?> getPinHash() async => null;
+  Future<void> savePinHash(String? hash) async {}
+  Future<bool> isParentalLockEnabled() async => false;
+  Future<void> saveParentalLockEnabled(bool v) async {}
   @override Future<String?> getUsername() async => null;
   @override Future<void> saveUsername(String? username) async {}
   @override Future<String?> getAuthCookie() async => null;

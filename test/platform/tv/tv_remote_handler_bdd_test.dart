@@ -164,13 +164,11 @@ class _FakeControls implements PlayerControls {
   final void Function()? onPreviousEpisode;
 
   _FakeControls({
-    this.onPlay,
-    this.onPause,
     this.onSeekForward,
     this.onSeekBackward,
     this.onNextEpisode,
     this.onPreviousEpisode,
-  });
+  }) : onPause = null, onPlay = null;
 
   @override
   void play() => onPlay?.call();

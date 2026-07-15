@@ -28,7 +28,6 @@ class _CategoriesMockClient extends MockClient {
   Future<List<Video>> getVideosByCategory(String categoryId) async => _videos;
   @override
   Future<List<Video>> getHotMovies({int limit = 20}) async => _videos;
-  @override
   Future<List<PlayHistory>> getRecentHistory() async => [];
   @override
   Future<List<AIRecommendation>> getAIRecommendations() async => [];
@@ -40,7 +39,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Home Blocks Visibility — BDD', () {
-    Future<ProviderContainer> _makeContainer(
+    Future<ProviderContainer> makeContainer(
         Map<String, bool> homeBlocks) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -72,7 +71,7 @@ void main() {
       Then 應該不顯示最近觀看區塊
       And 其他區塊正常顯示
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': false,
         'showLive': true,
         'showCategories': true,
@@ -98,7 +97,7 @@ void main() {
       Given 直播入口設為隱藏
       Then 應該不顯示直播入口區塊
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': true,
         'showLive': false,
         'showCategories': true,
@@ -124,7 +123,7 @@ void main() {
       Given 分類內容設為隱藏
       Then 應該不顯示分類橫向滾動區塊
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': true,
         'showLive': true,
         'showCategories': false,
@@ -149,7 +148,7 @@ void main() {
       Given 為你推薦設為隱藏
       Then 應該不顯示 AI 推薦區塊
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': true,
         'showLive': true,
         'showCategories': true,
@@ -174,7 +173,7 @@ void main() {
       Given 熱門電影設為隱藏
       Then 應該不顯示熱門電影區塊
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': true,
         'showLive': true,
         'showCategories': true,
@@ -200,7 +199,7 @@ void main() {
       Then 應該只顯示空白首頁框架
       And 不崩潰
     ''', (tester) async {
-      final container = await _makeContainer({
+      final container = await makeContainer({
         'showRecentWatch': false,
         'showLive': false,
         'showCategories': false,
