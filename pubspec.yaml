@@ -54,6 +54,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   speech_to_text: ^7.0.0
   crypto: ^3.0.7
+  cryptography: ^2.7.0
   youtube_player_iframe: ^6.0.2
 
 dev_dependencies:

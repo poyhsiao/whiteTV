@@ -17,7 +17,17 @@ class LocalHttpServer {
   bool get isRunning => _server != null;
   int? get port => _port;
   String? get ipAddress => _ipAddress;
-  String get baseUrl => 'http://$_ipAddress:$_port';
+  String get baseUrl {
+    if (_ipAddress == null || _port == null) {
+      throw StateError('Server not running');
+    }
+    return 'http://$_ipAddress:$_port';
+  }
+
+  /// Nullable baseUrl for callers that need to handle unstarted state
+  String? get baseUrlOrNull => _ipAddress != null && _port != null
+      ? 'http://$_ipAddress:$_port'
+      : null;
 
   InputHandler? get inputHandler => _inputHandler;
 
@@ -71,7 +81,14 @@ class LocalHttpServer {
     // Validate token from Authorization header
     final auth = request.headers['Authorization'];
     if (auth == null) return false;
-    return auth == 'Bearer $_sessionToken';
+    final expected = 'Bearer $_sessionToken';
+    // Constant-time comparison to prevent timing attacks
+    if (auth.length != expected.length) return false;
+    var result = 0;
+    for (var i = 0; i < auth.length; i++) {
+      result |= auth.codeUnitAt(i) ^ expected.codeUnitAt(i);
+    }
+    return result == 0;
   }
 
   String _extractText(String body) {
@@ -92,6 +109,7 @@ class LocalHttpServer {
     _server = null;
     _ipAddress = null;
     _port = null;
+    _sessionToken = null;
   }
 
   String _buildHtmlPage(String token) =>
@@ -101,6 +119,7 @@ class LocalHttpServer {
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>whiteTV 輸入</title>
+  <meta name="token" content="$token">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; background: #1a1a1a; color: #fff; }
     input { width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: none; margin: 10px 0; box-sizing: border-box; }
@@ -116,7 +135,7 @@ class LocalHttpServer {
   <button class="btn clear" onclick="clearInput()">清除</button>
 
   <script>
-    const token = '$token';
+    const token = document.querySelector('meta[name="token"]').getAttribute('content');
     function send() {
       const text = document.getElementById('inputField').value;
       if (text) {

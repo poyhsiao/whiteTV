@@ -7,6 +7,9 @@ import 'package:white_tv/core/device/feature_flags.dart';
 /// 針對 player 控制項（播放/暫停、搜尋）提供快捷鍵支援
 /// 只在 tablet 和 desktop 平台上啟用（由 FeatureFlags.enableKeyboardNavigation 控制）
 class KeyboardShortcutsHandler {
+  /// Callback for player control commands
+  void Function(PlayerCommand)? onPlayerCommand;
+
   /// 處理鍵盤事件
   ///
   /// [event] - Flutter 鍵盤事件
@@ -27,18 +30,28 @@ class KeyboardShortcutsHandler {
 
     // Space = 播放/暫停
     if (event.logicalKey == LogicalKeyboardKey.space) {
+      onPlayerCommand?.call(PlayerCommand.playPause);
       return KeyEventResult.handled;
     }
 
     // 方向鍵 = 搜尋
     if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      onPlayerCommand?.call(PlayerCommand.seekForward);
       return KeyEventResult.handled;
     }
 
     if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      onPlayerCommand?.call(PlayerCommand.seekBackward);
       return KeyEventResult.handled;
     }
 
     return KeyEventResult.ignored;
   }
+}
+
+/// Player control commands
+enum PlayerCommand {
+  playPause,
+  seekForward,
+  seekBackward,
 }
