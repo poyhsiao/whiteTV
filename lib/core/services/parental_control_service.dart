@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:crypto/crypto.dart';
+
+import 'package:cryptography/cryptography.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,25 +57,39 @@ class ParentalControlState {
     if (lockoutUntil == null) return false;
     return DateTime.now().isBefore(lockoutUntil!);
   }
+
+  ParentalControlState copyWith({
+    bool? enabled,
+    bool? hasPin,
+    int? failedAttempts,
+    DateTime? lockoutUntil,
+  }) {
+    return ParentalControlState(
+      enabled: enabled ?? this.enabled,
+      hasPin: hasPin ?? this.hasPin,
+      failedAttempts: failedAttempts ?? this.failedAttempts,
+      lockoutUntil: lockoutUntil ?? this.lockoutUntil,
+    );
+  }
 }
 
 class ParentalControlService {
-  static const _pinHashKey = 'parental_pin_hash';
-  static const _enabledKey = 'parental_enabled';
-  static const _failedAttemptsKey = 'parental_failed_attempts';
-  static const _lockoutUntilKey = 'parental_lockout_until';
-  static const _maxAttempts = 3;
-  static const _lockoutDuration = Duration(seconds: 60);
-  static const _saltKey = 'parental_pin_salt_v1';
+  ParentalControlService({
+    SecureStorageInterface? secure,
+    this._prefs,
+  }) : _secure = secure ?? SecureStorageImpl();
 
   final SecureStorageInterface _secure;
   SharedPreferences? _prefs;
 
-  ParentalControlService({
-    SecureStorageInterface? secure,
-    SharedPreferences? prefs,
-  }) : _secure = secure ?? SecureStorageImpl(),
-       _prefs = prefs;
+  static const _pinHashKey = 'parental_pin_hash';
+  static const _saltKey = 'parental_pin_salt_v1';
+  static const _enabledKey = 'parental_enabled';
+  static const _failedAttemptsKey = 'parental_failed_attempts';
+  static const _lockoutUntilKey = 'parental_lockout_until';
+  static const _maxAttempts = 3;
+  // ponytail: 60-second lockout per original design
+  static const _lockoutDuration = Duration(seconds: 60);
 
   Future<SharedPreferences> _getPrefs() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -83,46 +99,37 @@ class ParentalControlService {
   Future<ParentalControlState> getState() async {
     final prefs = await _getPrefs();
     final enabled = prefs.getBool(_enabledKey) ?? false;
+    final storedHash = await _secure.read(_pinHashKey);
     final failedAttempts = prefs.getInt(_failedAttemptsKey) ?? 0;
-    final lockoutMillis = prefs.getInt(_lockoutUntilKey);
-    final lockoutUntil = lockoutMillis != null
-        ? DateTime.fromMillisecondsSinceEpoch(lockoutMillis)
-        : null;
-    final hasPin = await _hasPin();
-
+    final lockoutStr = prefs.getString(_lockoutUntilKey);
+    final lockoutUntil = lockoutStr != null ? DateTime.tryParse(lockoutStr) : null;
     return ParentalControlState(
       enabled: enabled,
-      hasPin: hasPin,
+      hasPin: storedHash != null,
       failedAttempts: failedAttempts,
       lockoutUntil: lockoutUntil,
     );
   }
 
-  Future<bool> _hasPin() async {
-    final hash = await _secure.read(_pinHashKey);
-    return hash != null && hash.isNotEmpty;
+  Future<void> toggleEnabled(bool enabled) async {
+    final prefs = await _getPrefs();
+    await prefs.setBool(_enabledKey, enabled);
   }
 
-  Future<void> setPin(String pin) async {
-    final hash = await _hashPin(pin);
-    await _secure.write(_pinHashKey, hash);
-  }
-
+  // ponytail: original verifyPin handles lockout internally
   Future<bool> verifyPin(String pin) async {
     final prefs = await _getPrefs();
 
-    // ponytail: short-circuit when parental control is disabled. UI_UX §17.2
-    // specifies content plays without a PIN prompt in this state.
+    // ponytail: short-circuit when parental control is disabled (UI_UX §17.2)
     if (!(prefs.getBool(_enabledKey) ?? false)) {
       return true;
     }
 
     // Check lockout
-    final lockoutMillis = prefs.getInt(_lockoutUntilKey);
-    if (lockoutMillis != null) {
-      if (DateTime.now().isBefore(
-        DateTime.fromMillisecondsSinceEpoch(lockoutMillis),
-      )) {
+    final lockoutStr = prefs.getString(_lockoutUntilKey);
+    if (lockoutStr != null) {
+      final lockoutUntil = DateTime.tryParse(lockoutStr);
+      if (lockoutUntil != null && DateTime.now().isBefore(lockoutUntil)) {
         return false;
       }
       // Lockout expired, reset attempts
@@ -133,27 +140,57 @@ class ParentalControlService {
     final hash = await _secure.read(_pinHashKey);
     if (hash == null) return false;
 
-    if (hash == await _hashPin(pin)) {
-      await prefs.setInt(_failedAttemptsKey, 0);
-      return true;
+    // ponytail: constant-time comparison prevents timing attacks
+    final inputHash = await _hashPin(pin);
+    if (!_constantTimeEquals(hash, inputHash)) {
+      final attempts = (prefs.getInt(_failedAttemptsKey) ?? 0) + 1;
+      await prefs.setInt(_failedAttemptsKey, attempts);
+      if (attempts >= _maxAttempts) {
+        final lockoutUntil = DateTime.now().add(_lockoutDuration);
+        await prefs.setString(_lockoutUntilKey, lockoutUntil.toIso8601String());
+      }
+      return false;
     }
 
-    final attempts = (prefs.getInt(_failedAttemptsKey) ?? 0) + 1;
-    await prefs.setInt(_failedAttemptsKey, attempts);
-
-    if (attempts >= _maxAttempts) {
-      await prefs.setInt(
-        _lockoutUntilKey,
-        DateTime.now().add(_lockoutDuration).millisecondsSinceEpoch,
-      );
-    }
-
-    return false;
+    await prefs.setInt(_failedAttemptsKey, 0);
+    return true;
   }
 
-  Future<void> toggleEnabled(bool enabled) async {
+  /// Constant-time string comparison to prevent timing attacks
+  bool _constantTimeEquals(String a, String b) {
+    if (a.length != b.length) return false;
+    var result = 0;
+    for (var i = 0; i < a.length; i++) {
+      result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
+    return result == 0;
+  }
+
+  Future<void> setPin(String pin) async {
+    final hash = await _hashPin(pin);
+    await _secure.write(_pinHashKey, hash);
+  }
+
+  Future<void> clearPin() async {
+    await _secure.delete(_pinHashKey);
     final prefs = await _getPrefs();
-    await prefs.setBool(_enabledKey, enabled);
+    await prefs.setInt(_failedAttemptsKey, 0);
+  }
+
+  Future<void> recordFailedAttempt() async {
+    final prefs = await _getPrefs();
+    final attempts = (prefs.getInt(_failedAttemptsKey) ?? 0) + 1;
+    await prefs.setInt(_failedAttemptsKey, attempts);
+    if (attempts >= _maxAttempts) {
+      final lockoutUntil = DateTime.now().add(_lockoutDuration);
+      await prefs.setString(_lockoutUntilKey, lockoutUntil.toIso8601String());
+    }
+  }
+
+  Future<void> resetFailedAttempts() async {
+    final prefs = await _getPrefs();
+    await prefs.setInt(_failedAttemptsKey, 0);
+    await prefs.remove(_lockoutUntilKey);
   }
 
   // ponytail: per-install salt prevents rainbow table attacks on PIN hash
@@ -170,9 +207,19 @@ class ParentalControlService {
     return salt;
   }
 
+  // ponytail: PBKDF2 via cryptography package — constant-time impl; 100k iterations
   Future<String> _hashPin(String pin) async {
     final salt = await _getSalt();
-    final bytes = utf8.encode('$pin:$salt');
-    return sha256.convert(bytes).toString();
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: 100000,
+      bits: 256,
+    );
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(utf8.encode(pin)),
+      nonce: utf8.encode(salt),
+    );
+    final hashBytes = await secretKey.extractBytes();
+    return crypto.sha256.convert(hashBytes).toString();
   }
 }

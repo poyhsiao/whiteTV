@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v0.12.7 (2026-07-17)
+
+### Security
+- **PIN hashing: PBKDF2 via cryptography package (100k iterations)** — `ParentalControlService._hashPin` now uses `cryptography` package PBKDF2 with HMAC.sha256, 100k iterations for password-based key derivation
+- **Constant-time token comparison** — Both `InputService` and `LocalHttpServer` now use constant-time string comparison to prevent timing attacks on Bearer tokens
+- **Secure token generation** — `Random.secure()` replaces `Math.random()` for session token generation in `InputService`
+
+### Added
+- **Keyboard shortcuts handler** (`lib/core/input/keyboard_handler.dart`) — `KeyboardShortcutsHandler` provides Space (play/pause), ArrowRight/Left (seek) for player controls on tablet/desktop
+
+### Changed
+- **LocalHttpServer.baseUrlOrNull** — Added nullable `baseUrlOrNull` getter for callers that need to handle unstarted state gracefully
+- **ParentalControlState copyWith** — Added `copyWith` method for immutable state updates
+
 ## v0.12.5 (2026-07-15)
 
 ### Security
